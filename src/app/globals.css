@@ -1,10 +1,16 @@
+@import url('../../public/css/fonts.css');
+@import url('../../public/css/style.css');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --primery: #35095E;
+  --secondry: #51216E;
+  --text:#282C35;
+  --white:#fff;
+  --borderRadius:8px;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -16,6 +22,78 @@
 
 body {
   color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  background: #fff;
+  font-family: 'Satoshi', sans-serif;
+  overflow-x: hidden;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+div,
+p,
+span,
+ul {
+  font-family: 'Satoshi', sans-serif;
+}
+
+h1 {
+  font-size: 36px;
+  color: var(--primery);
+}
+
+h2 {
+  font-size: 20px;
+}
+
+h3 {
+  font-size: 18px;
+}
+
+p,
+li,
+span,
+td {
+  font-size: 16px;
+  color: var(--text);
+}
+button{
+  background: var(--primery);
+}
+input{
+  padding: 20px;
+  display: block;
+  width: 100%;
+  border: 2px solid #282C35;
+  border-radius: var(--borderRadius);
+  color: var(--primery);
+}
+label{
+  font-size: 16px;
+  color: var(--background);
+}
+label span{
+  color: red;
+  padding-left: 5pxZZZ;
+}
+.btn{
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(to top, #35095E, #6F13C4);
+    padding: 1rem 3rem;
+    margin: 0;
+    border-radius: 0.5rem;
+    color: white;
+    font-size: 20px;
+    transition: 0.1s ease-in-out;
+   }
+.btn:hover{
+  background: #fff;
+  border:2px solid #35095E;
+  color: var(--primery);
 }

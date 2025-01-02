@@ -1,0 +1,42 @@
+@font-face {
+    font-family: 'Satoshi';
+    src: url('/public/fonts/Satoshi-Light.woff2') format('woff2'),
+         url('/public/fonts/Satoshi-Light.woff') format('woff');
+    font-weight: 300;
+    font-style: normal;
+  }
+  
+@font-face {
+    font-family: 'Satoshi';
+    src: url('/public/fonts/Satoshi-Regular.woff2') format('woff2'),
+         url('/public/fonts/Satoshi-Regular.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+  }
+  
+  @font-face {
+    font-family: 'Satoshi';
+    src: url('/public/fonts/Satoshi-Medium.woff2') format('woff2'),
+         url('/public/fonts/Satoshi-Medium.woff') format('woff');
+    font-weight: 500;
+    font-style: normal;
+  }
+  
+  @font-face {
+    font-family: 'Satoshi';
+    src: url('/public/fonts/Satoshi-Bold.woff2') format('woff2'),
+         url('/public/fonts/Satoshi-Bold.woff') format('woff');
+    font-weight: 700;
+    font-style: normal;
+  }
+  
+  @font-face {
+    font-family: 'Satoshi';
+    src: url('/public/fonts/Satoshi-Black.woff2') format('woff2'),
+         url('/public/fonts/Satoshi-Black.woff') format('woff');
+    font-weight: 900;
+    font-style: normal;
+  }
+  
+  /* Add more styles if needed */
+  
