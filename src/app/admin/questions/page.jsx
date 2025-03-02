@@ -1,11 +1,14 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import Select from "react-select";
 import { useRouter } from "next/navigation";
-import { CSSTransition } from 'react-transition-group';
+import dynamic from "next/dynamic";
 
-export default function () {
+// Dynamically import react-select and react-transition-group with SSR disabled
+const Select = dynamic(() => import("react-select"), { ssr: false });
+const CSSTransition = dynamic(() => import("react-transition-group").then((mod) => mod.CSSTransition), { ssr: false });
+
+export default function QuestionsPage() {
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [topics, setTopics] = useState([]);
@@ -17,17 +20,19 @@ export default function () {
   const [selectedChapter, setSelectedChapter] = useState(null);
   const [selectedQuestionType, setSelectedQuestionType] = useState(null);
   const router = useRouter();
+  const [token, setToken] = useState(null);
 
-  // Function to get token from localStorage
-  const getToken = () => {
-    return localStorage.getItem("token");
-  };
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedToken = localStorage.getItem("token");
+      setToken(storedToken);
+    }
+  }, []);
 
   // Fetch filters (topics, subjects, chapters, question types) from the API
   useEffect(() => {
     const fetchFilters = async () => {
       try {
-        const token = getToken();
         if (!token) {
           throw new Error("Token is missing");
         }
@@ -57,14 +62,13 @@ export default function () {
     };
 
     fetchFilters();
-  }, []);
+  }, [token]);
 
   // Fetch questions based on selected filters
   useEffect(() => {
     const fetchQuestions = async () => {
       setLoading(true);
       try {
-        const token = getToken();
         if (!token) {
           throw new Error("Token is missing");
         }
@@ -82,14 +86,14 @@ export default function () {
         }
 
         const response = await axios.get(url, {
-            headers: { Authorization: `Bearer ${token}` },
-            params: {
-                topicId: selectedTopic,
-                subjectId: selectedSubject,
-                chapterId: selectedChapter,
-                questionTypesId: selectedQuestionType
-            }
-          });
+          headers: { Authorization: `Bearer ${token}` },
+          params: {
+            topicId: selectedTopic,
+            subjectId: selectedSubject,
+            chapterId: selectedChapter,
+            questionTypesId: selectedQuestionType,
+          },
+        });
 
         setQuestions(response.data);
       } catch (error) {
@@ -100,13 +104,12 @@ export default function () {
     };
 
     fetchQuestions();
-  }, [selectedTopic, selectedSubject, selectedChapter, selectedQuestionType]);
+  }, [selectedTopic, selectedSubject, selectedChapter, selectedQuestionType, token]);
 
   return (
     <div className="py-10">
-
       {/* Filters */}
-      {/* <div className="mb-6">
+      <div className="mb-6">
         <CSSTransition in={true} timeout={500} classNames="fade" unmountOnExit>
           <div className="mb-4">
             <Select
@@ -151,7 +154,7 @@ export default function () {
             />
           </div>
         </CSSTransition>
-      </div> */}
+      </div>
 
       {/* Display Questions */}
       {loading ? (
@@ -163,7 +166,6 @@ export default function () {
               {questions.map((question) => (
                 <li key={question.id} className="mb-4 p-4 border">
                   <h3 className="font-bold">{question.questionText}</h3>
-                  
                 </li>
               ))}
             </ul>

@@ -16,7 +16,17 @@ export default function UploadPDF() {
   const [subjects, setSubjects] = useState([]);
   const [chapters, setChapters] = useState([]);
   const [topics, setTopics] = useState([]);
+  const [token, setToken] = useState(null);
 
+  // Fetch token from localStorage (client-side only)
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedToken = localStorage.getItem("token");
+      setToken(storedToken);
+    }
+  }, []);
+
+  // Fetch portions from the API
   useEffect(() => {
     const fetchPortions = async () => {
       try {
@@ -30,8 +40,10 @@ export default function UploadPDF() {
     fetchPortions();
   }, []);
 
+  // Fetch subjects based on portionId
   useEffect(() => {
     if (!portionId) return setSubjects([]);
+
     const fetchSubjects = async () => {
       try {
         const res = await axios.get(`http://localhost:5000/api/subjects/subject/${portionId}`);
@@ -44,8 +56,10 @@ export default function UploadPDF() {
     fetchSubjects();
   }, [portionId]);
 
+  // Fetch chapters based on subjectId
   useEffect(() => {
     if (!subjectId) return setChapters([]);
+
     const fetchChapters = async () => {
       try {
         const res = await axios.get(`http://localhost:5000/api/chapters/chapter/${subjectId}`);
@@ -58,8 +72,10 @@ export default function UploadPDF() {
     fetchChapters();
   }, [subjectId]);
 
+  // Fetch topics based on chapterId
   useEffect(() => {
     if (!chapterId) return setTopics([]);
+
     const fetchTopics = async () => {
       try {
         const res = await axios.get(`http://localhost:5000/api/topics/topic/${chapterId}`);
@@ -72,18 +88,21 @@ export default function UploadPDF() {
     fetchTopics();
   }, [chapterId]);
 
+  // Handle topic selection
   const handleTopicChange = (event) => {
     const selectedTopicId = event.target.value;
     setTopicId(selectedTopicId);
-    const selectedTopic = topics.find(topic => topic.id.toString() === selectedTopicId);
+    const selectedTopic = topics.find((topic) => topic.id.toString() === selectedTopicId);
     setTopicName(selectedTopic ? selectedTopic.name : "");
     console.log("Selected Topic Name:", selectedTopic ? selectedTopic.name : "None");
   };
-  
+
+  // Handle file selection
   const handleFileChange = (event) => {
     setFile(event.target.files[0]);
   };
 
+  // Handle file upload
   const handleUpload = async () => {
     if (!file) {
       setMessage("Please select a file.");
@@ -105,7 +124,6 @@ export default function UploadPDF() {
       setMessage("");
       setProgress(0);
 
-      const token = localStorage.getItem("token");
       if (!token) {
         setMessage("Authentication error: Please log in again.");
         setUploading(false);
@@ -147,25 +165,33 @@ export default function UploadPDF() {
         <select className="w-full border p-2 mb-2" value={portionId} onChange={(e) => setPortionId(e.target.value)}>
           <option value="">Select Portion</option>
           {portions.map((portion) => (
-            <option key={portion.id} value={portion.id}>{portion.name}</option>
+            <option key={portion.id} value={portion.id}>
+              {portion.name}
+            </option>
           ))}
         </select>
         <select className="w-full border p-2 mb-2" value={subjectId} onChange={(e) => setSubjectId(e.target.value)} disabled={!portionId}>
           <option value="">Select Subject</option>
           {subjects.map((subject) => (
-            <option key={subject.id} value={subject.id}>{subject.name}</option>
+            <option key={subject.id} value={subject.id}>
+              {subject.name}
+            </option>
           ))}
         </select>
         <select className="w-full border p-2 mb-2" value={chapterId} onChange={(e) => setChapterId(e.target.value)} disabled={!subjectId}>
           <option value="">Select Chapter</option>
           {chapters.map((chapter) => (
-            <option key={chapter.id} value={chapter.id}>{chapter.name}</option>
+            <option key={chapter.id} value={chapter.id}>
+              {chapter.name}
+            </option>
           ))}
         </select>
         <select className="w-full border p-2 mb-2" value={topicId} onChange={handleTopicChange} disabled={!chapterId}>
           <option value="">Select Topic</option>
           {topics.map((topic) => (
-            <option key={topic.id} value={topic.id}>{topic.name}</option>
+            <option key={topic.id} value={topic.id}>
+              {topic.name}
+            </option>
           ))}
         </select>
         <input type="file" accept="application/pdf" onChange={handleFileChange} className="mb-4 border p-2 w-full" />

@@ -23,6 +23,13 @@ export default function TestPage() {
   const chapterId= testData?.chapterId;
 const topicIds=testData?.topics;
 const questionCount=testData?.questionCount;
+const [token, setToken] = useState(null);
+
+useEffect(() => {
+  if (typeof window !== "undefined") {
+    setToken(localStorage.getItem("token"));
+  }
+}, []);
 
 console.log('topics', topicIds);
   const totalTime = useMemo(() => questions.length * 60, [questions.length]);
@@ -320,7 +327,7 @@ console.log('topics', topicIds);
 
   const saveTestResult = async (resultData) => {
     try {
-      const token = localStorage.getItem("token");
+      
       const response = await fetch('http://localhost:5000/api/tests', {
         method: 'POST',
         headers: {

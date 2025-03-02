@@ -12,11 +12,18 @@ export default function ResultPage() {
   const [error, setError] = useState(null);
   const router = useRouter();
   const [results, setResults] = useState([]);
+  const [userId, setuserId] = useState(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setuserId(localStorage.getItem("userId"));
+    }
+  }, []);
 
   useEffect(() => {
     const fetchResults = async () => {
       try {
-        const userId = localStorage.getItem("userId");
+       
         if (!userId) {
           setError("User ID not found. Please log in again.");
           setLoading(false);

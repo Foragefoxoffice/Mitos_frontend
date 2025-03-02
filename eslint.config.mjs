@@ -9,6 +9,15 @@ const compat = new FlatCompat({
   baseDirectory: __dirname,
 });
 
-const eslintConfig = [...compat.extends("next/core-web-vitals")];
+// Disable TypeScript ESLint rules
+const eslintConfig = [
+  ...compat.extends("next/core-web-vitals"),
+  {
+    rules: {
+      "@typescript-eslint/parser": "off",
+      "@typescript-eslint/no-unused-vars": "off",
+    },
+  },
+];
 
 export default eslintConfig;

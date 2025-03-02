@@ -1,42 +1,61 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import {jwtDecode} from "jwt-decode";
+import dynamic from "next/dynamic";
+
+// Dynamically import jwtDecode to avoid SSR issues
+const jwtDecode = dynamic(() => import("jwt-decode").then((mod) => mod.jwtDecode), { ssr: false });
 
 const AdminDashboard = () => {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true); // Add a loading state
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    console.log("Token from localStorage:", token);
+    // Fetch token from localStorage (client-side only)
+    if (typeof window !== "undefined") {
+      const storedToken = localStorage.getItem("token");
 
-    if (!token) {
-      console.log("No token found. Redirecting to login...");
-      router.push("/auth/login");
-      return;
-    }
-
-    try {
-      const decodedToken = jwtDecode(token);
-      console.log("Decoded token:", decodedToken);
-
-      if (decodedToken.role !== "admin") {
-        console.log("Role mismatch. Redirecting to login...");
+      if (!storedToken) {
+        console.log("No token found. Redirecting to login...");
         router.push("/auth/login");
-      } else {
-        setIsAuthenticated(true);
-        console.log("Admin authenticated.");
+        return;
       }
-    } catch (error) {
-      console.error("Token decoding failed:", error);
-      localStorage.removeItem("token");
-      router.push("/auth/login");
+
+      // Validate token and check role
+      const validateToken = async () => {
+        try {
+          const decodedToken = await jwtDecode(storedToken);
+          console.log("Decoded token:", decodedToken);
+
+          if (decodedToken.role !== "admin") {
+            console.log("Role mismatch. Redirecting to login...");
+            router.push("/auth/login");
+          } else {
+            setIsAuthenticated(true);
+            console.log("Admin authenticated.");
+          }
+        } catch (error) {
+          console.error("Token decoding failed:", error);
+          localStorage.removeItem("token");
+          router.push("/auth/login");
+        } finally {
+          setLoading(false); // Set loading to false after validation
+        }
+      };
+
+      validateToken();
     }
   }, [router]);
 
-  if (!isAuthenticated) {
+  // Show loading state while validating token
+  if (loading) {
     return <p>Loading...</p>;
+  }
+
+  // Redirect or show dashboard based on authentication
+  if (!isAuthenticated) {
+    return null; // Redirect will happen automatically via useEffect
   }
 
   return (
@@ -44,13 +63,19 @@ const AdminDashboard = () => {
       <h1 className="text-3xl font-bold">Admin Dashboard</h1>
       <ul className="mt-4">
         <li>
-          <a href="/admin/manage-users" className="text-blue-500">Manage Users</a>
+          <a href="/admin/manage-users" className="text-blue-500 hover:underline">
+            Manage Users
+          </a>
         </li>
         <li>
-          <a href="/admin/manage-tests" className="text-blue-500">Manage Tests</a>
+          <a href="/admin/manage-tests" className="text-blue-500 hover:underline">
+            Manage Tests
+          </a>
         </li>
         <li>
-          <a href="/admin/reports" className="text-blue-500">View Reports</a>
+          <a href="/admin/reports" className="text-blue-500 hover:underline">
+            View Reports
+          </a>
         </li>
         <li>
           <button
@@ -58,7 +83,7 @@ const AdminDashboard = () => {
               localStorage.removeItem("token");
               router.push("/auth/login");
             }}
-            className="text-red-500"
+            className="text-red-500 hover:underline"
           >
             Logout
           </button>

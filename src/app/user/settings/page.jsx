@@ -12,10 +12,17 @@ export default function UserSettings() {
     profile: null, // Will store the uploaded file
   });
 
+  const [token, setToken] = useState(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setToken(localStorage.getItem("token"));
+    }
+  }, []);
+
   useEffect(() => {
     // Fetch user details
     const fetchUser = async () => {
-      const token = localStorage.getItem("token");
       const res = await fetch("http://localhost:5000/api/users/me", {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -39,7 +46,6 @@ export default function UserSettings() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem("token");
 
     const formDataToSend = new FormData();
     formDataToSend.append("name", formData.name);

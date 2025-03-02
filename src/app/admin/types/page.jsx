@@ -1,9 +1,12 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import Select from "react-select";
+import dynamic from "next/dynamic";
 import { HiMenuAlt3 } from "react-icons/hi";
 import { BiSearch } from "react-icons/bi";
 import { format } from "date-fns";
+
+// Dynamically import react-select with SSR disabled
+const Select = dynamic(() => import("react-select"), { ssr: false });
 
 const UploadPage = () => {
   const [selectedType, setSelectedType] = useState(null);
@@ -12,11 +15,11 @@ const UploadPage = () => {
   const [parentOptions, setParentOptions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
-  const [data, setData] = useState([]); // State for all data types
-  const [filteredData, setFilteredData] = useState([]); // Filtered data based on search input
+  const [data, setData] = useState([]);
+  const [filteredData, setFilteredData] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterType, setFilterType] = useState("questionType"); // Default to 'questionType'
-  const [editingItem, setEditingItem] = useState(null); // Item being edited
+  const [filterType, setFilterType] = useState("questionType");
+  const [editingItem, setEditingItem] = useState(null);
   const [isFilterVisible, setIsFilterVisible] = useState(false);
 
   const handleHamburgerClick = () => {
