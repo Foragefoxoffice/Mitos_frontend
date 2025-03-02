@@ -12,7 +12,7 @@ const UploadPage = () => {
   const [parentOptions, setParentOptions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
-  const [data, setData] = useState([]); // State for all data types (questionTypes, subjects, chapters, topics)
+  const [data, setData] = useState([]); // State for all data types
   const [filteredData, setFilteredData] = useState([]); // Filtered data based on search input
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState("questionType"); // Default to 'questionType'
@@ -49,6 +49,7 @@ const UploadPage = () => {
     const endpoints = {
       questionType: "question-types",
       subject: "subjects",
+      portion: "portions",
       chapter: "chapters",
       topic: "topics",
     };
@@ -63,10 +64,18 @@ const UploadPage = () => {
 
         console.log("Fetched data:", data);
 
-        // Fetch parent data for chapters and topics
-        if (filterType === "chapter" || filterType === "topic") {
+        // Fetch parent data for chapters, topics, and subjects
+        if (
+          filterType === "chapter" ||
+          filterType === "topic" ||
+          filterType === "subject"
+        ) {
           const parentEndpoint =
-            filterType === "chapter" ? "subjects" : "chapters";
+            filterType === "chapter"
+              ? "subjects"
+              : filterType === "topic"
+              ? "chapters"
+              : "portions"; // Fetch portions for subjects
           const parentResponse = await fetch(
             `http://localhost:5000/api/${parentEndpoint}`
           );
@@ -83,7 +92,8 @@ const UploadPage = () => {
                 (p) =>
                   p.id === item.parentId ||
                   p.id === item.subjectId ||
-                  p.id === item.chapterId
+                  p.id === item.chapterId ||
+                  p.id === item.portionId
               ) || {};
             console.log("Matching parent:", parent);
             return { ...item, parentName: parent.name || "Unknown" }; // Set to 'Unknown' if parent name is not found
@@ -130,14 +140,13 @@ const UploadPage = () => {
     }
   }, [searchQuery, data]);
 
-  const handleTypeChange = async (
-    selected
-  ) => {
+  const handleTypeChange = async (selected) => {
     setSelectedType(selected);
     setParentId(null);
     setParentOptions([]);
     if (selected?.value === "chapter") await fetchParentData("subjects");
     else if (selected?.value === "topic") await fetchParentData("chapters");
+    else if (selected?.value === "subject") await fetchParentData("portions"); // Fetch portions for subjects
   };
 
   const handleSubmit = async (e) => {
@@ -146,7 +155,9 @@ const UploadPage = () => {
     setLoading(true);
     if (
       !parentId &&
-      (selectedType?.value === "chapter" || selectedType?.value === "topic")
+      (selectedType?.value === "chapter" ||
+        selectedType?.value === "topic" ||
+        selectedType?.value === "subject")
     ) {
       setMessage("Please select a parent!");
       setLoading(false);
@@ -161,6 +172,10 @@ const UploadPage = () => {
         break;
       case "subject":
         endpoint = "http://localhost:5000/api/subjects/";
+        payload = { name, parentId: parseInt(parentId.value, 10) }; // Include parentId for subjects
+        break;
+      case "portion":
+        endpoint = "http://localhost:5000/api/portions/";
         payload = { name };
         break;
       case "chapter":
@@ -199,7 +214,10 @@ const UploadPage = () => {
       label: filterType.charAt(0).toUpperCase() + filterType.slice(1),
     });
 
-    if (filterType === "chapter") {
+    if (filterType === "subject") {
+      await fetchParentData("portions");
+      setParentId({ value: item.portionId.toString(), label: item.parentName });
+    } else if (filterType === "chapter") {
       await fetchParentData("subjects");
       setParentId({ value: item.subjectId.toString(), label: item.parentName });
     } else if (filterType === "topic") {
@@ -232,7 +250,9 @@ const UploadPage = () => {
     setLoading(true);
     if (
       !parentId &&
-      (selectedType?.value === "chapter" || selectedType?.value === "topic")
+      (selectedType?.value === "chapter" ||
+        selectedType?.value === "topic" ||
+        selectedType?.value === "subject")
     ) {
       setMessage("Please select a parent!");
       setLoading(false);
@@ -245,9 +265,13 @@ const UploadPage = () => {
         endpoint = `http://localhost:5000/api/question-types/${editingItem.id}`;
         payload = { name };
         break;
+      case "portion":
+        endpoint = `http://localhost:5000/api/portions/${editingItem.id}`;
+        payload = { name };
+        break;
       case "subject":
         endpoint = `http://localhost:5000/api/subjects/${editingItem.id}`;
-        payload = { name };
+        payload = { name, parentId: parseInt(parentId.value, 10) };
         break;
       case "chapter":
         endpoint = `http://localhost:5000/api/chapters/${editingItem.id}`;
@@ -321,7 +345,6 @@ const UploadPage = () => {
     }),
   };
 
-
   return (
     <div className="flex flex-col mt-16 justify-center ">
       <form
@@ -334,6 +357,7 @@ const UploadPage = () => {
           onChange={handleTypeChange}
           options={[
             { value: "questionType", label: "Question Type" },
+            { value: "portion", label: "Portion" },
             { value: "subject", label: "Subject" },
             { value: "chapter", label: "Chapter" },
             { value: "topic", label: "Topic" },
@@ -343,6 +367,7 @@ const UploadPage = () => {
         />
 
         {(selectedType?.value === "chapter" ||
+          selectedType?.value === "subject" ||
           selectedType?.value === "topic") && (
           <Select
             placeholder="Select Parent"
@@ -406,8 +431,11 @@ const UploadPage = () => {
           </div>
           {isFilterVisible && (
             <div className="filter-option">
-              <button onClick={() => handleFilterClick("questiontype")}>
+              <button onClick={() => handleFilterClick("questionType")}>
                 Question Type
+              </button>
+              <button onClick={() => handleFilterClick("portion")}>
+                Portion
               </button>
               <button onClick={() => handleFilterClick("subject")}>
                 Subject
@@ -427,11 +455,11 @@ const UploadPage = () => {
               <tr>
                 <th className="">ID</th>
                 <th className="">Name</th>
-                {filterType === "chapter" || filterType === "topic" ? (
-                  <th className="">Parent</th>
-                ) : null}
+                {(filterType === "chapter" ||
+                  filterType === "topic" ||
+                  filterType === "subject") && <th className="">Parent</th>}
                 <th className="">Type</th>
-                <th >CreatedAt</th>
+                <th>CreatedAt</th>
                 <th className="">Actions</th>
               </tr>
             </thead>
@@ -440,14 +468,15 @@ const UploadPage = () => {
                 <tr key={index}>
                   <td className="">{item.id}</td>
                   <td className="">{item.name}</td>
-                  
-                  {filterType === "chapter" || filterType === "topic" ? (
+                  {(filterType === "chapter" ||
+                    filterType === "topic" ||
+                    filterType === "subject") && (
                     <td className="">{item.parentName}</td>
-                  ) : null}
+                  )}
                   <td className="">{filterType}</td>
                   <td className="">
-        {format(new Date(item.createdAt), "dd/MM/yyyy")} {/* Format the date */}
-      </td>
+                    {format(new Date(item.createdAt), "dd/MM/yyyy")}
+                  </td>
                   <td className="">
                     <button
                       onClick={() => handleEdit(item)}

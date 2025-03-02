@@ -1,5 +1,8 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { SelectedTopicsProvider } from "@/contexts/SelectedTopicsContext";
+import { SelectedQuestionTypesProvider } from "@/contexts/SelectedQuestionTypesContext";
+import { TestProvider } from "@/contexts/TestContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,10 +22,13 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
+
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <TestProvider><SelectedTopicsProvider>  <SelectedQuestionTypesProvider>{children} </SelectedQuestionTypesProvider></SelectedTopicsProvider></TestProvider> 
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/turn.js/4.1.0/turn.min.js"></script>
+
       </body>
     </html>
   );

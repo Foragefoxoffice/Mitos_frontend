@@ -1,7 +1,5 @@
-import Link from "next/link";
 import Image from "next/image";
-import { it } from "node:test";
-import { time } from "console";
+import Link from "next/link";
 import { title } from "process";
 
 const navItem = [
@@ -11,7 +9,7 @@ const navItem = [
       {
         title: "Home",
         image: "/images/icons/home.png",
-        herf: "/dashboard/home",
+        herf: "/user/home",
       },
       {
         title: "Learning Progress",
@@ -43,9 +41,9 @@ const Menu = () => (
       <nav key={title}>
         <ul className="pt-16 grid gap-6">
           {nav.items.map((item) => (
-            <li key={item.title} className="flex gap-3">
+            <li key={item.title} className="flex items-center gap-3">
               <Image src={item.image} alt="" width={25} height={20} />
-              <Link href={item.herf}>{item.title}</Link>
+              <Link className="text-white" href={item.herf}>{item.title}</Link>
             </li>
           ))}
         </ul>

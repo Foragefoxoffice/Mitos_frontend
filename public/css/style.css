@@ -107,7 +107,7 @@ animation-delay: 2s;
   font-weight: 700;
 }
 /*-------------------
- Types pagr style 
+ Types page style 
  --------------------*/
 .type_form input,
 .type_form select,
@@ -213,4 +213,410 @@ animation-delay: 2s;
 .fade-exit-active {
   opacity: 0;
   transition: opacity 500ms ease-in;
+}
+/*-------------------
+ tabs page style 
+ --------------------*/
+
+.tabs{
+  padding: 30px;
+  background: #FAF5FF;
+  border-radius: 50px;
+  display: flex;
+}
+.tab{
+  background-color: #FAF5FF;
+  padding: 10px 30px;
+  font-size: 16px;
+  font-weight: 600;
+}
+/*-------------------
+ subject page style 
+ --------------------*/
+.subject_cards{
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  place-items: baseline;
+  gap: 20px;
+}
+.subject_card{
+  background: #FFFAFA;
+  width: 100%;
+  padding: 20px;
+  border-radius: var(--borderRadius);
+  display: grid;
+  gap: 10px;
+  border: 1px solid #35095e61;
+}
+.subject_card h2{
+  color: var(--text);
+  font-size: 22px;
+  font-weight: 500;
+}
+.subject_card a{
+  color: #6712B7;
+  border: 2px solid #6712B7;
+  padding: 10px;
+  border-radius: 6px;
+  font-weight: 600;
+  text-align: center;
+  margin-top: 20px;
+  transition: 0.3s ease-in-out;
+}
+.subject_card a:hover{
+  background: linear-gradient(18deg, rgba(53,9,94,1) 0%, rgba(111,19,196,1) 55%);
+  color: #fff;
+}
+.subject_card button{
+  color: #6712B7;
+  border: 2px solid #6712B7;
+  background: #fff;
+  padding: 10px;
+  border-radius: 6px;
+  font-weight: 600;
+  text-align: center;
+  margin-top: 20px;
+  transition: 0.3s ease-in-out;
+}
+.subject_card button:hover{
+  background: linear-gradient(18deg, rgba(53,9,94,1) 0%, rgba(111,19,196,1) 55%);
+  color: #fff;
+}
+.subject_card button:last-child{
+  background: linear-gradient(18deg, rgba(53,9,94,1) 0%, rgba(111,19,196,1) 55%);
+  color: #fff;
+}
+.subject_card button:last-child:hover{
+  color: #6712B7;
+  border: 2px solid #6712B7;
+  background: #fff;
+}
+/*-------------------
+ chapter page style 
+ --------------------*/
+.chapter_cards{
+  display: grid;
+  grid-template-columns: repeat(2,1fr);
+  place-items: baseline;
+  gap: 20px;
+  padding: 0 150px 0 0;
+}
+.btns_group{
+  display: grid;
+  grid-template-columns: repeat(2,1fr);
+  gap: 10px;
+
+}
+/*-------------------
+ topic page style 
+ --------------------*/
+.topic_cards{
+  display: grid
+  ;
+      grid-template-columns: repeat(4, 1fr);
+      place-items: flex-start;
+      place-content: center;
+      gap: 20px;
+}
+
+.topic_card{
+  background: #FFFAFA;
+  width: 100%;
+  padding: 20px;
+  border-radius: var(--borderRadius);
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  height: 100%;
+  border: 1px solid #35095e61;
+}
+.topic_card input{
+  width: 30px !important;
+  height: 20px;
+  position: relative;
+  top: 4px;
+  width: 10%;
+}
+.topic_card label{
+ width: 90%;
+}
+input[type="checkbox"] {
+  accent-color:var(--primery); /* Changes the checkbox color */
+}
+/*-------------------
+ Test page style 
+ --------------------*/
+
+ .question_popup{
+  background: #fff;
+  border-radius: var(--borderRadius);
+  padding: 30px;
+  width: 40%;
+  margin: auto;
+ }
+ .question_popup h2{
+  text-align: center;
+  color: var(--secondry);
+  font-weight: 600;
+  font-size: 24px;
+  margin-bottom: 20px;
+ }
+ .question_popup label{
+  display: flex;
+  justify-self: center;
+  align-self: center;
+  gap: 10px;
+  padding: 0 0 10px;
+ }
+ .question_popup label input{
+  width: 30px;
+  height: 20px;
+  position: relative;
+  top: 3px;
+ }
+
+ .question_popup ul{
+  list-style: decimal;
+  padding: 0 60px 20px;
+  display: grid;
+  gap: 10px;
+ }
+
+ /*-------------------
+ Partics test page style 
+ --------------------*/
+
+ .test_containers{
+  display: flex;
+  align-self: start;
+  gap: 30px;
+  margin-top: 40px;
+ }
+ .test_container1{
+  width: 65%;
+  box-shadow: rgba(211, 203, 251, 0.2) 0px 2px 8px 0px;
+  border: 1px solid #d3cbfb6a;
+  border-radius: var(--borderRadius);
+  padding: 40px;
+ }
+ .test_container1 h2{
+   color: var(--primery);
+   font-size: 30px;
+   font-weight: 500;
+ }
+ .test_container1 p{
+  color: var(--text);
+  font-size: 20px;
+  font-weight: 500;
+}
+.option_btns{
+  display: grid;
+  gap: 10px;
+  padding: 20px 0;
+  
+}
+.option_btns button span{
+  border: 1px solid #C5B5CE;
+  background: #FFFAFA;
+  font-weight: 700;
+  font-size: 20px;
+  width: 35px;
+  height: 35px;
+  text-align: center;
+  border-radius: 50%;
+}
+.option_btns button div {
+ font-size: 18px;
+}
+
+ .hint{
+  color: rgb(239 68 68 / var(--tw-text-opacity, 1)) ;
+  font-size: 20px;
+  font-weight: 600;
+ }
+ .nav_btns{
+  display: flex;
+  justify-content: end;
+  gap: 20px;
+ }
+ .nav_btns button:last-child {
+    background: linear-gradient(18deg, #35095e 0%, #6f13c4 55%);
+    color: #fff;
+}
+
+.nav_btns button {
+    color: #6712b7;
+    border: 2px solid #6712b7;
+    background: #fff;
+    padding: 10px;
+    border-radius: 6px;
+    font-weight: 600;
+    text-align: center;
+    margin-top: 20px;
+    transition: all .3s ease-in-out;
+}
+.nav_btns button:hover{
+  background: linear-gradient(18deg, rgba(53,9,94,1) 0%, rgba(111,19,196,1) 55%);
+  color: #fff;
+}
+.nav_btns button:last-child:hover{
+  color: #6712B7;
+  border: 2px solid #6712B7;
+  background: #fff;
+}
+
+/* Test_container2 styles */
+
+ .test_container2{
+  width: 35%;
+  box-shadow: rgba(211, 203, 251, 0.2) 0px 2px 8px 0px;
+  border: 1px solid #d3cbfb6a;
+  border-radius: var(--borderRadius);
+  padding: 40px;
+  height:75vh;
+  overflow-y: scroll;
+ }
+ .test_container2::-webkit-scrollbar {
+  width: 5px;
+}
+
+/* Track */
+.test_container2::-webkit-scrollbar-track {
+  box-shadow: inset 0 0 5px rgb(255, 255, 255); 
+  border-radius: 10px;
+}
+ 
+/* Handle */
+.test_container2::-webkit-scrollbar-thumb {
+  background: var(--primery); 
+  border-radius: 10px;
+}
+
+/* Handle on hover */
+.test_container2::-webkit-scrollbar-thumb:hover {
+  background: var(--primery); 
+}
+ .answer_label{
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 30px;
+ }
+ .answer_label li{
+  font-family: 20px;
+  color: #E49331;
+  font-weight: 500;
+  position: relative;
+ }
+ .answer_label li::after{
+  position: absolute;
+  content: "";
+  width: 12px;
+  height: 12px;
+  background: #e49331;
+  border-radius: 50%;
+  top: 5.5px;
+  left: -17px;
+ }
+ .answer_label li:first-child{
+  color: var(--primery);
+ }
+ .answer_label li:last-child{
+  color:#B19CBE;
+ }
+ .answer_label li:first-child::after{
+  background: var(--primery);
+ }
+.answer_label li:last-child::after{
+  background:#B19CBE;
+ }
+ .rounded_navs{
+  display: grid;
+  grid-template-columns: repeat(5,1fr);
+  gap: 25px;
+  place-items: center;
+ }
+ .rounded_navs button{
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+ }
+ .question_popup h3{
+  color: var(--text);
+  font-size: 22px;
+ }
+
+ /*-------------------
+ portion page style 
+ --------------------*/
+.portion_cards{
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  place-items: baseline;
+  gap: 20px;
+}
+.portion_card{
+  background: #FFFAFA;
+  width: 100%;
+  padding: 20px;
+  border-radius: var(--borderRadius);
+  display: grid;
+  gap: 10px;
+  border: 1px solid #35095e61;
+}
+.portion_card h2{
+  color: var(--text);
+  font-size: 22px;
+  font-weight: 500;
+}
+.portion_card a{
+  background: linear-gradient(18deg, rgba(53,9,94,1) 0%, rgba(111,19,196,1) 55%);
+  color: #fff;
+  border: 2px solid #6712B7;
+  padding: 10px;
+  border-radius: 6px;
+  font-weight: 600;
+  text-align: center;
+  margin-top: 20px;
+  transition: 0.3s ease-in-out;
+}
+.portion_card .btns_group{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+ }
+.portion_card a:hover{
+  background: linear-gradient(18deg, rgba(53,9,94,1) 0%, rgba(111,19,196,1) 55%);
+  color: #fff;
+}
+.portion_card button{
+  color: #6712B7;
+  border: 2px solid #6712B7;
+  background: #fff;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-weight: 600;
+  text-align: center;
+  margin-top: 20px;
+  transition: 0.3s ease-in-out;
+ 
+}
+.portion_card button:hover{
+  background: linear-gradient(18deg, rgba(53,9,94,1) 0%, rgba(111,19,196,1) 55%);
+  color: #fff;
+}
+.portion_card button:last-child{
+  background: linear-gradient(18deg, rgba(53,9,94,1) 0%, rgba(111,19,196,1) 55%);
+  color: #fff;
+}
+.portion_card button:last-child:hover{
+  color: #6712B7;
+  border: 2px solid #6712B7;
+  background: #fff;
 }

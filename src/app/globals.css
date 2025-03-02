@@ -1,9 +1,22 @@
-@import url('../../public/css/fonts.css');
+  @import url('../../public/css/fonts.css');
 @import url('../../public/css/style.css');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* add the code bellow */ 
+@layer utilities {
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  .no-scrollbar::-webkit-scrollbar {
+      display: none;
+  }
+ /* Hide scrollbar for IE, Edge and Firefox */
+  .no-scrollbar {
+      -ms-overflow-style: none;  /* IE and Edge */
+      scrollbar-width: none;  /* Firefox */
+}
+}
 
 :root {
   --primery: #35095E;
@@ -86,11 +99,10 @@ label span{
     align-items: center;
     background: linear-gradient(to top, #35095E, #6F13C4);
     padding: 1rem 3rem;
-    margin: 0;
     border-radius: 0.5rem;
     color: white;
     font-size: 20px;
-    transition: 0.1s ease-in-out;
+    transition: 0.3s ease-in-out;
    }
 .btn:hover{
   background: #fff;
