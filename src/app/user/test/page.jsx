@@ -5,6 +5,7 @@ import { fetchQuestions, fetchQuestionsByTypes } from "@/utils/api";
 import { useSelectedTopics } from "@/contexts/SelectedTopicsContext";
 import { useSelectedQuestionTypes } from "@/contexts/SelectedQuestionTypesContext";
 import TestNavbar from "@/components/user/testnavbar";
+import { MathJax, MathJaxContext } from "better-react-mathjax";
 
 export default function TestPage() {
   const { selectedTopics } = useSelectedTopics();
@@ -15,10 +16,11 @@ export default function TestPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [userAnswers, setUserAnswers] = useState({});
-  const [visitedQuestions, setVisitedQuestions] = useState({}); // Track visited questions
+  const [visitedQuestions, setVisitedQuestions] = useState({});
   const [questionLimit, setQuestionLimit] = useState(null);
   const [showQuantityPopup, setShowQuantityPopup] = useState(true);
   const [showInstructionPopup, setShowInstructionPopup] = useState(false);
+  const [showNoQuestionsPopup, setShowNoQuestionsPopup] = useState(false);
   const router = useRouter();
   const ChapterId = chapterId;
 
@@ -69,6 +71,8 @@ export default function TestPage() {
             options: [question.optionA, question.optionB, question.optionC, question.optionD],
             correctOption: question.correctOption,
             hint: question.hint,
+            image: question.image,
+            hintImage: question.hintImage,
           }));
 
           setQuestions(formattedQuestions);
@@ -106,16 +110,23 @@ export default function TestPage() {
     return limits;
   };
 
+  useEffect(() => {
+    if (questions.length === 0 && !loading) {
+      setShowNoQuestionsPopup(true);
+      setTimeout(() => {
+        router.push("/user/dashboard");
+      }, 3000); // Navigate to dashboard after 3 seconds
+    }
+  }, [questions, loading, router]);
+
   const handleAnswer = (questionId, answer) => {
     setUserAnswers({ ...userAnswers, [questionId]: answer });
-    // Mark the question as visited when answered
     setVisitedQuestions((prev) => ({ ...prev, [questionId]: true }));
   };
 
   const handleNext = () => {
     if (currentQuestionIndex < filteredQuestions.length - 1) {
       setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
-      // Mark the next question as visited
       const nextQuestionId = filteredQuestions[currentQuestionIndex + 1].id;
       setVisitedQuestions((prev) => ({ ...prev, [nextQuestionId]: true }));
     }
@@ -124,16 +135,13 @@ export default function TestPage() {
   const handlePrevious = () => {
     if (currentQuestionIndex > 0) {
       setCurrentQuestionIndex((prevIndex) => prevIndex - 1);
-      // Mark the previous question as visited
       const prevQuestionId = filteredQuestions[currentQuestionIndex - 1].id;
       setVisitedQuestions((prev) => ({ ...prev, [prevQuestionId]: true }));
     }
   };
 
   const handleSubmit = () => {
-    // console.log("User Answers:", userAnswers);
-    // alert("Test submitted successfully!");
-    router.push("/user/practice");
+    router.push("/user/dashboard");
   };
 
   const handleLimitSelection = (limit) => {
@@ -144,195 +152,206 @@ export default function TestPage() {
 
   const handleQuestionNavigation = (index) => {
     setCurrentQuestionIndex(index);
-    // Mark the question as visited when navigated to
     const questionId = filteredQuestions[index].id;
     setVisitedQuestions((prev) => ({ ...prev, [questionId]: true }));
   };
 
   const questionLimits = generateQuestionLimits(questions.length);
+
   const renderOptionButtons = (question) => {
     return question.options.map((option, index) => {
       const isSelected = userAnswers[question.id] === option;
       const optionLabels = ["A", "B", "C", "D"];
-      const currentOptionLabel = optionLabels[index]; // Get the label (A, B, C, D)
-      const isCorrect = question.correctOption === currentOptionLabel; // Compare with the label
-  
-      // Determine if the user selected the wrong option
+      const currentOptionLabel = optionLabels[index];
+      const isCorrect = question.correctOption === currentOptionLabel;
       const isWrong = isSelected && !isCorrect;
-  
-      // Determine if this option is the correct one (to highlight it when the user selects a wrong answer)
       const isCorrectOption = question.correctOption === currentOptionLabel;
-  
+
       let buttonClass = "flex items-center gap-2 w-full text-left p-2 rounded-lg border ";
-  
+
       if (isSelected) {
         if (isCorrect) {
-          buttonClass += "bg-green-500 text-white"; // Correct answer
+          buttonClass += "bg-green-500 text-white";
         } else {
-          buttonClass += "bg-red-500 text-white"; // Incorrect answer
+          buttonClass += "bg-red-500 text-white";
         }
       } else if (isCorrectOption && userAnswers[question.id]) {
-        // Highlight the correct answer if the user has selected any option
-        buttonClass += "bg-green-500 text-white"; // Correct answer (highlighted)
+        buttonClass += "bg-green-500 text-white";
       } else {
-        buttonClass += "bg-[#FAF5FF] border: 1px solid #C5B5CE"; // Default style
+        buttonClass += "bg-[#FAF5FF] border: 1px solid #C5B5CE";
       }
-  
+
       return (
-        <button
-          key={index}
-          onClick={() => handleAnswer(question.id, option)}
-          className={buttonClass}
-        >
-          <span className="font-bold">{currentOptionLabel}</span>
-          <p>{option}</p>
-        </button>
+        <MathJaxContext>
+          <button
+            key={index}
+            onClick={() => handleAnswer(question.id, option)}
+            className={buttonClass}
+          >
+            <span className="font-bold option_label">{currentOptionLabel}</span>
+            <MathJax> <p dangerouslySetInnerHTML={{ __html: option }}></p></MathJax>
+          </button>
+        </MathJaxContext>
       );
     });
   };
 
   return (
-    <div className="container pt-6">
-      {showQuantityPopup && (
-        <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-75 z-50">
-          <div className="question_popup">
-            <h2>Select Number Of Questions</h2>
-            {questionLimits.map((limit, index) => (
-              <label key={index}>
-                <input
-                  type="radio"
-                  name="questionLimit"
-                  value={limit}
-                  onChange={() => handleLimitSelection(limit)}
-                  className="form-radio"
-                />
-                <span className="text-gray-800">
-                  {limit === "full"
-                    ? `Full Test (${questions.length} Questions)`
-                    : `${limit} Questions`}
-                </span>
-              </label>
-            ))}
+    <MathJaxContext>
+      <div className="container pt-6">
+        {showNoQuestionsPopup && (
+          <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-75 z-50">
+            <div className="question_popup">
+              <h2>No Questions Available</h2>
+              <p>You will be redirected to the dashboard shortly.</p>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {showInstructionPopup && (
-        <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-75 z-50">
-          <div className="question_popup">
-            <h2>Test Instructions</h2>
-            <ul>
-              <li>Each question takes 1 minute, So total number of questions X 1min for total test time. (Time is for whole test)</li>
-              <li>4 buttons for navigation “Previous question” “Mark for Review” “Next” “Questions”.</li>
-              <li>Questions will have pop up box for navigating to any question.</li>
-              <li>Attempted question – Green</li>
-              <li>Left question – Red</li>
-              <li>Unvisited question – Gray</li>
-            </ul>
-            <button
-              className="btn mx-auto py-2"
-              onClick={() => setShowInstructionPopup(false)}
-            >
-              Take your Test
-            </button>
+        {showQuantityPopup && (
+          <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-75 z-50">
+            <div className="question_popup">
+              <h2>Select Number Of Questions</h2>
+              {questionLimits.map((limit, index) => (
+                <label key={index}>
+                  <input
+                    type="radio"
+                    name="questionLimit"
+                    value={limit}
+                    onChange={() => handleLimitSelection(limit)}
+                    className="form-radio"
+                  />
+                  <span className="text-gray-800">
+                    {limit === "full"
+                      ? `Full Test (${questions.length} Questions)`
+                      : `${limit} Questions`}
+                  </span>
+                </label>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      <div className="test_nav">
-        <TestNavbar />
+        {showInstructionPopup && (
+          <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-75 z-50">
+            <div className="question_popup">
+              <h2>Test Instructions</h2>
+              <ul>
+                <li>Each question takes 1 minute, So total number of questions X 1min for total test time. (Time is for whole test)</li>
+                <li>4 buttons for navigation “Previous question” “Mark for Review” “Next” “Questions”.</li>
+                <li>Questions will have pop up box for navigating to any question.</li>
+                <li>Attempted question – Green</li>
+                <li>Left question – Red</li>
+                <li>Unvisited question – Gray</li>
+              </ul>
+              <button
+                className="btn mx-auto py-2"
+                onClick={() => setShowInstructionPopup(false)}
+              >
+                Take your Test
+              </button>
+            </div>
+          </div>
+        )}
+
+        <div className="test_nav">
+          <TestNavbar />
+        </div>
+
+        {filteredQuestions.length > 0 && !showInstructionPopup && (
+          <div className="test_containers">
+            <div className="test_container1">
+              <h2 className="">
+                Question {currentQuestionIndex + 1} / {filteredQuestions.length}
+              </h2>
+              <p className="mt-2" dangerouslySetInnerHTML={{ __html: filteredQuestions[currentQuestionIndex].question }} />
+              <img alt="" src={`https://mitoslearning.in/${filteredQuestions[currentQuestionIndex].image}`} /> 
+              <div className="option_btns">
+                {renderOptionButtons(filteredQuestions[currentQuestionIndex])}
+              </div>
+
+              {userAnswers[filteredQuestions[currentQuestionIndex].id] &&
+                userAnswers[filteredQuestions[currentQuestionIndex].id] !==
+                filteredQuestions[currentQuestionIndex].correctOption && (
+                  <>
+                    <p className="text-green-500 mt-2">
+                      Correct Answer: {filteredQuestions[currentQuestionIndex].correctOption}
+                    </p>
+                    <p className="text-red-500 mt-2">
+                      <span className="hint" >Hint:</span>
+                      <img alt="" src={`https://mitoslearning.in/${filteredQuestions[currentQuestionIndex].hintImage}`} /> 
+                      <MathJax> 
+                        <p dangerouslySetInnerHTML={{ __html: filteredQuestions[currentQuestionIndex].hint }}></p>
+                      </MathJax>
+                    </p>
+                  </>
+                )}
+
+              <div className="nav_btns">
+                <button
+                  onClick={handlePrevious}
+                  className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                  disabled={currentQuestionIndex === 0}
+                >
+                  Previous
+                </button>
+                <button
+                  onClick={handleNext}
+                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                  disabled={currentQuestionIndex === filteredQuestions.length - 1}
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+
+            <div className="test_container2">
+              <ul className="answer_label">
+                <li>Answered</li>
+                <li>Un-answerd</li>
+                <li>Not visited</li>
+              </ul>
+              <div className="rounded_navs">
+                {filteredQuestions.map((question, index) => {
+                  const isAnswered = userAnswers[question.id] !== undefined;
+                  const isVisited = visitedQuestions[question.id] !== undefined;
+
+                  let buttonColor = "bg-[#B19CBE]";
+                  if (isAnswered) {
+                    buttonColor = "bg-[var(--primery)]";
+                  } else if (isVisited) {
+                    buttonColor = "bg-[#e49331]";
+                  }
+
+                  return (
+                    <button
+                      key={question.id}
+                      onClick={() => handleQuestionNavigation(index)}
+                      className={`p-2 rounded-lg text-center ${buttonColor} text-white`}
+                    >
+                      {index + 1}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {currentQuestionIndex === filteredQuestions.length - 1 && (
+          <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-75 z-50">
+            <div className="question_popup grid place-content-center gap-6">
+              <h3>Try anthor set of questions</h3>
+              <button
+                onClick={handleSubmit}
+                className="btn"
+              >
+                Click Here
+              </button>
+            </div>
+          </div>
+        )}
       </div>
-
-      {filteredQuestions.length > 0 && !showInstructionPopup && (
-        <div className="test_containers">
-          {/* Right Side: Current Question */}
-          <div className="test_container1">
-            <h2 className="">
-              Question {currentQuestionIndex + 1} / {filteredQuestions.length}
-            </h2>
-            <p className="mt-2">{filteredQuestions[currentQuestionIndex].question}</p>
-            <div className="option_btns">
-              {renderOptionButtons(filteredQuestions[currentQuestionIndex])}
-            </div>
-
-            {userAnswers[filteredQuestions[currentQuestionIndex].id] &&
-              userAnswers[filteredQuestions[currentQuestionIndex].id] !==
-              filteredQuestions[currentQuestionIndex].correctOption && (
-                <>
-                  <p className="text-green-500 mt-2">
-                    Correct Answer: {filteredQuestions[currentQuestionIndex].correctOption}
-                  </p>
-                  <p className="text-red-500 mt-2">
-                    <span className="hint" >Hint:</span> {filteredQuestions[currentQuestionIndex].hint}
-                  </p>
-                </>
-              )}
-
-            <div className="nav_btns">
-              <button
-                onClick={handlePrevious}
-                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-                disabled={currentQuestionIndex === 0}
-              >
-                Previous
-              </button>
-              <button
-                onClick={handleNext}
-                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                disabled={currentQuestionIndex === filteredQuestions.length - 1}
-              >
-                Next
-              </button>
-            </div>
-          </div>
-
-          {/* Left Side: Question Navigation */}
-          <div className="test_container2">
-            <ul className="answer_label">
-              <li>Answered</li>
-              <li>Un-answerd</li>
-              <li>Not visited</li>
-            </ul>
-            <div className="rounded_navs">
-              {filteredQuestions.map((question, index) => {
-                const isAnswered = userAnswers[question.id] !== undefined;
-                const isVisited = visitedQuestions[question.id] !== undefined;
-
-                let buttonColor = "bg-[#B19CBE]"; // Default: Unvisited
-                if (isAnswered) {
-                  buttonColor = "bg-[var(--primery)]"; // Answered
-                } else if (isVisited) {
-                  buttonColor = "bg-[#e49331]"; // Visited but unanswered
-                }
-
-                return (
-                  <button
-                    key={question.id}
-                    onClick={() => handleQuestionNavigation(index)}
-                    className={`p-2 rounded-lg text-center ${buttonColor} text-white`}
-                  >
-                    {index + 1}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {currentQuestionIndex === filteredQuestions.length - 1 && (
-         <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-75 z-50">
-          <div className="question_popup grid place-content-center gap-6">
-          <h3>Try anthor set of questions</h3>
-        <button
-          onClick={handleSubmit}
-          className="btn"
-        >
-          Click Here
-        </button>
-        </div>
-        </div>
-      )}
-    </div>
+    </MathJaxContext>
   );
 }

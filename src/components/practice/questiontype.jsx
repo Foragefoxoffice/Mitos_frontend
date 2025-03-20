@@ -71,7 +71,7 @@ export default function QuestiontypePage({ selectedChapter }) {
     <div className="p-6">
       <h1 className="text-xl font-bold mb-4">Select Question Types</h1>
       {loading && <p className="text-gray-500">Loading...</p>}
-      {error && <p className="text-red-500">{error}</p>}
+      {error && <p className="text-center pt-10">{error}</p>}
       {!loading && !error && (
         <>
          <div className="topic_cards">

@@ -22,7 +22,7 @@ export default function Subject({ onSubjectSelect, onScreenSelection }) {
               const chapters = await fetchChapter(subject.id);
               return { ...subject, chapterCount: Array.isArray(chapters) ? chapters.length : 0 };
             } catch {
-              return { ...subject, chapterCount: "N/A" };
+              return { ...subject, chapterCount: "0" };
             }
           })
         );

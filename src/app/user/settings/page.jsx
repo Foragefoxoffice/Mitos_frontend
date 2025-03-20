@@ -23,7 +23,7 @@ export default function UserSettings() {
   useEffect(() => {
     // Fetch user details
     const fetchUser = async () => {
-      const res = await fetch("http://localhost:5000/api/users/me", {
+      const res = await fetch("https://mitoslearning.in/api/users/me", {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -55,7 +55,7 @@ export default function UserSettings() {
     if (formData.password) formDataToSend.append("password", formData.password);
     if (formData.profile) formDataToSend.append("profile", formData.profile);
 
-    const res = await fetch(`http://localhost:5000/api/users/update-profile/${user.id}`, {
+    const res = await fetch(`https://mitoslearning.in/api/users/update-profile/${user.id}`, {
       method: "PUT",
       headers: { Authorization: `Bearer ${token}` }, // No 'Content-Type' for FormData
       body: formDataToSend,

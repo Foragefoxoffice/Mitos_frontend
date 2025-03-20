@@ -39,7 +39,7 @@ export default function Chapter({ selectedSubject, onChapterSelect, onScreenSele
         setChapters(chaptersWithTopics);
       } catch (err) {
         console.error("Failed to fetch chapters:", err);
-        setError("Unable to load chapters. Please try again later.");
+        setError("There no chapters added in this subject yet. Please try again later.");
       } finally {
         setLoading(false);
       }
@@ -59,9 +59,9 @@ export default function Chapter({ selectedSubject, onChapterSelect, onScreenSele
   };
 
   return (
-    <div>
+    <div className="p-4">
       {loading && <p>Loading...</p>}
-      {error && <p className="text-red-500">{error}</p>}
+      {error && <p className="text-center pt-10">{error}</p>}
       {!loading && !error && (
         <div className="chapter_cards">
           {chapters.map((chapter) => (

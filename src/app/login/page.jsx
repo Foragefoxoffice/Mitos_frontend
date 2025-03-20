@@ -3,12 +3,14 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
+import useAuth from "@/contexts/useAuth";
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  useAuth();
 
   // Handle form submission
   const handleSubmit = async (e) => {
@@ -16,7 +18,7 @@ export default function LoginPage() {
     setError(""); // Clear previous errors
 
     try {
-      const response = await fetch("http://localhost:5000/api/auth/login", {
+      const response = await fetch("https://mitoslearning.in/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -26,17 +28,18 @@ export default function LoginPage() {
 
       if (response.ok) {
         // Check if the user is an admin
-        if (data.role !== "admin") {
-          setError("Access restricted to admin users only.");
+        if (data.role !== "user") {
+          setError("Access restricted to student users only.");
           return;
         }
 
         // Save token and role to local storage
-        localStorage.setItem("token", data.token);
+        localStorage.setItem("token", data.accessToken);
+        localStorage.setItem("refreshToken", data.refreshToken);
         localStorage.setItem("role", data.role);
         localStorage.setItem("userId", data.user.id);
         // Navigate to admin dashboard
-        router.push("/admin/types");
+        router.push("/user/dashboard");
       } else {
         // Set error message from server response
         setError(data.message || "Login failed. Please try again.");
@@ -50,7 +53,7 @@ export default function LoginPage() {
   // Handle Google Sign-In success
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
-      const response = await fetch("http://localhost:5000/api/auth/google", {
+      const response = await fetch("https://mitoslearning.in/api/auth/google-auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ credential: credentialResponse.credential }),
@@ -66,11 +69,13 @@ export default function LoginPage() {
         }
 
         // Save token and role to local storage
-        localStorage.setItem("token", data.token);
+        localStorage.setItem("token", data.accessToken);
+        localStorage.setItem("refreshToken", data.refreshToken);
         localStorage.setItem("role", data.role);
         localStorage.setItem("userId", data.user.id);
+
         // Navigate to admin dashboard
-        router.push("/admin/types");
+        router.push("/user/dashboard");
       } else {
         setError(data.message || "Google authentication failed.");
       }
@@ -89,7 +94,7 @@ export default function LoginPage() {
     <GoogleOAuthProvider clientId="501560257854-oor7kgad2o2dk9l2qhv5ekd5ilmt9h0r.apps.googleusercontent.com">
       <div className="container p-10">
         <div className="flex w-full">
-          <div className="w-[40%]">
+          <div className="w-[40%] hidden md:flex">
             <div className="login">
               <div className="login_img">
                 <img src="/images/login/login_img.png" alt="" />
@@ -100,7 +105,7 @@ export default function LoginPage() {
               </div>
             </div>
           </div>
-          <div className="w-[60%] ">
+          <div className="w-[100%] md:w-[60%] ">
             <div className="login_content">
               <div className="logo">
                 <img src="/images/logo/logo.png" alt="" />
@@ -147,6 +152,13 @@ export default function LoginPage() {
                   Login
                 </button>
               </form>
+
+              <p className="mt-2 text-center" >
+          You don't have an account?{" "}
+          <a href="/register" className="text-[#35095E]">
+            Signin here
+          </a>
+        </p>
 
               {/* Google Sign-In Button */}
               <div className="mt-4 flex justify-center">

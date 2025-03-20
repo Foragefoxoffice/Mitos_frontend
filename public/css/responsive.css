@@ -1,0 +1,62 @@
+@media (max-width:700px){
+    .container {
+        padding-right: 15px !important;
+        padding-left: 15px !important;
+    }
+    .tabs {
+        padding: 16px;
+    }
+    .subject_cards {
+        grid-template-columns: repeat(1, 1fr);
+    }
+    .chapter_cards {
+        grid-template-columns: repeat(1, 1fr);
+        padding: 0 0 0 0;
+    }
+    .btns_group {
+        grid-template-columns: repeat(1, 1fr);
+        gap: 0;
+    }
+    .topic_cards {
+        grid-template-columns: repeat(1, 1fr);
+    }
+    .question_popup {
+        padding: 20px;
+        width: 90%;
+    }
+    .test_containers {
+        display: grid
+    ;
+    }
+    .test_container2 {
+        width: 100%;
+        padding: 20px;
+        height: 75vh;
+    }
+    .test_container1 {
+        width: 100%;
+        padding: 20px;
+    }
+    .rounded_navs {
+        display: grid
+    ;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        place-items: center;
+    }
+    .answer_label {
+        display: flex
+    ;
+        gap: 10px;
+        align-items: center;
+        justify-content: space-between;
+        padding: 20px 10px;
+    }
+    .login_content {
+        padding: 0px 30px;
+        height: 100%;
+        display: grid
+    ;
+        place-content: center;
+    }
+}

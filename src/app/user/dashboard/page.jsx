@@ -9,6 +9,7 @@ import Portion from "@/components/test/test-postion";
 import TestSubject from "@/components/test/test-subject";
 import TestChapter from "@/components/test/test-chapter";
 import TestTopics from "@/components/test/test-topic";
+import { FaAngleLeft } from "react-icons/fa6";
 
 // Custom Hook to Manage Tab State
 const useTabState = (initialScreen) => {
@@ -18,38 +19,59 @@ const useTabState = (initialScreen) => {
   const [selectedChapter, setSelectedChapter] = useState(null);
   const [selectedTopic, setSelectedTopic] = useState(null);
   const [selectedQuestiontype, setSelectedQuestiontype] = useState(null);
+  const [history, setHistory] = useState([initialScreen]); // History stack
+
+  const navigateTo = (screen) => {
+    setHistory((prevHistory) => [...prevHistory, screen]); // Add new screen to history
+    setCurrentScreen(screen); // Update current screen
+  };
+
+  const goBack = () => {
+    setHistory((prevHistory) => {
+      if (prevHistory.length > 1) {
+        const newHistory = prevHistory.slice(0, -1); // Remove last screen
+        const previousScreen = newHistory[newHistory.length - 1]; // Get last screen
+        setCurrentScreen(previousScreen); // Update screen immediately
+        return newHistory;
+      }
+      return prevHistory;
+    });
+  };
+  
+  
+  
 
   const handlePortionSelect = (portion) => {
     setSelectedPortion(portion);
-    setCurrentScreen("test-subject");
+    navigateTo("test-subject");
   };
 
   const handleTestSubjectSelect = (subject, portion) => {
     setSelectedSubject(subject);
-    setSelectedPortion(portion); // Ensure portion is saved
-    setCurrentScreen("test-chapter");
+    setSelectedPortion(portion);
+    navigateTo("test-chapter");
   };
 
   const handleTestChapterSelect = (subject, portion, chapter) => {
     setSelectedSubject(subject);
-    setSelectedSubject(chapter);
-    setSelectedPortion(portion); // Ensure portion is saved
-    setCurrentScreen("test-topic");
+    setSelectedChapter(chapter);
+    setSelectedPortion(portion);
+    navigateTo("test-topic");
   };
-  
+
   const handleSubjectSelect = (subject) => {
     setSelectedSubject(subject);
-    setCurrentScreen("chapter");
+    navigateTo("chapter");
   };
 
   const handleChapterSelect = (chapter) => {
     setSelectedChapter(chapter);
-    setCurrentScreen("topic");
+    navigateTo("topic");
   };
 
   const handleTopicSelect = (topic) => {
     setSelectedTopic(topic);
-    setCurrentScreen("questiontype");
+    navigateTo("questiontype");
   };
 
   const handleQuestiontypeSelect = (questiontype) => {
@@ -57,7 +79,7 @@ const useTabState = (initialScreen) => {
   };
 
   const handleScreenSelection = (screen) => {
-    setCurrentScreen(screen);
+    navigateTo(screen);
   };
 
   return {
@@ -74,7 +96,8 @@ const useTabState = (initialScreen) => {
     handleQuestiontypeSelect,
     handleScreenSelection,
     handleTestSubjectSelect,
-    handleTestChapterSelect
+    handleTestChapterSelect,
+    goBack, // Expose the goBack function
   };
 };
 
@@ -102,7 +125,7 @@ export default function Practice() {
               activeTab === tab
                 ? "bg-[#EBD7FF] rounded-3xl text-[--text]"
                 : "text-gray-500"
-            } px-4 py-2`}
+            } px-3 md:px-6 py-2`}
             onClick={() => handleTabClick(tab)}
             aria-label={`${
               tab === "tab1"
@@ -127,6 +150,13 @@ export default function Practice() {
         {/* Practice Tab (Tab 1) */}
         {activeTab === "tab1" && (
           <div>
+            {["chapter", "topic", "questiontype"].includes(practiceState.currentScreen) && (
+  <button onClick={practiceState.goBack} className="flex items-center  p-2 rounded-md ml-4">
+    <FaAngleLeft className="text-xl text-white" />
+    <span className="text-white">Back</span> 
+  </button>
+)}
+
             {practiceState.currentScreen === "subject" && (
               <Subject
                 onSubjectSelect={practiceState.handleSubjectSelect}
@@ -159,46 +189,9 @@ export default function Practice() {
 
         {/* Test Tab (Tab 2) */}
         {activeTab === "tab2" && (
-          <div>
-            {testState.currentScreen === "full-portion" && (
-              <Portion
-                onPortionSelect={testState.handlePortionSelect}
-                onScreenSelection={testState.handleScreenSelection}
-              />
-            )}
-            {testState.currentScreen === "test-subject" && (
-              <TestSubject
-                selectedPortion={testState.selectedPortion}
-                onSubjectSelect={testState.handleTestSubjectSelect}
-                onScreenSelection={testState.handleScreenSelection}
-              />
-            )}
-          {testState.currentScreen === "test-chapter" && (
-  <TestChapter
-    selectedSubject={testState.selectedSubject}
-    selectedPortion={testState.selectedPortion} // Pass selectedPortion here
-    onChapterSelect={testState.handleChapterSelect}
-    onScreenSelection={testState.handleScreenSelection}
-  />
-)}
-
-            {testState.currentScreen === "test-topic" && (
-              <TestTopics
-              selectedSubject={testState.selectedSubject}
-              selectedPortion={testState.selectedPortion} 
-              selectedChapter={testState.selectedChapter} // Pass selectedPortion here
-              onTopicSelect={testState.handleTestChapterSelect}
-              onScreenSelection={testState.handleScreenSelection}
-              />
-            )}
-            {testState.currentScreen === "questiontype" && (
-              <QuestiontypePage
-                selectedTopic={testState.selectedTopic}
-                selectedChapter={testState.selectedChapter}
-                onQuestiontypeSelect={testState.handleQuestiontypeSelect}
-              />
-            )}
-          </div>
+           <div className="p-4 text-center text-gray-500">
+           Test feature is coming soon!
+         </div>
         )}
 
         {/* Study Material Tab (Tab 3) */}

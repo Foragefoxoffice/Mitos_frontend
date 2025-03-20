@@ -9,27 +9,27 @@ const navItem = [
       {
         title: "Home",
         image: "/images/icons/home.png",
-        herf: "/user/home",
+        herf: "/user/dashboard",
       },
       {
         title: "Learning Progress",
         image: "/images/icons/progress.png",
-        herf: "/dashboard/progress",
+        herf: "",
       },
       {
         title: "Leader Board",
         image: "/images/icons/wining.png",
-        herf: "/dashboard/board",
+        herf: "",
       },
       {
         title: "FAQ’s",
         image: "/images/icons/faq.png",
-        herf: "/dashboard/faq",
+        herf: "",
       },
       {
         title: "Settings",
         image: "/images/icons/settings.png",
-        herf: "/dashboard/settings",
+        herf: "",
       },
     ],
   },
@@ -41,9 +41,9 @@ const Menu = () => (
       <nav key={title}>
         <ul className="pt-16 grid gap-6">
           {nav.items.map((item) => (
-            <li key={item.title} className="flex items-center gap-3">
+            <li key={item.title} className="flex justify-center md:justify-start items-center gap-3">
               <Image src={item.image} alt="" width={25} height={20} />
-              <Link className="text-white" href={item.herf}>{item.title}</Link>
+              <Link className="text-white hidden md:flex" href={item.herf}>{item.title}</Link>
             </li>
           ))}
         </ul>

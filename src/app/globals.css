@@ -1,5 +1,6 @@
   @import url('../../public/css/fonts.css');
 @import url('../../public/css/style.css');
+@import url('../../public/css/responsive.css');
 
 @tailwind base;
 @tailwind components;
@@ -38,6 +39,7 @@ body {
   background: #fff;
   font-family: 'Satoshi', sans-serif;
   overflow-x: hidden;
+  overflow-y: auto !important;
 }
 
 h1,

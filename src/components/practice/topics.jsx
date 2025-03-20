@@ -75,11 +75,11 @@ export default function TopicsPage({ selectedChapter, onTopicSelect }) {
   };
 
   return (
-    <div className="p-6">
+    <div className="p-4">
       <h1 className="text-xl font-bold mb-4">Attempt by Topic</h1>
 
       {loading && <p className="text-gray-500">Loading...</p>}
-      {error && <p className="text-red-500">{error}</p>}
+      {error && <p className="text-center pt-10">{error}</p>}
 
       {!loading && !error && (
         <>
