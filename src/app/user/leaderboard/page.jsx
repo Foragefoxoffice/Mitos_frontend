@@ -82,7 +82,7 @@ const Leaderboard = () => {
                       profileImageUrl
                         ? profileImageUrl.startsWith("http")
                           ? profileImageUrl
-                          : `https://mitoslearning.in/${profileImageUrl}`
+                          : `https://mitoslearning.in${profileImageUrl}`
                         : "/images/user/default.png"
                     }
                     alt="User Icon"

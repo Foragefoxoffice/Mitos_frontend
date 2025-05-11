@@ -81,7 +81,7 @@ const FavoriteQuestionCard = ({
         {question.question.image && (
           <div className="mt-4 rounded-lg overflow-hidden">
             <img 
-              src={`https://mitoslearning.in//${question.question.image}`}
+              src={`https://mitoslearning.in/${question.question.image}`}
               alt="Question illustration"
               className="w-full h-auto max-h-60 object-contain mx-auto"
             />
@@ -150,7 +150,7 @@ const FavoriteQuestionCard = ({
                   {question.question.hintImage && (
                     <div className="mt-3 rounded-lg overflow-hidden">
                       <img 
-                        src={`https://mitoslearning.in//${question.question.hintImage}`}
+                        src={`https://mitoslearning.in/${question.question.hintImage}`}
                         alt="Hint illustration"
                         className="w-full h-auto max-h-60 object-contain mx-auto"
                       />
@@ -311,7 +311,7 @@ export default function FavoriteQuestionsPage() {
         }
 
         const response = await fetch(
-          `https://mitoslearning.in//api/fav-questions/${userId}`,
+          `https://mitoslearning.in/api/fav-questions/${userId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -339,7 +339,7 @@ export default function FavoriteQuestionsPage() {
   const removeFromFavorites = async (questionId) => {
     try {
       const response = await fetch(
-        `https://mitoslearning.in//api/fav-questions`,
+        `https://mitoslearning.in/api/fav-questions`,
         {
           method: "DELETE",
           headers: {

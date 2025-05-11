@@ -93,7 +93,7 @@ export const TestQuestion = ({
       {question.image && (
         <img
           alt=""
-          src={`https://mitoslearning.in//${question.image}`}
+          src={`https://mitoslearning.in/${question.image}`}
           className="max-w-full h-auto my-4 rounded"
         />
       )}

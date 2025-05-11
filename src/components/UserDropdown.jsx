@@ -56,7 +56,7 @@ const UserDropdown = ({ user }) => {
     user?.profile
       ? user.profile.startsWith("http")
         ? user.profile
-        : `https://mitoslearning.in/${user.profile}`
+        : `https://mitoslearning.in${user.profile}`
       : "/images/user/default.png"
   }
   alt="User Icon"

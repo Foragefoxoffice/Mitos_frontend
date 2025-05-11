@@ -8,8 +8,8 @@ import { useMediaQuery } from 'react-responsive';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.js`;
 
-const API_BASE_URL = "https://mitoslearning.in//api";
-const PDF_BASE_URL = "https://mitoslearning.in/";
+const API_BASE_URL = "https://mitoslearning.in/api";
+const PDF_BASE_URL = "https://mitoslearning.in";
 
 // Canvas cache to store rendered pages
 const canvasCache = new Map();

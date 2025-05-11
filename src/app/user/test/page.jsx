@@ -309,7 +309,7 @@ const calculateResultsByType = useCallback(() => {
   const saveTestResult = useCallback(
     async (resultData) => {
       try {
-        const response = await fetch("https://mitoslearning.in//api/tests", {
+        const response = await fetch("https://mitoslearning.in/api/tests", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -338,7 +338,7 @@ const calculateResultsByType = useCallback(() => {
       
       if (isCurrentlyFavorite) {
         // DELETE request
-        const response = await fetch("https://mitoslearning.in//api/fav-questions", {
+        const response = await fetch("https://mitoslearning.in/api/fav-questions", {
           method: "DELETE",
           headers: {
             "Content-Type": "application/json",
@@ -355,7 +355,7 @@ const calculateResultsByType = useCallback(() => {
         }
       } else {
         // POST request
-        const response = await fetch("https://mitoslearning.in//api/fav-questions", {
+        const response = await fetch("https://mitoslearning.in/api/fav-questions", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

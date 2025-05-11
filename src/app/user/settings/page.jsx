@@ -29,7 +29,7 @@ export default function UserSettings() {
           throw new Error("Authentication required. Please log in.");
         }
 
-        const response = await fetch("https://mitoslearning.in//api/users/me", {
+        const response = await fetch("https://mitoslearning.in/api/users/me", {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json"
@@ -61,7 +61,7 @@ export default function UserSettings() {
           setProfilePreview(
             userData.profile.startsWith('http')
               ? userData.profile
-              : `https://mitoslearning.in/${userData.profile}`
+              : `https://mitoslearning.in${userData.profile}`
           );
         }
       } catch (err) {
@@ -139,7 +139,7 @@ export default function UserSettings() {
 
       // Send the update request
       const response = await fetch(
-        `https://mitoslearning.in//api/users/update-profile/${user.id}`,
+        `https://mitoslearning.in/api/users/update-profile/${user.id}`,
         {
           method: "PUT",
           headers: {
@@ -163,7 +163,7 @@ export default function UserSettings() {
         setProfilePreview(
           responseData.user.profile.startsWith('http')
             ? responseData.user.profile
-            : `https://mitoslearning.in/${responseData.user.profile}`
+            : `https://mitoslearning.in${responseData.user.profile}`
         );
       }
 

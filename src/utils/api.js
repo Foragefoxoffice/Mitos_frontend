@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "https://mitoslearning.in//api",
+  baseURL: "https://mitoslearning.in/api",
 });
 
 API.interceptors.request.use(
@@ -107,7 +107,7 @@ export const fetchCustomTestQuestions = async (
   if (!token) {
     throw new Error("No token found. Please log in.");
   }
-  const response = await fetch("https://mitoslearning.in//api/questions/custom", {
+  const response = await fetch("https://mitoslearning.in/api/questions/custom", {
     
     method: "POST",
     headers: {

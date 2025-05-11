@@ -370,7 +370,7 @@ export default function TestPage() {
               
               {filteredQuestions[currentQuestionIndex].image && (
                 <img 
-                  src={`https://mitoslearning.in//${filteredQuestions[currentQuestionIndex].image}`} 
+                  src={`https://mitoslearning.in/${filteredQuestions[currentQuestionIndex].image}`} 
                   alt="Question illustration"
                   className="max-w-full h-auto my-4"
                 /> 
@@ -392,7 +392,7 @@ export default function TestPage() {
                         <p className="text-red-500 font-semibold">Hint:</p>
                         {filteredQuestions[currentQuestionIndex].hintImage && (
                           <img 
-                            src={`https://mitoslearning.in//${filteredQuestions[currentQuestionIndex].hintImage}`} 
+                            src={`https://mitoslearning.in/${filteredQuestions[currentQuestionIndex].hintImage}`} 
                             alt="Hint illustration"
                             className="max-w-full h-auto my-2"
                           /> 

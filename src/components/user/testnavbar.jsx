@@ -16,7 +16,7 @@ const TestNavbar = () => {
       }
 
       try {
-        const response = await fetch("https://mitoslearning.in//api/users/me", {
+        const response = await fetch("https://mitoslearning.in/api/users/me", {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
