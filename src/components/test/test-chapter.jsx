@@ -52,7 +52,7 @@ export default function TestChapter({selectedPortion, selectedSubject, onChapter
       chapterId: chapter.id,
     };
     setTestData(fullPortionTestData); // Set the full portion test data in context
-    router.push("/user/full-test");
+    router.push("/user/test");
   };
 
   const handleCustomTopicsClick = (chapter) => {

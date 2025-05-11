@@ -18,7 +18,7 @@ export default function AdminRegister() {
     e.preventDefault();
 
     try {
-      const res = await fetch("https://mitoslearning.in/api/auth/register", {
+      const res = await fetch("https://mitoslearning.in//api/auth/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -45,7 +45,7 @@ export default function AdminRegister() {
   // Handle Google Sign-In success
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
-      const res = await fetch("https://mitoslearning.in/api/auth/google-auth", {
+      const res = await fetch("https://mitoslearning.in//api/auth/google-auth", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

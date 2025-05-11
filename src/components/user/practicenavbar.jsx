@@ -1,10 +1,11 @@
 'use client';
 import { useEffect, useRef, useState } from "react";
-import UserDropdown from "../UserDropdown";
 import Image from "next/image";
+import UserDropdown from "../UserDropdown";
 
-const TestNavbar = () => {
+const PracticeNavbar = () => {
   const [user, setUser] = useState(null);
+
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -41,15 +42,15 @@ const TestNavbar = () => {
 
   return (
     <div className="">
-      <div className="test_header flex justify-between items-center">
+      <div className="test_header flex justify-between">
        
-          <h1 className="font-bold text-2xl md:text-3xl">Test</h1>
+          <h1 className="font-bold text-xl md:text-3xl">Practice</h1>
           <Image src={"/images/logo/logo.png"}  className="hidden md:block" alt="logo" width={150} height={80} />
-          <UserDropdown user={user} />
+            <UserDropdown user={user} />
       </div>
       
     </div>
   );
 };
 
-export default TestNavbar;
+export default PracticeNavbar;

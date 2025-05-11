@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { fetchSubjects, fetchChapter } from "@/utils/api";
 
-export default function Subject({ onSubjectSelect, onScreenSelection }) {
+export default function MeterialsSubject({ onSubjectSelect, onScreenSelection }) {
   const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -75,6 +75,7 @@ export default function Subject({ onSubjectSelect, onScreenSelection }) {
           ))}
         </div>
       )}
+      
     </div>
   );
 }

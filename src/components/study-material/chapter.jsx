@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { fetchChapter, fetchChapterTopics, fetchQuestionBychapter } from "@/utils/api";
 import axios from "axios"; 
 
-export default function Chapter({ selectedSubject, onChapterSelect, onScreenSelection }) {
+export default function MeterialsChapter({ selectedSubject, onChapterSelect, onScreenSelection }) {
   const [chapters, setChapters] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -93,30 +93,21 @@ export default function Chapter({ selectedSubject, onChapterSelect, onScreenSele
     onScreenSelection("topic");
   };
 
-  const handleQuestionTypeClick = (chapter) => {
-    onChapterSelect(chapter);
-    onScreenSelection("questiontype");
-  };
-
   return (
     <div className="p-4">
       {loading && <p>Loading...</p>}
       {error && <p className="text-center pt-10">{error}</p>}
       {!loading && !error && (
-        <div className="chapter_cards">
+        <div className="chapter_cards chapter_cardss">
           {chapters.map((chapter) => (
             <div key={chapter.id} className="subject_card">
               <h2>{chapter.name}</h2>
               <div className="text-sm flex gap-2 text-gray-700">
-                <span>{chapter.topicCount} Topics</span> & 
-                <span>{chapter.questionCount} Questions</span>
+                <span>{chapter.topicCount} Topics</span> 
               </div>
               <div className="btns_group">
                 <button onClick={() => handleTopicClick(chapter)}>
                   Attempt by Topic
-                </button>
-                <button onClick={() => handleQuestionTypeClick(chapter)}>
-                  Attempt by Question Type
                 </button>
               </div>
             </div>

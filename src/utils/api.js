@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "https://mitoslearning.in/api",
+  baseURL: "https://mitoslearning.in//api",
 });
 
 API.interceptors.request.use(
@@ -74,6 +74,11 @@ export const fetchChapterTopics = async (chapterId) => {
 };
 export const fetchTopics = (chapterId) => API.get(`/topics/topic/${chapterId}`);
 export const fetchQuestionType = () => API.get("/question-types");
+
+export const fetchQuestionBychapter = (chapterId) => API.get(`/questions/chapter/${chapterId}`);
+export const fetchQuestionByTopic = (topicId) => API.get(`/questions/topic/${topicId}`);
+export const fetchQuestionByType = (typeId) => API.get(`/questions/topic/${typeId}`);
+
 export const fetchQuestion = (topicId) => API.get(`/questions?topicId=${topicId}`);
 export const fetchQuestions = (topics) => {
   const topicIds = topics.join(","); // Ensure topics are serialized correctly
@@ -94,10 +99,7 @@ export const fetchFullTestByChapter = (portionId, subjectId,chapterId) => API.ge
 
 export const fetchCustomTestQuestions = async (
   portionId,
-  subjectId,
-  chapterId,
-  topicIds,
-  questionCount
+  chapterIds,
 ) => {
 
   const token = localStorage.getItem("token"); // Retrieve the token from localStorage
@@ -105,7 +107,7 @@ export const fetchCustomTestQuestions = async (
   if (!token) {
     throw new Error("No token found. Please log in.");
   }
-  const response = await fetch("https://mitoslearning.in/api/questions/custom", {
+  const response = await fetch("https://mitoslearning.in//api/questions/custom", {
     
     method: "POST",
     headers: {
@@ -114,10 +116,7 @@ export const fetchCustomTestQuestions = async (
     },
     body: JSON.stringify({
       portionId,
-      subjectId,
-      chapterId,
-      topicIds,
-      questionCount,
+      chapterIds
     }),
   });
 
@@ -133,12 +132,52 @@ export const fetchResultByUser = (userId) => API.get(`/tests/${userId}`);
 
 export const fetchLeaderBoard = async () => {
   try {
-    const { data } = await API.get(`/tests/a`); // Use correct endpoint
+    const { data } = await API.get(`/tests/leaders`); // Use correct endpoint
     return data; // Directly return data
   } catch (error) {
     console.error("Error fetching leaderboard:", error);
     throw error;
   }
 };
+
+// Favorite Questions APIs
+export const checkFavoriteStatus = async (userId) => {
+  try {
+    const { data } = await API.get(`/fav-questions?userId=${userId}`);
+    return data;
+  } catch (error) {
+    console.error("Error checking favorite status:", error);
+    throw error;
+  }
+};
+
+export const addFavoriteQuestion = async (userId, questionId) => {
+  try {
+    const { data } = await API.post("/fav-questions", {
+      userId: parseInt(userId, 10),
+      questionId
+    });
+    return data;
+  } catch (error) {
+    console.error("Error adding favorite question:", error);
+    throw error;
+  }
+};
+
+export const removeFavoriteQuestion = async (userId, questionId) => {
+  try {
+    const { data } = await API.delete("/fav-questions", {
+      data: {
+        userId: parseInt(userId, 10),
+        questionId
+      }
+    });
+    return data;
+  } catch (error) {
+    console.error("Error removing favorite question:", error);
+    throw error;
+  }
+};
+
 
 export default API;

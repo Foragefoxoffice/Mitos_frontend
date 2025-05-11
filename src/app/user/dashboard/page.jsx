@@ -4,6 +4,9 @@ import { useState } from "react";
 import Subject from "@/components/practice/subject";
 import Chapter from "@/components/practice/chapter";
 import TopicsPage from "@/components/practice/topics";
+import MeterialsSubject from "@/components/study-material/subject";
+import MeterialsChapter from "@/components/study-material/chapter";
+import MeterialsTopicsPage from "@/components/study-material/topics";
 import QuestiontypePage from "@/components/practice/questiontype";
 import Portion from "@/components/test/test-postion";
 import TestSubject from "@/components/test/test-subject";
@@ -37,9 +40,6 @@ const useTabState = (initialScreen) => {
       return prevHistory;
     });
   };
-  
-  
-  
 
   const handlePortionSelect = (portion) => {
     setSelectedPortion(portion);
@@ -97,7 +97,7 @@ const useTabState = (initialScreen) => {
     handleScreenSelection,
     handleTestSubjectSelect,
     handleTestChapterSelect,
-    goBack, // Expose the goBack function
+    goBack,
   };
 };
 
@@ -109,6 +109,9 @@ export default function Practice() {
 
   // State for Test Tab (Tab 2)
   const testState = useTabState("full-portion");
+
+  // State for Study Material Tab (Tab 3)
+  const studyMaterialState = useTabState("subject");
 
   const handleTabClick = (tab) => {
     setActiveTab(tab);
@@ -125,7 +128,7 @@ export default function Practice() {
               activeTab === tab
                 ? "bg-[#EBD7FF] rounded-3xl text-[--text]"
                 : "text-gray-500"
-            } px-3 md:px-6 py-2`}
+            } px-4 md:px-6 py-2`}
             onClick={() => handleTabClick(tab)}
             aria-label={`${
               tab === "tab1"
@@ -151,11 +154,11 @@ export default function Practice() {
         {activeTab === "tab1" && (
           <div>
             {["chapter", "topic", "questiontype"].includes(practiceState.currentScreen) && (
-  <button onClick={practiceState.goBack} className="flex items-center  p-2 rounded-md ml-4">
-    <FaAngleLeft className="text-xl text-white" />
-    <span className="text-white">Back</span> 
-  </button>
-)}
+              <button onClick={practiceState.goBack} className="flex items-center p-2 rounded-md ml-4">
+                <FaAngleLeft className="text-xl text-white" />
+                <span className="text-white">Back</span> 
+              </button>
+            )}
 
             {practiceState.currentScreen === "subject" && (
               <Subject
@@ -189,15 +192,82 @@ export default function Practice() {
 
         {/* Test Tab (Tab 2) */}
         {activeTab === "tab2" && (
-           <div className="p-4 text-center text-gray-500">
-           Test feature is coming soon!
-         </div>
+          <div>
+            {["test-subject", "test-chapter", 'test-topic','questiontype'].includes(testState.currentScreen) && (
+              <button onClick={testState.goBack} className="flex items-center p-2 rounded-md ml-4">
+                <FaAngleLeft className="text-xl text-white" />
+                <span className="text-white">Back</span> 
+              </button>
+            )}
+            {testState.currentScreen === "full-portion" && (
+              <Portion
+                onPortionSelect={testState.handlePortionSelect}
+                onScreenSelection={testState.handleScreenSelection}
+              />
+            )}
+            {testState.currentScreen === "test-subject" && (
+              <TestSubject
+                selectedPortion={testState.selectedPortion}
+                onSubjectSelect={testState.handleTestSubjectSelect}
+                onScreenSelection={testState.handleScreenSelection}
+              />
+            )}
+            {testState.currentScreen === "test-chapter" && (
+              <TestChapter
+                selectedSubject={testState.selectedSubject}
+                selectedPortion={testState.selectedPortion}
+                onChapterSelect={testState.handleChapterSelect}
+                onScreenSelection={testState.handleScreenSelection}
+              />
+            )}
+            {testState.currentScreen === "test-topic" && (
+              <TestTopics
+                selectedSubject={testState.selectedSubject}
+                selectedPortion={testState.selectedPortion}
+                selectedChapter={testState.selectedChapter}
+                onTopicSelect={testState.handleTestChapterSelect}
+                onScreenSelection={testState.handleScreenSelection}
+              />
+            )}
+            {testState.currentScreen === "questiontype" && (
+              <QuestiontypePage
+                selectedTopic={testState.selectedTopic}
+                selectedChapter={testState.selectedChapter}
+                onQuestiontypeSelect={testState.handleQuestiontypeSelect}
+              />
+            )}
+          </div>
         )}
 
         {/* Study Material Tab (Tab 3) */}
         {activeTab === "tab3" && (
-          <div className="p-4 text-center text-gray-500">
-            Study Material feature is coming soon!
+          <div>
+            {["chapter", "topic"].includes(studyMaterialState.currentScreen) && (
+              <button onClick={studyMaterialState.goBack} className="flex items-center p-2 rounded-md ml-4">
+                <FaAngleLeft className="text-xl text-white" />
+                <span className="text-white">Back</span> 
+              </button>
+            )}
+
+            {studyMaterialState.currentScreen === "subject" && (
+              <MeterialsSubject
+                onSubjectSelect={studyMaterialState.handleSubjectSelect}
+                onScreenSelection={studyMaterialState.handleScreenSelection}
+              />
+            )}
+            {studyMaterialState.currentScreen === "chapter" && (
+              <MeterialsChapter
+                selectedSubject={studyMaterialState.selectedSubject}
+                onChapterSelect={studyMaterialState.handleChapterSelect}
+                onScreenSelection={studyMaterialState.handleScreenSelection}
+              />
+            )}
+            {studyMaterialState.currentScreen === "topic" && (
+              <MeterialsTopicsPage
+                selectedChapter={studyMaterialState.selectedChapter}
+                onTopicSelect={studyMaterialState.handleTopicSelect}
+              />
+            )}
           </div>
         )}
       </div>

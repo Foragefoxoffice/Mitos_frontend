@@ -1,17 +1,27 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { fetchLeaderBoard } from "@/utils/api";
+import Image from "next/image";
 
 const Leaderboard = () => {
   const [leaderboard, setLeaderboard] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentUserId, setCurrentUserId] = useState(null);
+  const currentUserRef = useRef(null);
+
+  useEffect(() => {
+    // Get userId from localStorage
+    const userId =
+      typeof window !== "undefined" ? localStorage.getItem("userId") : null;
+    setCurrentUserId(userId);
+  }, []);
 
   useEffect(() => {
     const fetchLeaderboard = async () => {
       try {
-        const data = await fetchLeaderBoard(); // No need for response.ok
+        const data = await fetchLeaderBoard();
         setLeaderboard(data);
       } catch (err) {
         setError("Failed to fetch leaderboard");
@@ -23,37 +33,98 @@ const Leaderboard = () => {
     fetchLeaderboard();
   }, []);
 
+  useEffect(() => {
+    if (currentUserRef.current && !loading) {
+      currentUserRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }
+  }, [loading, leaderboard]);
+
+  const getProfileImageUrl = (url) => {
+    if (url.startsWith("/images/user/")) {
+      return `https://mitoslearning${url}`;
+    }
+    return url;
+  };
+
   if (loading) return <p className="text-center mt-5">Loading...</p>;
   if (error) return <p className="text-center text-red-500">{error}</p>;
 
   return (
-    <div className="max-w-3xl mx-auto mt-10 p-5 bg-white shadow-lg rounded-lg">
-      <h2 className="text-2xl font-bold text-center mb-4">Leaderboard</h2>
-      <table className="w-full border-collapse border border-gray-300">
-        <thead>
-          <tr className="bg-gray-200">
-            <th className="border p-2">Rank</th>
-            <th className="border p-2">Name</th>
-            <th className="border p-2">Email</th>
-            <th className="border p-2">Score</th>
-            <th className="border p-2">Accuracy (%)</th>
-          </tr>
-        </thead>
-        <tbody>
-          {leaderboard.map((user) => (
-            <tr key={user.userId} className="text-center">
-              <td className="border p-2">{user.rank}</td>
-              <td className="border p-2">{user.name}</td>
-              <td className="border p-2">{user.email}</td>
-              <td className="border p-2">{user.totalScore}</td>
-              <td className="border p-2">
-  {parseFloat(user.accuracy).toFixed(2)}%
-</td>
+    <div className="mt-10 p-5">
+      <h2 className="text-3xl font-bold text-left text-[#35095E] mb-6">
+        Top Rankers
+      </h2>
+      <div className="space-y-4 max-h-[500px] overflow-y-auto">
+        {leaderboard.map((user) => {
+          const isCurrentUser = user.userId === currentUserId;
+          const profileImageUrl = getProfileImageUrl(
+            user?.profile || "/images/user/default.png"
+          );
 
-            </tr>
-          ))}
-        </tbody>
-      </table>
+          return (
+            <div
+              key={user.userId}
+              ref={isCurrentUser ? currentUserRef : null}
+              className={`flex justify-between items-center px-6 py-4 rounded-lg ${
+                isCurrentUser
+                  ? "bg-purple-100 border-2 border-purple-400"
+                  : "bg-gray-50"
+              }`}
+            >
+              <div className="flex items-center gap-4">
+                {/* User Image */}
+                <div className="relative h-10 w-10 rounded-full overflow-hidden">
+                  <img
+                    src={
+                      profileImageUrl
+                        ? profileImageUrl.startsWith("http")
+                          ? profileImageUrl
+                          : `https://mitoslearning.in/${profileImageUrl}`
+                        : "/images/user/default.png"
+                    }
+                    alt="User Icon"
+                  />
+                </div>
+
+                <div>
+                  <span
+                    className={`font-medium text-lg ${
+                      isCurrentUser ? "text-purple-800" : "text-gray-800"
+                    }`}
+                  >
+                    {user.name}
+                    {isCurrentUser && (
+                      <span className="ml-2 text-sm text-purple-600">
+                        (You)
+                      </span>
+                    )}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex gap-8 items-center">
+                <span
+                  className={`text-xl font-semibold ${
+                    isCurrentUser ? "text-purple-600" : "text-gray-700"
+                  }`}
+                >
+                  {user.totalScore}
+                </span>
+                <span
+                  className={`text-xl font-bold ${
+                    isCurrentUser ? "text-purple-700" : "text-purple-600"
+                  }`}
+                >
+                  {parseFloat(user.accuracy).toFixed(0)}%
+                </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 };

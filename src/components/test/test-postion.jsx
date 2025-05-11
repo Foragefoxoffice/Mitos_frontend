@@ -48,7 +48,7 @@ export default function Portion({ onPortionSelect, onScreenSelection }) {
       portionId: portion.id,
     };
     setTestData(fullPortionTestData); // Set the full portion test data in context
-    router.push("/user/full-test");
+    router.push("/user/test");
   };
 
   const handleFullPortionTestClick = () => {
@@ -56,7 +56,7 @@ export default function Portion({ onPortionSelect, onScreenSelection }) {
       testname: "full-portion",
     };
     setTestData(fullPortionTestData); // Set the full portion test data in context
-    router.push("/user/full-test");
+    router.push("/user/test");
   };
 
   const handleCustomPortionClick = (portion) => {

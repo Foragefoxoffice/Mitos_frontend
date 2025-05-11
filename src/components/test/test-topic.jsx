@@ -65,7 +65,6 @@ export default function TestTopics({ selectedChapter, selectedSubject, selectedP
   };
 
   const handleLimitSelection = (limit) => {
-    const questionCount = limit === "full" ? topics.length * 10 : limit;
 
     const fullTestData = {
       testname: "topics-custom-test",
@@ -78,7 +77,7 @@ export default function TestTopics({ selectedChapter, selectedSubject, selectedP
 
     setTestData(fullTestData);
     setShowQuantityPopup(false);
-    router.push("/user/full-test"); // Auto-redirect on selection
+    router.push("/user/test"); // Auto-redirect on selection
   };
 
   return (

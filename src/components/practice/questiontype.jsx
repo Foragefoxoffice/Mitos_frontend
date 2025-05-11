@@ -1,36 +1,73 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { fetchQuestionType } from "@/utils/api";
+import { fetchQuestionType, fetchQuestionBychapter } from "@/utils/api";
 import { useSelectedQuestionTypes } from "@/contexts/SelectedQuestionTypesContext";
 
 export default function QuestiontypePage({ selectedChapter }) {
-  const { selectedQuestionTypes, setSelectedQuestionTypes, chapterId, setChapterId } = useSelectedQuestionTypes();
-  const [questionTypes, setQuestionTypes] = useState([]);
+  const {
+    selectedQuestionTypes,
+    setSelectedQuestionTypes,
+    chapterId,
+    setChapterId,
+  } = useSelectedQuestionTypes();
+  const [availableQuestionTypes, setAvailableQuestionTypes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectAll, setSelectAll] = useState(false);
   const router = useRouter();
-  
- console.log(chapterId)
+
+  // Reset selectedQuestionTypes when chapterId changes or component unmounts
+  useEffect(() => {
+    return () => {
+      setSelectedQuestionTypes([]);
+    };
+  }, [setSelectedQuestionTypes]);
+
   // Set the chapterId in the context when the chapter changes
   useEffect(() => {
     if (selectedChapter) {
-      setChapterId(selectedChapter.id);  // Store the chapterId in context
+      setChapterId(selectedChapter.id);
     }
   }, [selectedChapter, setChapterId]);
 
+  // Fetch questions and determine available question types when chapterId changes
   useEffect(() => {
-    const loadQuestionTypes = async () => {
+    const loadData = async () => {
       try {
-        const { data } = await fetchQuestionType(chapterId);  // Use chapterId from context
-        if (Array.isArray(data)) {
-          setQuestionTypes(data);
-        } else {
-          throw new Error("Invalid data format received");
+        setLoading(true);
+        setError(null);
+        
+        // First fetch all questions for this chapter
+        const questionsResponse = await fetchQuestionBychapter(chapterId);
+        const questionsData = questionsResponse.data;
+
+        if (!Array.isArray(questionsData)) {
+          throw new Error("Invalid questions data format");
         }
+
+        // Get unique questionTypeIds from questions in this chapter
+        const questionTypeIdsInChapter = [...new Set(
+          questionsData.map(q => q.questionTypeId)
+        )];
+
+        // Now fetch all question types and filter by those present in this chapter
+        const typesResponse = await fetchQuestionType();
+        const allQuestionTypes = typesResponse.data;
+
+        if (!Array.isArray(allQuestionTypes)) {
+          throw new Error("Invalid question types data format");
+        }
+
+        // Filter to only question types that exist in this chapter's questions
+        const chapterQuestionTypes = allQuestionTypes.filter(type => 
+          questionTypeIdsInChapter.includes(type.id)
+        );
+
+        setAvailableQuestionTypes(chapterQuestionTypes);
+        
       } catch (err) {
-        console.error("Failed to fetch question types:", err);
+        console.error("Failed to fetch data:", err);
         setError("Unable to load question types. Please try again later.");
       } finally {
         setLoading(false);
@@ -38,13 +75,15 @@ export default function QuestiontypePage({ selectedChapter }) {
     };
 
     if (chapterId) {
-      loadQuestionTypes();
+      loadData();
     }
   }, [chapterId]);
 
   const handleCheckboxChange = (questionTypeId) => {
     if (selectedQuestionTypes.includes(questionTypeId)) {
-      setSelectedQuestionTypes(selectedQuestionTypes.filter((id) => id !== questionTypeId));
+      setSelectedQuestionTypes(
+        selectedQuestionTypes.filter((id) => id !== questionTypeId)
+      );
     } else {
       setSelectedQuestionTypes([...selectedQuestionTypes, questionTypeId]);
     }
@@ -54,14 +93,16 @@ export default function QuestiontypePage({ selectedChapter }) {
     if (selectAll) {
       setSelectedQuestionTypes([]);
     } else {
-      setSelectedQuestionTypes(questionTypes.map((questionType) => questionType.id));
+      setSelectedQuestionTypes(
+        availableQuestionTypes.map((questionType) => questionType.id)
+      );
     }
     setSelectAll(!selectAll);
   };
 
   const startTest = () => {
     if (selectedQuestionTypes.length > 0) {
-      router.push("/user/test");
+      router.push("/user/practice");
     } else {
       alert("Please select at least one question type.");
     }
@@ -74,44 +115,48 @@ export default function QuestiontypePage({ selectedChapter }) {
       {error && <p className="text-center pt-10">{error}</p>}
       {!loading && !error && (
         <>
-         <div className="topic_cards">
-         <div className="topic_card">
-            <input
-           type="checkbox"
-                id="selectAll"
-              
-              checked={selectAll}
-              onChange={handleSelectAll}
-            />
-            <label htmlFor="selectAll" className="cursor-pointer">
-              Select All Question Types
-            </label>
-          </div>
-    
-            {questionTypes.map((questionType) => (
+          {availableQuestionTypes.length > 0 ? (
+            <>
+              <div className="topic_cards">
+                <div className="topic_card">
+                  <input
+                    type="checkbox"
+                    id="selectAll"
+                    checked={selectAll}
+                    onChange={handleSelectAll}
+                  />
+                  <label htmlFor="selectAll" className="cursor-pointer">
+                    Select All ({availableQuestionTypes.length} Types)
+                  </label>
+                </div>
+
+                {availableQuestionTypes.map((questionType) => (
                   <div key={questionType.id} className="topic_card">
-                <input
-                  type="checkbox"
-                  id={`questionType-${questionType.id}`}
-                  className="cursor-pointer"
-                  checked={selectedQuestionTypes.includes(questionType.id)}
-                  onChange={() => handleCheckboxChange(questionType.id)}
-                />
-                <label
-                  htmlFor={`questionType-${questionType.id}`}
-                  className="cursor-pointer hover:text-green-500"
-                >
-                  {questionType.name}
-                </label>
+                    <input
+                      type="checkbox"
+                      id={`questionType-${questionType.id}`}
+                      className="cursor-pointer"
+                      checked={selectedQuestionTypes.includes(questionType.id)}
+                      onChange={() => handleCheckboxChange(questionType.id)}
+                    />
+                    <label
+                      htmlFor={`questionType-${questionType.id}`}
+                      className="cursor-pointer hover:text-green-500"
+                    >
+                      {questionType.name}
+                    </label>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-          <button
-            className="mx-auto mt-6 btn "
-            onClick={startTest}
-          >
-            Start Test
-          </button>
+              <button className="mx-auto mt-6 btn" onClick={startTest}>
+                Start Practice
+              </button>
+            </>
+          ) : (
+            <p className="text-center pt-10">
+              No question types available for this chapter.
+            </p>
+          )}
         </>
       )}
     </div>

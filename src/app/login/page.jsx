@@ -18,7 +18,7 @@ export default function LoginPage() {
     setError(""); // Clear previous errors
 
     try {
-      const response = await fetch("https://mitoslearning.in/api/auth/login", {
+      const response = await fetch("https://mitoslearning.in//api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -53,7 +53,7 @@ export default function LoginPage() {
   // Handle Google Sign-In success
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
-      const response = await fetch("https://mitoslearning.in/api/auth/google-auth", {
+      const response = await fetch("https://mitoslearning.in//api/auth/google-auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ credential: credentialResponse.credential }),

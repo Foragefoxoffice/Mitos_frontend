@@ -2,10 +2,9 @@
 import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { fetchTopics, fetchQuestionByTopic } from "@/utils/api";
-import { useSelectedTopics } from "@/contexts/SelectedTopicsContext";
 import axios from "axios";
 
-export default function TopicsPage({ selectedChapter, onTopicSelect }) {
+export default function MeterialsTopicsPage({ selectedChapter, onTopicSelect }) {
   const searchParams = useSearchParams();
   const chapterId = selectedChapter?.id || searchParams.get("chapterId");
   const [topics, setTopics] = useState([]);
@@ -13,9 +12,7 @@ export default function TopicsPage({ selectedChapter, onTopicSelect }) {
   const [chapterName, setChapterName] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectAll, setSelectAll] = useState(false);
   const router = useRouter();
-  const { selectedTopics, setSelectedTopics } = useSelectedTopics();
 
   useEffect(() => {
     const loadTopics = async () => {
@@ -80,93 +77,36 @@ export default function TopicsPage({ selectedChapter, onTopicSelect }) {
     }
   }, [chapterId]);
 
-  // Reset selectedTopics and selectAll when component mounts or topics change
-  useEffect(() => {
-    setSelectedTopics([]);
-    setSelectAll(false);
-  }, [filteredTopics, setSelectedTopics]);
-
-  const handleCheckboxChange = (topicId) => {
-    if (selectedTopics.includes(topicId)) {
-      setSelectedTopics(selectedTopics.filter((id) => id !== topicId));
-      setSelectAll(false);
-    } else {
-      const newSelectedTopics = [...selectedTopics, topicId];
-      setSelectedTopics(newSelectedTopics);
-      if (newSelectedTopics.length === filteredTopics.length) {
-        setSelectAll(true);
-      }
-    }
-  };
-
-  const handleSelectAll = () => {
-    if (selectAll) {
-      setSelectedTopics([]);
-    } else {
-      setSelectedTopics(filteredTopics.map((topic) => topic.id));
-    }
-    setSelectAll(!selectAll);
-  };
-
-  const startTest = () => {
-    if (selectedTopics.length > 0) {
-      router.push("/user/practice");
-    } else {
-      alert("Please select at least one topic.");
-    }
+  const startTopicTest = (topicId) => {
+    router.push(`/user/study-materials?topicId=${topicId}`);
   };
 
   return (
     <div className="p-4">
-      <h1 className="text-xl font-bold mb-4">Attempt by Topic</h1>
+      <h1 className="text-xl font-bold mb-4">Study Material by Topic</h1>
       {chapterName && <h2 className="text-lg mb-4">{chapterName}</h2>}
 
       {loading && <p className="text-gray-500">Loading...</p>}
       {error && <p className="text-center pt-10">{error}</p>}
 
       {!loading && !error && (
-        <>
-          <div className="topic_cards">
-            {filteredTopics.length > 0 && (
-              <div className="topic_card">
-                <input
-                  type="checkbox"
-                  id="selectAll"
-                  checked={selectAll}
-                  onChange={handleSelectAll}
-                />
-                <label htmlFor="selectAll" className="cursor-pointer">
-                  Full Chapter ({filteredTopics.length} topics)
-                </label>
-              </div>
-            )}
-
-            {filteredTopics.map((topic) => (
-              <div key={topic.id} className="topic_card">
-                <input
-                  type="checkbox"
-                  id={`topic-${topic.id}`}
-                  className="cursor-pointer"
-                  checked={selectedTopics.includes(topic.id)}
-                  onChange={() => handleCheckboxChange(topic.id)}
-                />
-                <label htmlFor={`topic-${topic.id}`} className="cursor-pointer">
-                  {topic.name}
-                   {/* ({topic.questionCount} questions) */}
-                </label>
-              </div>
-            ))}
-          </div>
-
-          {filteredTopics.length > 0 && (
-            <button
-              className="mx-auto mt-6 btn"
-              onClick={startTest}
-            >
-              Start Practice
-            </button>
-          )}
-        </>
+        <div className="topic_cards ">
+          {filteredTopics.map((topic) => (
+            <div key={topic.id} className="topic_card topicc_card">
+              <h2 className="text-lg text-[#350954] font-semibold">{topic.name}</h2>
+              <button
+                onClick={() => startTopicTest(topic.id)}
+                className="w-full text-left p-4 hover:bg-white hover:text-[#350954] rounded-lg border border-gray-200"
+              >
+                <div className="flex justify-between items-center">
+                  <span className="text-white font-bold  px-2 py-1 rounded-full"> 
+                  View Material</span>
+      
+                </div>
+              </button>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );
