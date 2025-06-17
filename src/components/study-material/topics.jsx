@@ -83,7 +83,6 @@ export default function MeterialsTopicsPage({ selectedChapter, onTopicSelect }) 
 
   return (
     <div className="p-4">
-      <h1 className="text-xl font-bold mb-4">Study Material by Topic</h1>
       {chapterName && <h2 className="text-lg mb-4">{chapterName}</h2>}
 
       {loading && <p className="text-gray-500">Loading...</p>}
@@ -96,12 +95,11 @@ export default function MeterialsTopicsPage({ selectedChapter, onTopicSelect }) 
               <h2 className="text-lg text-[#350954] font-semibold">{topic.name}</h2>
               <button
                 onClick={() => startTopicTest(topic.id)}
-                className="w-full text-left p-4 hover:bg-white hover:text-[#350954] rounded-lg border border-gray-200"
+                className="w-full text-center p-3 bg-[linear-gradient(18deg,_#35095e_0%,_#6f13c4_55%)] text-white rounded-lg border border-gray-200"
               >
-                <div className="flex justify-between items-center">
-                  <span className="text-white font-bold  px-2 py-1 rounded-full"> 
-                  View Material</span>
-      
+                <div className="flex items-center justify-center">
+                  <span className="text-white hover:text-white font-bold  rounded-full"> 
+                 Start Studying</span>
                 </div>
               </button>
             </div>

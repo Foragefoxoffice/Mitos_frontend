@@ -118,32 +118,30 @@ export default function Practice() {
   };
 
   return (
-    <div className="py-6">
+    <div className="pt-6">
       {/* Tab Buttons */}
       <div className="tabs flex space-x-4">
         {["tab1", "tab2", "tab3"].map((tab, index) => (
           <button
             key={index}
-            className={`tab ${
-              activeTab === tab
+            className={`tab ${activeTab === tab
                 ? "bg-[#EBD7FF] rounded-3xl text-[--text]"
                 : "text-gray-500"
-            } px-4 md:px-6 py-2`}
+              } px-4 md:px-6 py-2`}
             onClick={() => handleTabClick(tab)}
-            aria-label={`${
-              tab === "tab1"
+            aria-label={`${tab === "tab1"
                 ? "Practice"
                 : tab === "tab2"
-                ? "Test"
-                : "Study Material"
-            } Tab`}
+                  ? "Test"
+                  : "Study Material"
+              } Tab`}
             aria-selected={activeTab === tab}
           >
             {tab === "tab1"
               ? "Practice"
               : tab === "tab2"
-              ? "Test"
-              : "Study Material"}
+                ? "Test"
+                : "Study Material"}
           </button>
         ))}
       </div>
@@ -156,7 +154,7 @@ export default function Practice() {
             {["chapter", "topic", "questiontype"].includes(practiceState.currentScreen) && (
               <button onClick={practiceState.goBack} className="flex items-center p-2 rounded-md ml-4">
                 <FaAngleLeft className="text-xl text-white" />
-                <span className="text-white">Back</span> 
+                <span className="text-white">Back</span>
               </button>
             )}
 
@@ -193,10 +191,10 @@ export default function Practice() {
         {/* Test Tab (Tab 2) */}
         {activeTab === "tab2" && (
           <div>
-            {["test-subject", "test-chapter", 'test-topic','questiontype'].includes(testState.currentScreen) && (
+            {["test-subject", "test-chapter", 'test-topic', 'questiontype'].includes(testState.currentScreen) && (
               <button onClick={testState.goBack} className="flex items-center p-2 rounded-md ml-4">
                 <FaAngleLeft className="text-xl text-white" />
-                <span className="text-white">Back</span> 
+                <span className="text-white">Back</span>
               </button>
             )}
             {testState.currentScreen === "full-portion" && (
@@ -243,12 +241,17 @@ export default function Practice() {
         {activeTab === "tab3" && (
           <div>
             {["chapter", "topic"].includes(studyMaterialState.currentScreen) && (
-              <button onClick={studyMaterialState.goBack} className="flex items-center p-2 rounded-md ml-4">
-                <FaAngleLeft className="text-xl text-white" />
-                <span className="text-white">Back</span> 
-              </button>
+              <div className="flex items-center">
+                <button onClick={studyMaterialState.goBack} className="flex items-center p-2 rounded-md ml-4">
+                  <FaAngleLeft className="text-xl text-white" />
+                </button>
+                <h2 className="pl-2 text-2xl font-semibold capitalize text-[#35095E]">
+                  {studyMaterialState.currentScreen === "chapter"
+                    ? "Learn by Chapter"
+                    : "Learn By Topic"}
+                </h2>
+              </div>
             )}
-
             {studyMaterialState.currentScreen === "subject" && (
               <MeterialsSubject
                 onSubjectSelect={studyMaterialState.handleSubjectSelect}

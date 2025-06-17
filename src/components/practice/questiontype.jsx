@@ -3,6 +3,8 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { fetchQuestionType, fetchQuestionBychapter } from "@/utils/api";
 import { useSelectedQuestionTypes } from "@/contexts/SelectedQuestionTypesContext";
+import PremiumPopup from "../PremiumPopup"; // Make sure this exists
+import { m } from "framer-motion";
 
 export default function QuestiontypePage({ selectedChapter }) {
   const {
@@ -11,34 +13,45 @@ export default function QuestiontypePage({ selectedChapter }) {
     chapterId,
     setChapterId,
   } = useSelectedQuestionTypes();
+
   const [availableQuestionTypes, setAvailableQuestionTypes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectAll, setSelectAll] = useState(false);
+  const [showPopup, setShowPopup] = useState(false);
+
   const router = useRouter();
 
-  // Reset selectedQuestionTypes when chapterId changes or component unmounts
+  const isGuestUser = () => {
+    if (typeof window !== "undefined") {
+      const roleFromLocal = localStorage.getItem("role");
+      const roleFromCookie = document.cookie
+        .split("; ")
+        .find((row) => row.startsWith("role="))
+        ?.split("=")[1];
+      return (roleFromLocal || roleFromCookie) === "guest";
+    }
+    return false;
+  };
+
   useEffect(() => {
     return () => {
       setSelectedQuestionTypes([]);
     };
   }, [setSelectedQuestionTypes]);
 
-  // Set the chapterId in the context when the chapter changes
   useEffect(() => {
     if (selectedChapter) {
       setChapterId(selectedChapter.id);
     }
   }, [selectedChapter, setChapterId]);
 
-  // Fetch questions and determine available question types when chapterId changes
   useEffect(() => {
     const loadData = async () => {
       try {
         setLoading(true);
         setError(null);
-        
-        // First fetch all questions for this chapter
+
         const questionsResponse = await fetchQuestionBychapter(chapterId);
         const questionsData = questionsResponse.data;
 
@@ -46,12 +59,10 @@ export default function QuestiontypePage({ selectedChapter }) {
           throw new Error("Invalid questions data format");
         }
 
-        // Get unique questionTypeIds from questions in this chapter
         const questionTypeIdsInChapter = [...new Set(
           questionsData.map(q => q.questionTypeId)
         )];
 
-        // Now fetch all question types and filter by those present in this chapter
         const typesResponse = await fetchQuestionType();
         const allQuestionTypes = typesResponse.data;
 
@@ -59,13 +70,11 @@ export default function QuestiontypePage({ selectedChapter }) {
           throw new Error("Invalid question types data format");
         }
 
-        // Filter to only question types that exist in this chapter's questions
-        const chapterQuestionTypes = allQuestionTypes.filter(type => 
+        const chapterQuestionTypes = allQuestionTypes.filter(type =>
           questionTypeIdsInChapter.includes(type.id)
         );
 
         setAvailableQuestionTypes(chapterQuestionTypes);
-        
       } catch (err) {
         console.error("Failed to fetch data:", err);
         setError("Unable to load question types. Please try again later.");
@@ -79,13 +88,26 @@ export default function QuestiontypePage({ selectedChapter }) {
     }
   }, [chapterId]);
 
-  const handleCheckboxChange = (questionTypeId) => {
-    if (selectedQuestionTypes.includes(questionTypeId)) {
-      setSelectedQuestionTypes(
-        selectedQuestionTypes.filter((id) => id !== questionTypeId)
-      );
+  const handleCheckboxChange = (questionType) => {
+    const isLocked = isGuestUser() && questionType.isPremium;
+    if (isLocked) {
+      setShowPopup(true);
+      return;
+    }
+
+    const id = questionType.id;
+    if (selectedQuestionTypes.includes(id)) {
+      setSelectedQuestionTypes(selectedQuestionTypes.filter((i) => i !== id));
+      setSelectAll(false);
     } else {
-      setSelectedQuestionTypes([...selectedQuestionTypes, questionTypeId]);
+      const updated = [...selectedQuestionTypes, id];
+      setSelectedQuestionTypes(updated);
+      const allowedCount = availableQuestionTypes.filter(
+        (t) => !isGuestUser() || !t.isPremium
+      ).length;
+      if (updated.length === allowedCount) {
+        setSelectAll(true);
+      }
     }
   };
 
@@ -93,9 +115,10 @@ export default function QuestiontypePage({ selectedChapter }) {
     if (selectAll) {
       setSelectedQuestionTypes([]);
     } else {
-      setSelectedQuestionTypes(
-        availableQuestionTypes.map((questionType) => questionType.id)
+      const allowed = availableQuestionTypes.filter(
+        (type) => !isGuestUser() || !type.isPremium
       );
+      setSelectedQuestionTypes(allowed.map((type) => type.id));
     }
     setSelectAll(!selectAll);
   };
@@ -111,13 +134,15 @@ export default function QuestiontypePage({ selectedChapter }) {
   return (
     <div className="p-6">
       <h1 className="text-xl font-bold mb-4">Select Question Types</h1>
+
       {loading && <p className="text-gray-500">Loading...</p>}
-      {error && <p className="text-center pt-10">{error}</p>}
+      {error && <p className="text-center pt-10 text-red-500">{error}</p>}
+
       {!loading && !error && (
         <>
           {availableQuestionTypes.length > 0 ? (
             <>
-              <div className="topic_cards">
+              <div className="topic_cards space-y-3">
                 <div className="topic_card">
                   <input
                     type="checkbox"
@@ -125,30 +150,52 @@ export default function QuestiontypePage({ selectedChapter }) {
                     checked={selectAll}
                     onChange={handleSelectAll}
                   />
-                  <label htmlFor="selectAll" className="cursor-pointer">
+                  <label htmlFor="selectAll" className="cursor-pointer ml-2">
                     Select All ({availableQuestionTypes.length} Types)
                   </label>
                 </div>
 
-                {availableQuestionTypes.map((questionType) => (
-                  <div key={questionType.id} className="topic_card">
-                    <input
-                      type="checkbox"
-                      id={`questionType-${questionType.id}`}
-                      className="cursor-pointer"
-                      checked={selectedQuestionTypes.includes(questionType.id)}
-                      onChange={() => handleCheckboxChange(questionType.id)}
-                    />
-                    <label
-                      htmlFor={`questionType-${questionType.id}`}
-                      className="cursor-pointer hover:text-green-500"
+                {availableQuestionTypes.map((type) => {
+                  const isLocked = isGuestUser() && type.isPremium;
+                  return (
+                    <div
+                      key={type.id}
+                      style={{ margin: 0 }}
+                      className={`topic_card flex items-center space-x-2 ${
+                        isLocked ? "opacity-50 cursor-not-allowed" : ""
+                      }`}
+                      onClick={() => {
+                        if (isLocked) setShowPopup(true);
+                      }}
                     >
-                      {questionType.name}
-                    </label>
-                  </div>
-                ))}
+                      <input
+                        type="checkbox"
+                        id={`questionType-${type.id}`}
+                        className="cursor-pointer"
+                        checked={selectedQuestionTypes.includes(type.id)}
+                        disabled={isLocked}
+                        onChange={(e) => {
+                          e.stopPropagation();
+                          handleCheckboxChange(type);
+                        }}
+                      />
+                      <label
+                        htmlFor={`questionType-${type.id}`}
+                        className="cursor-pointer"
+                      >
+                        {type.name}
+                       {type.isPremium && isGuestUser() && (
+    <span className="text-red-500 ml-2">🔒 Premium</span>
+  )}
+                      </label>
+                    </div>
+                  );
+                })}
               </div>
-              <button className="mx-auto mt-6 btn" onClick={startTest}>
+              <button
+                className="mx-auto mt-6 btn bg-blue-600 text-white px-4 py-2 rounded"
+                onClick={startTest}
+              >
                 Start Practice
               </button>
             </>
@@ -159,6 +206,8 @@ export default function QuestiontypePage({ selectedChapter }) {
           )}
         </>
       )}
+
+      {showPopup && <PremiumPopup onClose={() => setShowPopup(false)} />}
     </div>
   );
 }

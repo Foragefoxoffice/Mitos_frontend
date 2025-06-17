@@ -31,8 +31,9 @@
     }),
   };
 
-  export const TestTimer = ({ timeLeft, formatTime, getUniqueSubjects, subjectFilter, setSubjectFilter, handleSubmit }) => {
+  export const TestTimer = ({ timeLeft, formatTime, getUniqueSubjects, subjectFilter, setSubjectFilter, showSubmitConfirmationPopup, onShowAnswers, showAnswer}) => {
     // Prepare options for react-select
+    console.log("onShowAnswers", showAnswer);
     const subjectOptions = [
       { value: null, label: "All Subjects" },
       ...getUniqueSubjects.map(subject => ({
@@ -67,13 +68,27 @@
               isSearchable={false}
             />
           )}
+          {showAnswer==false && (
           <button
-            onClick={handleSubmit}
-            className="btn"
-            style={{ padding: "0.5rem 3rem" }}
-          >
-            Submit
-          </button>
+  onClick={showSubmitConfirmationPopup}
+  className="btn"
+  style={{ padding: "0.5rem 3rem" }}
+>
+  Submit
+</button>
+          )}
+{showAnswer==true && (
+  <button
+  onClick={() => {
+    onShowAnswers?.(false); // Call parent function if defined
+  }}
+  className="btn"
+  style={{ padding: "0.5rem 3rem" }}
+>
+  View Results
+</button>
+  )}
+
         </div>
       </div>
     );

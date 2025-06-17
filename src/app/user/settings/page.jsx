@@ -226,7 +226,7 @@ export default function UserSettings() {
                   unoptimized={true} // For local development
                   onError={(e) => {
                     e.target.onerror = null;
-                    e.target.src = "/default-avatar.png";
+                    e.target.src = "/images/user/default.png";
                   }}
                 />
               </div>

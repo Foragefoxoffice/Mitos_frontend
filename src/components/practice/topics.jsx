@@ -4,26 +4,41 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { fetchTopics, fetchQuestionByTopic } from "@/utils/api";
 import { useSelectedTopics } from "@/contexts/SelectedTopicsContext";
 import axios from "axios";
+import PremiumPopup from "../PremiumPopup";
 
 export default function TopicsPage({ selectedChapter, onTopicSelect }) {
   const searchParams = useSearchParams();
   const chapterId = selectedChapter?.id || searchParams.get("chapterId");
+
   const [topics, setTopics] = useState([]);
   const [filteredTopics, setFilteredTopics] = useState([]);
   const [chapterName, setChapterName] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectAll, setSelectAll] = useState(false);
+  const [showPopup, setShowPopup] = useState(false);
+
   const router = useRouter();
   const { selectedTopics, setSelectedTopics } = useSelectedTopics();
+
+  const isGuestUser = () => {
+    if (typeof window !== "undefined") {
+      const roleFromLocal = localStorage.getItem("role");
+      const roleFromCookie = document.cookie
+        .split("; ")
+        .find((row) => row.startsWith("role="))
+        ?.split("=")[1];
+      return (roleFromLocal || roleFromCookie) === "guest";
+    }
+    return false;
+  };
 
   useEffect(() => {
     const loadTopics = async () => {
       try {
         setLoading(true);
         setError(null);
-        
-        // Fetch topics first
+
         const response = await fetchTopics(chapterId);
         const { data, chapterName } = response;
 
@@ -33,34 +48,31 @@ export default function TopicsPage({ selectedChapter, onTopicSelect }) {
 
         setChapterName(chapterName);
 
-        // Check questions for each topic and filter
         const topicsWithQuestions = await Promise.all(
           data.map(async (topic) => {
             try {
               const questionsResponse = await fetchQuestionByTopic(topic.id);
               let questionCount = 0;
-              
-              // Handle different response structures
+
               if (Array.isArray(questionsResponse?.data)) {
                 questionCount = questionsResponse.data.length;
               } else if (Array.isArray(questionsResponse)) {
                 questionCount = questionsResponse.length;
               }
-              
+
               return { ...topic, questionCount };
             } catch (error) {
               if (axios.isAxiosError(error) && error.response?.status === 404) {
-                return { ...topic, questionCount: 0 }; // No questions found
+                return { ...topic, questionCount: 0 };
               }
               console.error(`Error fetching questions for topic ${topic.id}:`, error);
-              return { ...topic, questionCount: 0 }; // Treat errors as no questions
+              return { ...topic, questionCount: 0 };
             }
           })
         );
 
-        // Filter topics with at least one question
-        const validTopics = topicsWithQuestions.filter(topic => topic.questionCount > 0);
-        
+        const validTopics = topicsWithQuestions.filter((topic) => topic.questionCount > 0);
+
         setTopics(topicsWithQuestions);
         setFilteredTopics(validTopics);
 
@@ -80,20 +92,28 @@ export default function TopicsPage({ selectedChapter, onTopicSelect }) {
     }
   }, [chapterId]);
 
-  // Reset selectedTopics and selectAll when component mounts or topics change
   useEffect(() => {
     setSelectedTopics([]);
     setSelectAll(false);
-  }, [filteredTopics, setSelectedTopics]);
+  }, [filteredTopics]);
 
-  const handleCheckboxChange = (topicId) => {
-    if (selectedTopics.includes(topicId)) {
-      setSelectedTopics(selectedTopics.filter((id) => id !== topicId));
+  const handleCheckboxChange = (topic) => {
+    if (isGuestUser() && topic.isPremium) {
+      setShowPopup(true);
+      return;
+    }
+
+    if (selectedTopics.includes(topic.id)) {
+      const updated = selectedTopics.filter((id) => id !== topic.id);
+      setSelectedTopics(updated);
       setSelectAll(false);
     } else {
-      const newSelectedTopics = [...selectedTopics, topicId];
-      setSelectedTopics(newSelectedTopics);
-      if (newSelectedTopics.length === filteredTopics.length) {
+      const updated = [...selectedTopics, topic.id];
+      setSelectedTopics(updated);
+      const allowedCount = filteredTopics.filter(
+        (t) => !isGuestUser() || !t.isPremium
+      ).length;
+      if (updated.length === allowedCount) {
         setSelectAll(true);
       }
     }
@@ -103,7 +123,10 @@ export default function TopicsPage({ selectedChapter, onTopicSelect }) {
     if (selectAll) {
       setSelectedTopics([]);
     } else {
-      setSelectedTopics(filteredTopics.map((topic) => topic.id));
+      const allowed = filteredTopics.filter(
+        (topic) => !isGuestUser() || !topic.isPremium
+      );
+      setSelectedTopics(allowed.map((topic) => topic.id));
     }
     setSelectAll(!selectAll);
   };
@@ -122,11 +145,11 @@ export default function TopicsPage({ selectedChapter, onTopicSelect }) {
       {chapterName && <h2 className="text-lg mb-4">{chapterName}</h2>}
 
       {loading && <p className="text-gray-500">Loading...</p>}
-      {error && <p className="text-center pt-10">{error}</p>}
+      {error && <p className="text-center pt-10 text-red-500">{error}</p>}
 
       {!loading && !error && (
         <>
-          <div className="topic_cards">
+          <div className="topic_cards space-y-3">
             {filteredTopics.length > 0 && (
               <div className="topic_card">
                 <input
@@ -135,39 +158,56 @@ export default function TopicsPage({ selectedChapter, onTopicSelect }) {
                   checked={selectAll}
                   onChange={handleSelectAll}
                 />
-                <label htmlFor="selectAll" className="cursor-pointer">
+                <label htmlFor="selectAll" className="cursor-pointer ml-2">
                   Full Chapter ({filteredTopics.length} topics)
                 </label>
               </div>
             )}
 
-            {filteredTopics.map((topic) => (
-              <div key={topic.id} className="topic_card">
-                <input
-                  type="checkbox"
-                  id={`topic-${topic.id}`}
-                  className="cursor-pointer"
-                  checked={selectedTopics.includes(topic.id)}
-                  onChange={() => handleCheckboxChange(topic.id)}
-                />
-                <label htmlFor={`topic-${topic.id}`} className="cursor-pointer">
-                  {topic.name}
-                   {/* ({topic.questionCount} questions) */}
-                </label>
-              </div>
-            ))}
+            {filteredTopics.map((topic) => {
+              const isLocked = isGuestUser() && topic.isPremium;
+              return (
+                <div
+                  key={topic.id}
+                  style={{ margin: 0 }}
+                  className={`topic_card flex items-center space-x-2 ${
+                    isLocked ? "opacity-50 cursor-not-allowed " : ""
+                  }`}
+                  onClick={() => {
+                    if (isLocked) setShowPopup(true);
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    id={`topic-${topic.id}`}
+                    className="cursor-pointer"
+                    checked={selectedTopics.includes(topic.id)}
+                    disabled={isLocked}
+                    onChange={(e) => {
+                      e.stopPropagation();
+                      handleCheckboxChange(topic);
+                    }}
+                  />
+                  <label htmlFor={`topic-${topic.id}`} className="cursor-pointer">
+                    {topic.name}
+                    {topic.isPremium && isGuestUser() && (
+                      <span className="text-red-500 ml-2">🔒 Premium</span>
+                    )}
+                  </label>
+                </div>
+              );
+            })}
           </div>
 
           {filteredTopics.length > 0 && (
-            <button
-              className="mx-auto mt-6 btn"
-              onClick={startTest}
-            >
+            <button className="mx-auto mt-6 btn bg-blue-600 text-white px-4 py-2 rounded" onClick={startTest}>
               Start Practice
             </button>
           )}
         </>
       )}
+
+      {showPopup && <PremiumPopup onClose={() => setShowPopup(false)} />}
     </div>
   );
 }

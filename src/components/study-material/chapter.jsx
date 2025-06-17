@@ -107,7 +107,7 @@ export default function MeterialsChapter({ selectedSubject, onChapterSelect, onS
               </div>
               <div className="btns_group">
                 <button onClick={() => handleTopicClick(chapter)}>
-                  Attempt by Topic
+                  Learn by Topic
                 </button>
               </div>
             </div>

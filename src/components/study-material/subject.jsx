@@ -1,11 +1,24 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { fetchSubjects, fetchChapter } from "@/utils/api";
+import PremiumPopup from "../PremiumPopup";
 
 export default function MeterialsSubject({ onSubjectSelect, onScreenSelection }) {
   const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showPremiumPopup, setShowPremiumPopup] = useState(false);
+
+  // Check if user is guest
+  const isGuestUser = () => {
+    // Check localStorage
+    if (typeof window !== 'undefined') {
+      const userRole = localStorage.getItem('role') || 
+                       document.cookie.split('; ').find(row => row.startsWith('role='))?.split('=')[1];
+      return userRole === 'guest';
+    }
+    return false;
+  };
 
   useEffect(() => {
     const loadSubjects = async () => {
@@ -53,6 +66,10 @@ export default function MeterialsSubject({ onSubjectSelect, onScreenSelection })
   }, []);
 
   const handleSubjectClick = (subject) => {
+    if (isGuestUser()) {
+      setShowPremiumPopup(true);
+      return;
+    }
     onSubjectSelect(subject);
     onScreenSelection("chapter");
   };
@@ -68,14 +85,18 @@ export default function MeterialsSubject({ onSubjectSelect, onScreenSelection })
             <div key={subject.id} className="subject_card">
               <h2>{subject.name}</h2>
               <p className="text-sm text-gray-700">{subject.chapterCount} Chapters</p>
-              <a onClick={() => handleSubjectClick(subject)}>
-                Attempt By Chapter
+              <a 
+                onClick={() => handleSubjectClick(subject)}
+                className={`${isGuestUser() ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+              >
+                Learn by Chapter
               </a>
             </div>
           ))}
         </div>
       )}
       
+      {showPremiumPopup && <PremiumPopup onClose={() => setShowPremiumPopup(false)} />}
     </div>
   );
 }

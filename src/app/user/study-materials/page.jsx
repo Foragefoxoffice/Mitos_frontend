@@ -1,10 +1,12 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useContext } from "react";
 import { RotateCw, Maximize, Minimize, ChevronLeft, ChevronRight } from "lucide-react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
+import { HiViewBoards, HiViewList } from 'react-icons/hi'; 
 import * as pdfjsLib from 'pdfjs-dist';
 import { useMediaQuery } from 'react-responsive';
+import { useSelectedTopics } from "@/contexts/SelectedTopicsContext";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.js`;
 
@@ -23,6 +25,7 @@ const PdfViewer = () => {
     const [pdfDocument, setPdfDocument] = useState(null);
     const [pdfUrl, setPdfUrl] = useState(null);
     const [pdfTitle, setPdfTitle] = useState("Document");
+    const [pagesPerView, setPagesPerView] = useState(1); // 1 or 2
     
     const isMobile = useMediaQuery({ query: '(max-width: 768px)' });
     const searchParams = useSearchParams();
@@ -31,6 +34,20 @@ const PdfViewer = () => {
     const animationFrameRef = useRef(null);
     const touchStartX = useRef(0);
     const touchEndX = useRef(0);
+     const router = useRouter();
+ const { setSelectedTopics } = useSelectedTopics();
+    // Set initial pages per view based on device
+    useEffect(() => {
+        setPagesPerView(isMobile ? 1 : 2);
+    }, [isMobile]);
+
+      // Handle navigation to practice page
+    const handlePracticeNavigation = () => {
+        if (topicId) {
+            setSelectedTopics([topicId]);
+            router.push('/user/practice');
+        }
+    };
 
     // Fetch PDF URL based on topicId
     useEffect(() => {
@@ -159,12 +176,14 @@ const PdfViewer = () => {
     }, [numPages]);
 
     const goToNextPage = useCallback(() => {
-        goToPage(isMobile ? currentPage + 1 : Math.min(currentPage + 2, numPages));
-    }, [currentPage, numPages, isMobile, goToPage]);
+        const increment = pagesPerView === 1 ? 1 : 2;
+        goToPage(Math.min(currentPage + increment, numPages));
+    }, [currentPage, numPages, pagesPerView, goToPage]);
 
     const goToPrevPage = useCallback(() => {
-        goToPage(isMobile ? currentPage - 1 : Math.max(currentPage - 2, 1));
-    }, [currentPage, isMobile, goToPage]);
+        const decrement = pagesPerView === 1 ? 1 : 2;
+        goToPage(Math.max(currentPage - decrement, 1));
+    }, [currentPage, pagesPerView, goToPage]);
 
     // Enhanced touch event handlers for swipe gestures
     const handleTouchStart = (e) => {
@@ -230,10 +249,10 @@ const PdfViewer = () => {
         const canvas2 = container.querySelector('#page2');
 
         if (canvas1) renderPage(currentPage, canvas1);
-        if (!isMobile && currentPage < numPages && canvas2) {
+        if (pagesPerView === 2 && currentPage < numPages && canvas2) {
             renderPage(currentPage + 1, canvas2);
         }
-    }, [currentPage, pdfDocument, isMobile, numPages, renderPage]);
+    }, [currentPage, pdfDocument, pagesPerView, numPages, renderPage]);
 
     // Toggle fullscreen mode
     const toggleFullscreen = () => {
@@ -245,6 +264,11 @@ const PdfViewer = () => {
             document.exitFullscreen();
         }
         setIsFullscreen(!isFullscreen);
+    };
+
+    // Toggle between 1 and 2 pages per view
+    const togglePagesPerView = () => {
+        setPagesPerView(prev => prev === 1 ? 2 : 1);
     };
 
     // Handle fullscreen change
@@ -282,7 +306,6 @@ const PdfViewer = () => {
                         href='/user/dashboard'
                         className="btn m-auto"
                     >
-                        
                         Back to Dashboard
                     </a>
                 </div>
@@ -291,7 +314,7 @@ const PdfViewer = () => {
     }
 
     return (
-        <div className={`w-full ${isFullscreen ? "fixed inset-0 bg-black z-50" : "min-h-screen bg-gray-100"}`}>
+        <div className={`w-full ${isFullscreen ? "fixed inset-0 bg-black z-50 overflow-y-scroll" : "min-h-screen bg-gray-100"}`}>
             {/* Header section with title and controls */}
             <div className={`bg-white shadow-md ${isFullscreen ? 'fixed top-0 left-0 right-0 z-50' : ''}`}>
                 <div className="container mx-auto px-4 py-3 flex items-center justify-between">
@@ -300,13 +323,22 @@ const PdfViewer = () => {
                             {pdfTitle}
                         </h1>
                         <span className="text-sm text-gray-500">
-                            Page {currentPage} of {numPages}
+                            Page {currentPage}-{Math.min(currentPage + pagesPerView - 1, numPages)} of {numPages}
                         </span>
                     </div>
                     
                     <div className="flex items-center space-x-3">
                         {/* Page navigation controls */}
                         <div className="hidden md:flex items-center space-x-2">
+                           
+                             <div className=" flex justify-center">
+                    <button
+                        onClick={handlePracticeNavigation}
+                        className="bg-[#35095e] hover:bg-[#35095e]/90    text-white font-medium py-2 px-6 rounded-full shadow-lg transition-colors"
+                    >
+                        Practice This Topic
+                    </button>
+                </div>
                             <button 
                                 onClick={() => goToPage(1)}
                                 disabled={currentPage === 1}
@@ -336,11 +368,58 @@ const PdfViewer = () => {
                                 Last
                             </button>
                         </div>
+
+                        {/* Pages per view toggle (only show when not mobile) */}
+                      {!isMobile && (
+  <div
+    onClick={togglePagesPerView}
+    className="relative inline-flex items-center cursor-pointer bg-gray-100 dark:bg-[#35095e] p-1 rounded-full transition-all duration-300 w-32 shadow-md hover:shadow-lg"
+  >
+    {/* Animated Toggle Background */}
+    <span
+      className={`absolute top-1 left-1 h-5 w-14 rounded-full bg-white shadow transform transition-transform duration-300 ${
+        pagesPerView === 2 ? 'translate-x-16' : ''
+      }`}
+    ></span>
+
+    {/* 1 Page Icon + Label */}
+    <div className="z-10 w-1/2 flex items-center justify-center space-x-1">
+      <HiViewList
+        className={`text-lg transition-colors duration-300 ${
+          pagesPerView === 1 ? 'text-[#35095e]' : 'text-white'
+        }`}
+      />
+      <span
+        className={`text-sm font-medium transition-colors duration-300 ${
+          pagesPerView === 1 ? 'text-[#35095e]' : 'text-white'
+        }`}
+      >
+        1
+      </span>
+    </div>
+
+    {/* 2 Pages Icon + Label */}
+    <div className="z-10 w-1/2 flex items-center justify-center space-x-1">
+      <HiViewBoards
+        className={`text-lg transition-colors duration-300 ${
+          pagesPerView === 2 ? 'text-[#35095e]' : 'text-white'
+        }`}
+      />
+      <span
+        className={`text-sm font-medium transition-colors duration-300 ${
+          pagesPerView === 2 ? 'text-[#35095e]' : 'text-white'
+        }`}
+      >
+        2
+      </span>
+    </div>
+  </div>
+)}
                         
                         {/* Fullscreen toggle */}
                         <button 
                             onClick={toggleFullscreen}
-                            className="p-2 rounded-full hover:bg-gray-100"
+                            className="p-2 rounded-full hover:bg-[#35095e]/90"
                             aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
                         >
                             {isFullscreen ? (
@@ -370,8 +449,8 @@ const PdfViewer = () => {
                         />
                     </div>
 
-                    {/* Second Page (desktop only) */}
-                    {!isMobile && currentPage < numPages && (
+                    {/* Second Page (when pagesPerView is 2) */}
+                    {pagesPerView === 2 && currentPage < numPages && (
                         <div className="flex-1 relative">
                             <canvas
                                 id="page2"
@@ -403,6 +482,7 @@ const PdfViewer = () => {
                     )}
                 </div>
             </div>
+           
         </div>
     );
 };

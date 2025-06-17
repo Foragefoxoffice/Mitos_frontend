@@ -12,6 +12,9 @@ import {
   fetchFullTestQuestion,
   fetchFullTestByPortion,
   fetchCustomTestQuestions,
+  checkFavoriteStatus,
+   addFavoriteQuestion,
+  removeFavoriteQuestion
 } from "@/utils/api";
 import { TestContext } from "@/contexts/TestContext";
 import { TestHeader } from "@/components/fulltest/TestHeader";
@@ -21,6 +24,7 @@ import { TestResults } from "@/components/fulltest/TestResults";
 import { TestInstructions } from "@/components/fulltest/TestInstructions";
 import { TestSidebar } from "@/components/fulltest/TestSidebar";
 import { TestTimer } from "@/components/fulltest/TestTimer";
+import Notification from "@/components/Notification";
 
 export default function TestPage() {
   const [questions, setQuestions] = useState([]);
@@ -38,13 +42,18 @@ export default function TestPage() {
   const { testData } = useContext(TestContext);
   const portionId = testData?.portionId;
   const chapterIds = testData?.chapterIds;
-  const questionCount = testData?.questionCount;
+  const questionLimit = testData?.questionLimit;
   const [token, setToken] = useState(null);
   const questionNavRefs = useRef([]);
   const [userId, setUserId] = useState(null);
-
+  const [showSubmitConfirmation, setShowSubmitConfirmation] = useState(false);
+  const [notification, setNotification] = useState({
+  show: false,
+  message: "",
+  type: "success"
+});
   const [favoriteQuestions, setFavoriteQuestions] = useState({});
-
+ const [showAnswer, setShowAnswer] = useState(false);
   useEffect(() => {
     if (typeof window !== "undefined") {
       setToken(localStorage.getItem("token"));
@@ -116,13 +125,53 @@ export default function TestPage() {
     }));
   }, []);
 
-  const handleNext = useCallback(() => {
-    if (currentQuestionIndex < filteredQuestions.length - 1) {
-      setCurrentQuestionIndex((prev) => prev + 1);
-      const nextQuestionId = filteredQuestions[currentQuestionIndex + 1].id;
+const handleNext = useCallback(() => {
+  if (!filteredQuestions.length) return;
+
+  if (currentQuestionIndex < filteredQuestions.length - 1) {
+    // Normal case - go to next question in current subject
+    setCurrentQuestionIndex((prev) => prev + 1);
+    const nextQuestionId = filteredQuestions[currentQuestionIndex + 1]?.id;
+    if (nextQuestionId) {
       setVisitedQuestions((prev) => ({ ...prev, [nextQuestionId]: true }));
     }
-  }, [currentQuestionIndex, filteredQuestions]);
+  } else {
+    // Last question in current subject - find next subject
+    const currentSubjectIndex = getUniqueSubjects?.findIndex?.(
+      (subj) => subj.id === subjectFilter
+    ) ?? -1;
+    
+    if (currentSubjectIndex >= 0 && currentSubjectIndex < (getUniqueSubjects?.length ?? 0) - 1) {
+      // There are more subjects - go to next subject
+      const nextSubject = getUniqueSubjects[currentSubjectIndex + 1];
+      if (nextSubject) {
+        setSubjectFilter(nextSubject.id);
+        setCurrentQuestionIndex(0);
+        
+        const firstQuestionOfNewSubject = questions.find(
+          (q) => q.subjectId === nextSubject.id
+        );
+        if (firstQuestionOfNewSubject?.id) {
+          setVisitedQuestions((prev) => ({
+            ...prev,
+            [firstQuestionOfNewSubject.id]: true,
+          }));
+        }
+      }
+    } else {
+      // Last subject - switch back to "All Subjects"
+      setSubjectFilter(null);
+      setCurrentQuestionIndex(0);
+      
+      if (questions.length > 0 && questions[0]?.id) {
+        setVisitedQuestions((prev) => ({
+          ...prev,
+          [questions[0].id]: true,
+        }));
+      }
+    }
+  }
+}, [currentQuestionIndex, filteredQuestions, getUniqueSubjects, questions, subjectFilter]);
 
   const handlePrevious = useCallback(() => {
     if (currentQuestionIndex > 0) {
@@ -193,6 +242,7 @@ const calculateResultsByType = useCallback(() => {
     const typeId = question.typeId;
     const typeName = question.type; // This should now have the correct name
     const subject = question.subject;
+    const subjectId = question.subjectId; // Added subjectId
 
     if (userAnswers[question.id] !== undefined) {
       if (!resultsByType[typeId]) {
@@ -207,6 +257,7 @@ const calculateResultsByType = useCallback(() => {
 
       if (!resultsByType[typeId].subjects[subject]) {
         resultsByType[typeId].subjects[subject] = {
+          subjectId, // Added subjectId here
           attempted: 0,
           correct: 0,
           wrong: 0,
@@ -229,38 +280,39 @@ const calculateResultsByType = useCallback(() => {
   return resultsByType;
 }, [questions, userAnswers]);
 
-  const calculateResultsByChapter = useCallback(() => {
-    const resultsByChapter = {};
+const calculateResultsByChapter = useCallback(() => {
+  const resultsByChapter = {};
 
-    questions.forEach((question) => {
-      const chapterId = question.chapterId;
-      const chapterName = question.chapter;
-      const subject = question.subject;
+  questions.forEach((question) => {
+    const chapterId = question.chapterId;
+    const chapterName = question.chapter;
+    const subject = question.subject;
+    const subjectId = question.subjectId; // Added subjectId
 
-      if (userAnswers[question.id] !== undefined) {
-        if (!resultsByChapter[chapterId]) {
-          resultsByChapter[chapterId] = {
-            chapterName,
-            attempted: 0,
-            correct: 0,
-            wrong: 0,
-            subject: subject,
-          };
-        }
-
-        resultsByChapter[chapterId].attempted += 1;
-
-        if (userAnswers[question.id] === question.correctOption) {
-          resultsByChapter[chapterId].correct += 1;
-        } else {
-          resultsByChapter[chapterId].wrong += 1;
-        }
+    if (userAnswers[question.id] !== undefined) {
+      if (!resultsByChapter[chapterId]) {
+        resultsByChapter[chapterId] = {
+          chapterName,
+          attempted: 0,
+          correct: 0,
+          wrong: 0,
+          subjectId, // Added subjectId here
+          subject, // Kept existing subject name
+        };
       }
-    });
 
-    return resultsByChapter;
-  }, [questions, userAnswers]);
+      resultsByChapter[chapterId].attempted += 1;
 
+      if (userAnswers[question.id] === question.correctOption) {
+        resultsByChapter[chapterId].correct += 1;
+      } else {
+        resultsByChapter[chapterId].wrong += 1;
+      }
+    }
+  });
+
+  return resultsByChapter;
+}, [questions, userAnswers]);
   const calculateResultsBySubject = useCallback(() => {
     const resultsBySubject = {};
 
@@ -332,76 +384,99 @@ const calculateResultsByType = useCallback(() => {
     [token]
   );
 
-  const toggleFavoriteQuestion = useCallback(async (questionId) => {
-    try {
-      const isCurrentlyFavorite = favoriteQuestions[questionId];
-      
-      if (isCurrentlyFavorite) {
-        // DELETE request
-        const response = await fetch("https://mitoslearning.in/api/fav-questions", {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            userId: parseInt(userId, 10),
-            questionId: questionId
-          }),
-        });
-  
-        if (!response.ok) {
-          throw new Error("Failed to remove favorite");
-        }
-      } else {
-        // POST request
-        const response = await fetch("https://mitoslearning.in/api/fav-questions", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            userId: parseInt(userId, 10),
-            questionId: questionId
-          }),
-        });
-  
-        if (!response.ok) {
-          throw new Error("Failed to add favorite");
+    const checkFavorites = useCallback(async () => {
+      if (questions.length > 0 && token && userId) {
+        try {
+          const response = await checkFavoriteStatus(userId, token);
+          const favoriteStatus = {};
+          
+          questions.forEach(question => {
+            favoriteStatus[question.id] = false;
+          });
+          
+          response.data.forEach(favQuestion => {
+            favoriteStatus[favQuestion.questionId] = true;
+          });
+          
+          setFavoriteQuestions(favoriteStatus);
+        } catch (error) {
+          console.error("Error checking favorite status:", error);
         }
       }
+    }, [questions, token, userId]);
   
-      return true;
-    } catch (error) {
-      console.error("Error updating favorite status:", error);
-      throw error;
+    useEffect(() => {
+      checkFavorites();
+    }, [checkFavorites]);
+
+const toggleFavorite = useCallback(async (questionId) => {
+  try {
+    const isCurrentlyFavorite = favoriteQuestions[questionId];
+    let success = false;
+    
+    if (isCurrentlyFavorite) {
+      success = await removeFavoriteQuestion(userId, questionId, token);
+    } else {
+      success = await addFavoriteQuestion(userId, questionId, token);
     }
-  }, [token, userId, favoriteQuestions]);
-  
-  // Add this toggle function
-  const toggleFavorite = useCallback(async (questionId) => {
-    try {
-      await toggleFavoriteQuestion(questionId);
+    
+    if (success) {
+      // Update local state
       setFavoriteQuestions(prev => ({
         ...prev,
-        [questionId]: !prev[questionId]
+        [questionId]: !isCurrentlyFavorite
       }));
-    } catch (error) {
-      console.error("Failed to update favorite status:", error);
-      setError("Failed to update favorite status. Please try again.");
+      
+      // Show notification
+      setNotification({
+        show: true,
+        message: isCurrentlyFavorite 
+          ? "Question removed from favorites" 
+          : "Question added to Favorite",
+        type: "success"
+      });
+      
+      // Hide notification after 3 seconds
+      setTimeout(() => {
+        setNotification(prev => ({ ...prev, show: false }));
+      }, 3000);
+      
+      return true;
+    } else {
+      setNotification({
+        show: true,
+        message: "Operation failed. Please try again.",
+        type: "error"
+      });
+      return false;
     }
-  }, [toggleFavoriteQuestion]);
+  } catch (error) {
+    console.error("Error updating favorite status:", error);
+    setNotification({
+      show: true,
+      message: "An error occurred. Please try again.",
+      type: "error"
+    });
+    return false;
+  }
+}, [token, userId, favoriteQuestions]);
 
-  const handleSubmit = useCallback(async () => {
-    if (!userId) {
-      setError("User ID not found. Please log in again.");
-
-      return;
-    }
+const handleSubmit = useCallback(async () => {
+  setShowSubmitConfirmation(false);
   
+  if (!userId) {
+    setError("User ID not found. Please log in again.");
+    return;
+  }
+
+  if (questions.length === 0) {
+    setError("No questions available to submit.");
+    return;
+  }
+
+  try {
     const resultsBySubject = calculateResultsBySubject();
-  
+
     const resultData = {
       userId: parseInt(userId, 10),
       score: calculateScore(),
@@ -416,58 +491,63 @@ const calculateResultsByType = useCallback(() => {
       resultsByChapter: calculateResultsByChapter(),
       resultsBySubject,
     };
-  
-    try {
-      await saveTestResult(resultData);
-      setShowResults(true);
-    } catch (error) {
-      console.error("Failed to save test result:", error);
-      setError("Failed to save test result. Please try again.");
-      router.push('/user/dashboard');
-    }
-  }, [
-    userId,
-    calculateScore,
-    calculateCorrectAnswers,
-    calculateWrongAnswers,
-    calculateAccuracy,
-    calculateResultsByType,
-    calculateResultsByChapter,
-    calculateResultsBySubject,
-    questions.length,
-    userAnswers,
-    totalTime,
-    timeLeft,
-    formatTime,
-    saveTestResult,
-    router
-  ]);
 
-  useEffect(() => {
-    let timer;
+    await saveTestResult(resultData);
+    setShowResults(true);
     
-    if (!showInstructionPopup && !showResults && questions.length > 0) {
-      // Initialize timeLeft if not set
-      if (timeLeft === 0) {
-        setTimeLeft(totalTime);
-      }
+   
+  } catch (error) {
+    console.error("Failed to save test result:", error);
+    setError("Failed to save test result. Please try again.");
+  }
+}, [
+  userId,
+  questions.length,
+  userAnswers,
+  calculateScore,
+  calculateCorrectAnswers,
+  calculateWrongAnswers,
+  calculateAccuracy,
+  calculateResultsByType,
+  calculateResultsByChapter,
+  calculateResultsBySubject,
+  formatTime,
+  totalTime,
+  timeLeft,
+  saveTestResult,
+  router
+]);
+
+const showSubmitConfirmationPopup = useCallback(() => {
+  setShowSubmitConfirmation(true);
+}, []);
+
+
+
+ useEffect(() => {
+  let timer;
   
-      timer = setInterval(() => {
-        setTimeLeft((prev) => {
-          if (prev <= 1) {
-            clearInterval(timer);
-            handleSubmit();
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
+  if (!showInstructionPopup && !showResults && questions.length > 0) {
+    if (timeLeft === 0) {
+      setTimeLeft(totalTime);
     }
-  
-    return () => {
-      if (timer) clearInterval(timer);
-    };
-  }, [showInstructionPopup, showResults, questions.length, totalTime, handleSubmit]);
+
+    timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          handleSubmit(); // This will submit directly when time runs out
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }
+
+  return () => {
+    if (timer) clearInterval(timer);
+  };
+}, [showInstructionPopup, showResults, questions.length, totalTime, handleSubmit]);
 
   useEffect(() => {
     const loadQuestions = async () => {
@@ -506,7 +586,8 @@ const calculateResultsByType = useCallback(() => {
 
             const customQuestions = await fetchCustomTestQuestions(
               portionId,
-              chapterIds
+              chapterIds,
+              questionLimit 
             );
             testQuestions = customQuestions || [];
             break;
@@ -587,7 +668,29 @@ const calculateResultsByType = useCallback(() => {
 
   return (
     <div className="container py-6">
-      {showResults && (
+      {showSubmitConfirmation && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="bg-white p-6 rounded-lg max-w-md w-full">
+      <h3 className="text-xl text-[#35095E] font-bold mb-4">Confirm Submission</h3>
+      <p className="mb-6">Are you sure you want to submit the test? You won't be able to make changes after submission.</p>
+      <div className="flex justify-end gap-4">
+        <button
+          onClick={() => setShowSubmitConfirmation(false)}
+          className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={handleSubmit}
+          className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+        >
+          Submit Test
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+      {showResults && showAnswer == false && (
         <TestResults
           calculateScore={calculateScore}
           totalTime={totalTime}
@@ -600,6 +703,10 @@ const calculateResultsByType = useCallback(() => {
           calculateAccuracy={calculateAccuracy}
           resultsBySubject={calculateResultsBySubject()} 
           resultsByType={calculateResultsByType()}
+            onShowAnswers={(value) => {
+   
+    setShowAnswer(value); // example state setter in parent
+  }}
         />
       )}
 
@@ -609,7 +716,7 @@ const calculateResultsByType = useCallback(() => {
 
       <TestHeader />
 
-      {questions.length > 0 && !showInstructionPopup && !showResults && (
+      {questions.length > 0 && !showInstructionPopup && (
         <div className="test_containers">
           <div className="test_container1">
             <TestTimer
@@ -618,7 +725,11 @@ const calculateResultsByType = useCallback(() => {
               getUniqueSubjects={getUniqueSubjects}
               subjectFilter={subjectFilter}
               setSubjectFilter={setSubjectFilter}
-              handleSubmit={handleSubmit}
+              showSubmitConfirmationPopup={showSubmitConfirmationPopup}
+              showAnswer={showAnswer}
+               onShowAnswers={(value) => {
+          setShowAnswer(value); // example state setter in parent
+        }}
             />
 
             <TestQuestion
@@ -629,17 +740,20 @@ const calculateResultsByType = useCallback(() => {
               filteredQuestions={filteredQuestions}
               isFavorite={favoriteQuestions[filteredQuestions[currentQuestionIndex].id]}
               toggleFavorite={toggleFavorite}
+              onShowAnswers={showAnswer}
             />
 
-            <TestNavigation
-              currentQuestionIndex={currentQuestionIndex}
-              filteredQuestions={filteredQuestions}
-              handlePrevious={handlePrevious}
-              handleNext={handleNext}
-              toggleMarkAsReview={toggleMarkAsReview}
-              markedQuestions={markedQuestions}
-              question={filteredQuestions[currentQuestionIndex]}
-            />
+           <TestNavigation
+  currentQuestionIndex={currentQuestionIndex}
+  filteredQuestions={filteredQuestions}
+  handlePrevious={handlePrevious}
+  handleNext={handleNext}
+  toggleMarkAsReview={toggleMarkAsReview}
+  markedQuestions={markedQuestions}
+  question={filteredQuestions[currentQuestionIndex]}
+  getUniqueSubjects={getUniqueSubjects}
+  subjectFilter={subjectFilter}
+/>
           </div>
           <div className="test_container2">
             <TestSidebar
@@ -653,6 +767,14 @@ const calculateResultsByType = useCallback(() => {
           </div>
         </div>
       )}
+
+       {notification.show && (
+          <Notification 
+            message={notification.message}
+            type={notification.type}
+            onClose={() => setNotification(prev => ({ ...prev, show: false }))}
+          />
+        )}
     </div>
   );
 }

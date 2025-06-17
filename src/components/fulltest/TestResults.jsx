@@ -14,10 +14,11 @@ export const TestResults = ({
   calculateAccuracy,
   resultsBySubject,
   resultsByType,
+    onShowAnswers,
 }) => {
   const router = useRouter();
   const [showTypeResults, setShowTypeResults] = useState(false);
-
+  const [showAnswer, setShowAnswer] = useState(false);
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-75 z-50">
       <div className="bg-white  md:grid md:place-content-center md:gap-10 p-5 md:p-9 rounded-lg shadow-lg w-[90%] md:w-[50%] max-h-[90vh] overflow-y-auto">
@@ -87,6 +88,16 @@ export const TestResults = ({
         >
           View Question Type Analysis
         </button>
+<button
+  onClick={() => {
+    setShowAnswer(true);
+    onShowAnswers?.(true); // Call parent function if defined
+  }}
+  className="test_btn w-[100%]"
+>
+  View Answers
+</button>
+
 
         <button
           onClick={() => router.push("/user/dashboard")}
@@ -135,15 +146,16 @@ export const TestResults = ({
                       {typeData.typeName}
                     </h3>
                     <div className="flex gap-4">
+                      <span className="text-blue-600">
+                        Attempted: {typeData.attempted}
+                      </span>
                       <span className="text-green-600">
                         Correct: {typeData.correct}
                       </span>
                       <span className="text-red-600">
                         Wrong: {typeData.wrong}
                       </span>
-                      <span className="text-blue-600">
-                        Attempted: {typeData.attempted}
-                      </span>
+                      
                     </div>
                   </div>
 
@@ -157,15 +169,16 @@ export const TestResults = ({
                         >
                           <span className="font-medium">{subjectId}</span>
                           <div className="flex gap-4">
+                            <span className="text-blue-600">
+                              ↻ {subjectData.attempted}
+                            </span>
                             <span className="text-green-600">
                               ✓ {subjectData.correct}
                             </span>
                             <span className="text-red-600">
                               ✗ {subjectData.wrong}
                             </span>
-                            <span className="text-blue-600">
-                              ↻ {subjectData.attempted}
-                            </span>
+                            
                           </div>
                         </div>
                       )

@@ -1,12 +1,15 @@
 "use client";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { 
-  fetchQuestions, 
+import Notification from "@/components/Notification";
+import {
+  fetchQuestions,
   fetchQuestionsByTypes,
   checkFavoriteStatus,
   addFavoriteQuestion,
-  removeFavoriteQuestion
+  removeFavoriteQuestion,
+  getQuestionsBySubjectAndQuestionId,
+  getQuestionsBySubjectAndChapterId
 } from "@/utils/api";
 import { useSelectedTopics } from "@/contexts/SelectedTopicsContext";
 import { useSelectedQuestionTypes } from "@/contexts/SelectedQuestionTypesContext";
@@ -18,7 +21,7 @@ import DOMPurify from "dompurify";
 const HtmlWithMath = ({ html }) => {
   // Sanitize the HTML first
   const cleanHtml = DOMPurify.sanitize(html);
-  
+
   return (
     <MathJax inline dynamic>
       <div dangerouslySetInnerHTML={{ __html: cleanHtml }} />
@@ -28,7 +31,7 @@ const HtmlWithMath = ({ html }) => {
 
 export default function TestPage() {
   const { selectedTopics } = useSelectedTopics();
-  const { selectedQuestionTypes, chapterId } = useSelectedQuestionTypes();
+  const { selectedQuestionTypes, chapterId, subjectId } = useSelectedQuestionTypes();
   const [questions, setQuestions] = useState([]);
   const [filteredQuestions, setFilteredQuestions] = useState([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -42,90 +45,136 @@ export default function TestPage() {
   const [lastQuestionAttempted, setLastQuestionAttempted] = useState(false);
   const [hasCheckedQuestions, setHasCheckedQuestions] = useState(false);
   const [favoriteQuestions, setFavoriteQuestions] = useState({});
+  const [notification, setNotification] = useState({
+    show: false,
+    message: "",
+    type: "success"
+  });
   const router = useRouter();
   const ChapterId = chapterId;
+  const navButtonRefs = useRef([]);
 
+  
   // Get token and userId from localStorage
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
   const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
 
   useEffect(() => {
-    const loadQuestions = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        setHasCheckedQuestions(false);
-        
-        if (selectedTopics.length > 0 || selectedQuestionTypes.length > 0) {
-          let questionsByTopics = [];
-          let questionsByTypes = [];
-  
-          if (selectedTopics.length > 0) {
-            const responseTopics = await fetchQuestions(selectedTopics);
-            questionsByTopics = responseTopics?.data || [];
-          }
-  
-          if (selectedQuestionTypes.length > 0) {
-            const responseTypes = await fetchQuestionsByTypes(selectedQuestionTypes, ChapterId);
-            questionsByTypes = responseTypes?.data || [];
-          }
-  
-          // Merge and deduplicate questions
-          const allQuestions = [...questionsByTopics, ...questionsByTypes].filter(
-            (question, index, self) => index === self.findIndex((q) => q.id === question.id)
-          );
-  
-          if (allQuestions.length === 0) {
-            setError("No questions found for the selected criteria.");
-          }
-  
-          const formattedQuestions = allQuestions.map((question) => ({
-            id: question.id,
-            question: question.question,
-            options: [question.optionA, question.optionB, question.optionC, question.optionD],
-            correctOption: question.correctOption,
-            hint: question.hint,
-            image: question.image,
-            hintImage: question.hintImage,
-          }));
-  
-          setQuestions(formattedQuestions);
+    if (navButtonRefs.current[currentQuestionIndex]) {
+      navButtonRefs.current[currentQuestionIndex].scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+        inline: "center",
+      });
+    }
+  }, [currentQuestionIndex]);
 
-          // Initialize favorite status for each question
-          const favorites = {};
-          formattedQuestions.forEach(question => {
-            favorites[question.id] = false;
-          });
-          setFavoriteQuestions(favorites);
-        } else {
-          setError("No topics or question types selected.");
-        }
-      } catch (err) {
-        console.error("Failed to fetch questions:", err);
-        setError("Unable to load questions. Please try again later.");
-      } finally {
-        setLoading(false);
-        setHasCheckedQuestions(true);
+
+useEffect(() => {
+  const loadQuestions = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      setHasCheckedQuestions(false);
+
+      console.log("Selected Topics:", selectedTopics);
+      console.log("Selected Types:", selectedQuestionTypes);
+      console.log("Subject ID:", subjectId, "Chapter ID:", chapterId);
+
+      let questionsByTopics = [];
+      let questionsByTypes = [];
+      let questionsBySubjectAndType = [];
+      let questionsBySubjectAndChapter = [];
+
+      // Fetch by selected topics
+      if (selectedTopics.length > 0) {
+        const responseTopics = await fetchQuestions(selectedTopics);
+        questionsByTopics = responseTopics?.data || [];
       }
-    };
-  
-    loadQuestions();
-  }, [selectedTopics, selectedQuestionTypes, ChapterId]);
+
+      // Fetch by question types and chapter
+      if (chapterId && selectedQuestionTypes.length > 0) {
+        const responseTypes = await fetchQuestionsByTypes(selectedQuestionTypes, chapterId);
+        questionsByTypes = responseTypes?.data || [];
+      }
+
+      // Fetch by subject and question types
+      if (subjectId && selectedQuestionTypes.length > 0) {
+        const res = await getQuestionsBySubjectAndQuestionId(subjectId, selectedQuestionTypes);
+        questionsBySubjectAndType = res?.data || [];
+      }
+
+      // ✅ Fetch by subject and chapter (corrected block)
+      if (subjectId && chapterId) {
+        console.log("Calling getQuestionsBySubjectAndChapterId with", subjectId, chapterId);
+        const res = await getQuestionsBySubjectAndChapterId(subjectId, chapterId);
+        questionsBySubjectAndChapter = res?.data || [];
+      }
+
+      // Combine all questions, remove duplicates
+      const allQuestions = [
+        ...questionsByTopics,
+        ...questionsByTypes,
+        ...questionsBySubjectAndType,
+        ...questionsBySubjectAndChapter,
+      ].filter((question, index, self) =>
+        index === self.findIndex((q) => q.id === question.id)
+      );
+
+      if (allQuestions.length === 0) {
+        setError("No questions found for the selected criteria.");
+      }
+
+      // Format questions
+      const formattedQuestions = allQuestions.map((question) => ({
+        id: question.id,
+        question: question.question,
+        options: [
+          question.optionA,
+          question.optionB,
+          question.optionC,
+          question.optionD,
+        ],
+        correctOption: question.correctOption,
+        hint: question.hint,
+        image: question.image,
+        hintImage: question.hintImage,
+      }));
+
+      setQuestions(formattedQuestions);
+
+      // Initialize favorite status
+      const favorites = {};
+      formattedQuestions.forEach((q) => {
+        favorites[q.id] = false;
+      });
+      setFavoriteQuestions(favorites);
+    } catch (err) {
+      console.error("Failed to fetch questions:", err);
+      setError("Unable to load questions. Please try again later.");
+    } finally {
+      setLoading(false);
+      setHasCheckedQuestions(true);
+    }
+  };
+
+  loadQuestions();
+}, [selectedTopics, selectedQuestionTypes, subjectId, chapterId]);
 
   const checkFavorites = useCallback(async () => {
     if (questions.length > 0 && token && userId) {
       try {
         const response = await checkFavoriteStatus(userId, token);
         const favoriteStatus = {};
-        
+
         questions.forEach(question => {
           favoriteStatus[question.id] = false;
         });
-        
+
         response.data.forEach(favQuestion => {
           favoriteStatus[favQuestion.questionId] = true;
         });
-        
+
         setFavoriteQuestions(favoriteStatus);
       } catch (error) {
         console.error("Error checking favorite status:", error);
@@ -140,22 +189,51 @@ export default function TestPage() {
   const toggleFavorite = useCallback(async (questionId) => {
     try {
       const isCurrentlyFavorite = favoriteQuestions[questionId];
-      
+      let success = false;
+
       if (isCurrentlyFavorite) {
-        await removeFavoriteQuestion(userId, questionId, token);
+        success = await removeFavoriteQuestion(userId, questionId, token);
       } else {
-        await addFavoriteQuestion(userId, questionId, token);
+        success = await addFavoriteQuestion(userId, questionId, token);
       }
-      
-      // Update local state
-      setFavoriteQuestions(prev => ({
-        ...prev,
-        [questionId]: !isCurrentlyFavorite
-      }));
-      
-      return true;
+
+      if (success) {
+        // Update local state
+        setFavoriteQuestions(prev => ({
+          ...prev,
+          [questionId]: !isCurrentlyFavorite
+        }));
+
+        // Show notification
+        setNotification({
+          show: true,
+          message: isCurrentlyFavorite
+            ? "Question removed from favorites"
+            : "Question added to Favorite",
+          type: "success"
+        });
+
+        // Hide notification after 3 seconds
+        setTimeout(() => {
+          setNotification(prev => ({ ...prev, show: false }));
+        }, 3000);
+
+        return true;
+      } else {
+        setNotification({
+          show: true,
+          message: "Operation failed. Please try again.",
+          type: "error"
+        });
+        return false;
+      }
     } catch (error) {
       console.error("Error updating favorite status:", error);
+      setNotification({
+        show: true,
+        message: "An error occurred. Please try again.",
+        type: "error"
+      });
       return false;
     }
   }, [token, userId, favoriteQuestions]);
@@ -183,27 +261,27 @@ export default function TestPage() {
   }, [questionLimit, questions]);
 
   const generateQuestionLimits = (totalQuestions) => {
-  if (totalQuestions === 0) return [];
-  
-  const limits = new Set([180]); // Start with 180 as default
-  const step = totalQuestions <= 40 ? 10 : totalQuestions <= 50 ? 15 : 20;
+    if (totalQuestions === 0) return [];
 
-  for (let i = step; i < Math.min(totalQuestions, 180); i += step) {
-    limits.add(i);
-  }
+    const limits = new Set([180]); // Start with 180 as default
+    const step = totalQuestions <= 40 ? 10 : totalQuestions <= 50 ? 15 : 30;
 
-  if (totalQuestions > 180) {
-    limits.add("full");
-  }
-  
-  return Array.from(limits).sort((a, b) => {
-    if (a === "full") return 1;
-    if (b === "full") return -1;
-    return a - b;
-  });
-};
-  const handleAnswer = (questionId, answer) => {
-    setUserAnswers(prev => ({ ...prev, [questionId]: answer }));
+    for (let i = step; i < Math.min(totalQuestions, 180); i += step) {
+      limits.add(i);
+    }
+
+    if (totalQuestions > 180) {
+      limits.add("full");
+    }
+
+    return Array.from(limits).sort((a, b) => {
+      if (a === "full") return 1;
+      if (b === "full") return -1;
+      return a - b;
+    });
+  };
+  const handleAnswer = (questionId, answerLabel) => {
+    setUserAnswers(prev => ({ ...prev, [questionId]: answerLabel }));
     setVisitedQuestions(prev => ({ ...prev, [questionId]: true }));
 
     if (currentQuestionIndex === filteredQuestions.length - 1) {
@@ -246,11 +324,13 @@ export default function TestPage() {
 
   const renderOptionButtons = (question) => {
     if (!question) return null;
-    
+
     return question.options.map((option, index) => {
-      const isSelected = userAnswers[question.id] === option;
       const optionLabels = ["A", "B", "C", "D"];
       const currentOptionLabel = optionLabels[index];
+
+      // Use the option label (A/B/C/D) instead of option text for identification
+      const isSelected = userAnswers[question.id] === currentOptionLabel;
       const isCorrect = question.correctOption === currentOptionLabel;
       const isWrong = isSelected && !isCorrect;
       const isCorrectOption = question.correctOption === currentOptionLabel;
@@ -272,7 +352,7 @@ export default function TestPage() {
       return (
         <button
           key={index}
-          onClick={() => handleAnswer(question.id, option)}
+          onClick={() => handleAnswer(question.id, currentOptionLabel)} // Pass the label instead of option text
           className={buttonClass}
         >
           <span className="font-bold option_label">{currentOptionLabel}</span>
@@ -281,13 +361,12 @@ export default function TestPage() {
       );
     });
   };
-
   return (
-    <MathJaxContext 
-      config={{ 
+    <MathJaxContext
+      config={{
         loader: { load: ["input/tex", "output/chtml"] },
         tex: {
-          packages: {'[+]': ['color', 'mhchem']},
+          packages: { '[+]': ['color', 'mhchem'] },
           inlineMath: [['$', '$'], ['\\(', '\\)']],
           displayMath: [['$$', '$$'], ['\\[', '\\]']],
         }
@@ -303,50 +382,75 @@ export default function TestPage() {
           </div>
         )}
 
-        
-{showQuantityPopup && questions.length > 0 && !showNoQuestionsPopup && (
-  <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-75 z-50">
-    <div className="question_popup">
-      <h2>Select Number Of Questions</h2>
-      <label className="flex items-center gap-2 p-2">
-        <input
-          type="radio"
-          name="questionLimit"
-          value={180}
-          onChange={() => handleLimitSelection(180)}
-          className="form-radio"
-          defaultChecked // This will make 180 selected by default
-        />
-        <span className="text-gray-800">180 Questions (Default)</span>
-      </label>
-      {questionLimits.map((limit, index) => (
-        limit !== 180 && ( // Don't show 180 again if it's already in questionLimits
-          <label key={index} className="flex items-center gap-2 p-2">
-            <input
-              type="radio"
-              name="questionLimit"
-              value={limit}
-              onChange={() => handleLimitSelection(limit)}
-              className="form-radio"
-            />
-            <span className="text-gray-800">
-              {limit === "full"
-                ? `Full Test (${questions.length} Questions)`
-                : `${limit} Questions`}
-            </span>
-          </label>
-        )
-      ))}
-    </div>
-  </div>
-)}
+        {showQuantityPopup && questions.length > 0 && !showNoQuestionsPopup && (
+          <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-75 z-50">
+            <div className="question_popup">
+              <h2>Select Number Of Questions</h2>
+              {questionLimits.map((limit, index) => (
+                <label key={index} className="flex items-center gap-2 p-2">
+                  <input
+                    type="radio"
+                    name="questionLimit"
+                    value={limit}
+                    onChange={() => handleLimitSelection(limit)}
+                    className="form-radio"
+                  />
+                  <span className="text-gray-800">
+                    {limit === "full"
+                      ? `Full Test (${questions.length} Questions)`
+                      : `${limit} Questions`}
+                  </span>
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="test_nav">
           <PracticeNavbar />
         </div>
 
         {filteredQuestions.length > 0 && (
           <div className="test_containerss">
-            <div className="test_container1">
+            {/* Add the question navigation section here */}
+            <div className="question-navigation mb-4 navborders overflow-x-auto m-auto w-full md:w-[70%] scroll-smooth">
+              <div className="flex gap-2 m-3 p-2 rounded-lg min-w-max">
+                {filteredQuestions.map((question, index) => {
+                  const isCurrent = currentQuestionIndex === index;
+                  const isVisited = visitedQuestions[question.id];
+                  const isAnswered = userAnswers[question.id];
+                  const isCorrect = isAnswered && userAnswers[question.id] === question.correctOption;
+
+                  let buttonClass = "min-w-[40px] h-10 rounded-full flex items-center justify-center transition duration-300 shadow-sm hover:scale-105";
+
+                  if (isCurrent) {
+                    buttonClass += " bg-[#e49331] text-white";
+                  } else if (isAnswered) {
+                    buttonClass += isCorrect ? " bg-green-500 text-white" : " bg-red-500 text-white";
+                  } else if (isVisited) {
+                    buttonClass += " bg-[#e49331]";
+                  } else {
+                    buttonClass += " bg-[#B19CBE]";
+                  }
+
+                  return (
+                    <button
+                      key={index}
+                      ref={(el) => (navButtonRefs.current[index] = el)}
+                      onClick={() => handleQuestionNavigation(index)}
+                      className={buttonClass}
+                      aria-label={`Question ${index + 1}`}
+                    >
+                      {index + 1}
+                    </button>
+                  );
+                })}
+              </div>
+
+            </div>
+
+
+            <div className="test_container1 m-auto">
               <div className="flex justify-between items-center">
                 <h2 className="">
                   Question {currentQuestionIndex + 1} / {filteredQuestions.length}
@@ -363,45 +467,44 @@ export default function TestPage() {
                   )}
                 </button>
               </div>
-              
+
               <div className="question-content">
                 <HtmlWithMath html={filteredQuestions[currentQuestionIndex].question} />
               </div>
-              
+
               {filteredQuestions[currentQuestionIndex].image && (
-                <img 
-                  src={`https://mitoslearning.in/${filteredQuestions[currentQuestionIndex].image}`} 
+                <img
+                  src={`https://mitoslearning.in/${filteredQuestions[currentQuestionIndex].image}`}
                   alt="Question illustration"
                   className="max-w-full h-auto my-4"
-                /> 
+                />
               )}
-              
+
               <div className="option_btns space-y-2">
                 {renderOptionButtons(filteredQuestions[currentQuestionIndex])}
               </div>
 
-              {userAnswers[filteredQuestions[currentQuestionIndex].id] &&
-                userAnswers[filteredQuestions[currentQuestionIndex].id] !==
-                filteredQuestions[currentQuestionIndex].correctOption && (
-                  <div className="mt-4">
-                    <p className="text-green-500 font-semibold">
-                      Correct Answer: {filteredQuestions[currentQuestionIndex].correctOption}
-                    </p>
-                    {filteredQuestions[currentQuestionIndex].hint && (
-                      <div className="mt-2">
-                        <p className="text-red-500 font-semibold">Hint:</p>
-                        {filteredQuestions[currentQuestionIndex].hintImage && (
-                          <img 
-                            src={`https://mitoslearning.in/${filteredQuestions[currentQuestionIndex].hintImage}`} 
-                            alt="Hint illustration"
-                            className="max-w-full h-auto my-2"
-                          /> 
-                        )}
-                        <HtmlWithMath html={filteredQuestions[currentQuestionIndex].hint} />
-                      </div>
-                    )}
-                  </div>
-                )}
+              {userAnswers[filteredQuestions[currentQuestionIndex].id] && (
+                <div className="mt-4 hint-section">
+                  <p className="text-green-500 font-semibold">
+                    Correct Answer: {filteredQuestions[currentQuestionIndex].correctOption}
+                  </p>
+
+                  {filteredQuestions[currentQuestionIndex].hint && (
+                    <div className="mt-2">
+                      <p className="text-red-500 font-semibold">Hint:</p>
+                      {filteredQuestions[currentQuestionIndex].hintImage && (
+                        <img
+                          src={`https://mitoslearning.in/${filteredQuestions[currentQuestionIndex].hintImage}`}
+                          alt="Hint illustration"
+                          className="max-w-full h-auto my-2"
+                        />
+                      )}
+                      <HtmlWithMath html={filteredQuestions[currentQuestionIndex].hint} />
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div className="nav_btns flex justify-between mt-6">
                 <button
@@ -443,6 +546,14 @@ export default function TestPage() {
               </button>
             </div>
           </div>
+        )}
+
+        {notification.show && (
+          <Notification
+            message={notification.message}
+            type={notification.type}
+            onClose={() => setNotification(prev => ({ ...prev, show: false }))}
+          />
         )}
       </div>
     </MathJaxContext>

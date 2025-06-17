@@ -27,17 +27,26 @@ export default function Subject({ onSubjectSelect, onScreenSelection }) {
           })
         );
 
-        // Sort subjects: 11th before 12th, and then alphabetically within each class
+        // Sort subjects: 11th before 12th, and then Physics > Chemistry > Biology within each class
         const sortedSubjects = subjectsWithChapters.sort((a, b) => {
           const isA11th = a.name.includes("11th");
           const isB11th = b.name.includes("11th");
           
-          // If both are 11th or both are 12th, sort alphabetically
-          if (isA11th === isB11th) {
-            return a.name.localeCompare(b.name);
+          // If they're in different classes, sort by class (11th first)
+          if (isA11th !== isB11th) {
+            return isA11th ? -1 : 1;
           }
-          // 11th should come before 12th
-          return isA11th ? -1 : 1;
+          
+          // If they're in the same class, sort by subject
+          const subjectOrder = { Biology: 1, Physics: 2, Chemistry: 3};
+          const getSubjectRank = (name) => {
+            if (name.includes("Biology")) return subjectOrder.Biology;
+            if (name.includes("Physics")) return subjectOrder.Physics;
+            if (name.includes("Chemistry")) return subjectOrder.Chemistry;
+            return 4; // for any other subjects
+          };
+          
+          return getSubjectRank(a.name) - getSubjectRank(b.name);
         });
 
         setSubjects(sortedSubjects);

@@ -4,7 +4,7 @@ import React, { useState, useEffect, useContext } from "react";
 import { fetchSubjectsByPortions, fetchChaptersBySubject } from "@/utils/api";
 import { TestContext } from "@/contexts/TestContext";
 import { useRouter } from "next/navigation";
-import { FaAngleDown, FaCircleCheck } from "react-icons/fa6";
+import { FaAngleDown, FaCircleCheck, FaXmark } from "react-icons/fa6";
 
 export default function TestSubject({ selectedPortion }) {
   const [subjects, setSubjects] = useState([]);
@@ -12,6 +12,8 @@ export default function TestSubject({ selectedPortion }) {
   const [error, setError] = useState(null);
   const [expandedSubjectId, setExpandedSubjectId] = useState(null);
   const [selectedChapters, setSelectedChapters] = useState({});
+  const [showLimitPopup, setShowLimitPopup] = useState(false);
+  const [questionLimit, setQuestionLimit] = useState(60);
   const { setTestData } = useContext(TestContext);
   const router = useRouter();
 
@@ -85,7 +87,7 @@ export default function TestSubject({ selectedPortion }) {
     });
   };
 
-  const handleStartTest = () => {
+  const handleStartClick = () => {
     const selectedChapterIds = Object.values(selectedChapters)
       .flatMap((chapters) => Object.keys(chapters).filter((id) => chapters[id]));
 
@@ -94,10 +96,18 @@ export default function TestSubject({ selectedPortion }) {
       return;
     }
 
+    setShowLimitPopup(true);
+  };
+
+  const confirmStartTest = () => {
+    const selectedChapterIds = Object.values(selectedChapters)
+      .flatMap((chapters) => Object.keys(chapters).filter((id) => chapters[id]));
+
     const testData = {
       testname: "custom-test",
       portionId: selectedPortion.id,
       chapterIds: selectedChapterIds,
+      questionLimit: questionLimit
     };
 
     setTestData(testData);
@@ -105,7 +115,7 @@ export default function TestSubject({ selectedPortion }) {
   };
 
   return (
-    <div className="py-6">
+    <div className="py-6 relative">
       {loading && <p className="text-gray-500 text-center">Loading...</p>}
       {error && <p className="text-red-500 text-center">{error}</p>}
 
@@ -118,8 +128,13 @@ export default function TestSubject({ selectedPortion }) {
           <ul className="pl-0 text-gray-700 slected_list">
             {Object.entries(selectedChapters).flatMap(([subjectId, chapters]) =>
               Object.entries(chapters)
-                .filter(([, name]) => name) // Filter out undefined values
-                .map(([chapterId, name]) => <li className="flex items-top gap-2 pb-3" key={`${subjectId}-${chapterId}`}><FaCircleCheck style={{marginTop:"5px"}} /> <span>{name}</span></li>)
+                .filter(([, name]) => name)
+                .map(([chapterId, name]) => (
+                  <li className="flex items-top gap-2 pb-3" key={`${subjectId}-${chapterId}`}>
+                    <FaCircleCheck style={{marginTop:"5px"}} /> 
+                    <span>{name}</span>
+                  </li>
+                ))
             )}
           </ul>
         </div>
@@ -139,10 +154,11 @@ export default function TestSubject({ selectedPortion }) {
                     ${subject.chapters.length > 0 ? "hover:bg-white" : "opacity-50 cursor-not-allowed"}`}
                   onClick={() => subject.chapters.length > 0 && handleSubjectClick(subject.id)}
                 >
-                  <h2 className="text-lg font-semibold text-[#35095e]">{subject.name} | <span>{subject.chapters.length} Chapters</span> </h2>
+                  <h2 className="text-lg font-semibold text-[#35095e]">
+                    {subject.name} | <span>{subject.chapters.length} Chapters</span>
+                  </h2>
                   
                   <span className="text-sm text-gray-600 flex items-center">
-             
                     {subject.chapters.length > 0 && (
                       <FaAngleDown
                         className={`ml-2 transition-transform ${
@@ -191,12 +207,59 @@ export default function TestSubject({ selectedPortion }) {
       {/* Start Test Button */}
       <div className="mt-6 text-center">
         <button
-          onClick={handleStartTest}
-          className="test_btn"
+          onClick={handleStartClick}
+          className="test_btn px-6 py-3 bg-[#35095e] text-white rounded-md hover:bg-[#4a0d7a] transition-colors"
         >
           Start Your Test
         </button>
       </div>
+
+      {/* Question Limit Popup */}
+      {showLimitPopup && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md relative">
+           <button 
+          onClick={() => setShowLimitPopup(false)}
+          className="absolute text-white  top-4 right-4 rounded-full p-1 hover:text-gray-700"
+        >
+          <FaXmark /> {/* Changed from FaTimes to FaXmark */}
+        </button>
+            
+            <h3 className="text-xl font-semibold text-[#35095e] mb-4">Select Number of Questions</h3>
+            
+            <div className="grid grid-cols-2 gap-3 mb-6">
+              {[30, 60, 90, 120, 150, 180].map((limit) => (
+                <button
+                  key={limit}
+                  onClick={() => setQuestionLimit(limit)}
+                  className={`py-3 px-4 rounded-md border-2 transition-all ${
+                    questionLimit === limit
+                      ? 'bg-[#35095e] text-white border-[#35095e]'
+                      : 'bg-white text-[#35095e] border-gray-300 hover:bg-gray-50 hover:border-[#35095e]'
+                  }`}
+                >
+                  {limit} Questions
+                </button>
+              ))}
+            </div>
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowLimitPopup(false)}
+                className="px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmStartTest}
+                className="px-4 py-2 bg-[#35095e] text-white rounded-md hover:bg-[#4a0d7a]"
+              >
+                Start Test ({questionLimit} Questions)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

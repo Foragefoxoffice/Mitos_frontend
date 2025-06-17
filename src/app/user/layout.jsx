@@ -37,7 +37,9 @@ export default function DashboardLayout({ children }) {
       </div>
 
       {/* Right Side */}
-      <div className="w-[100%] md:w-[90%] lg:w-[84%] xl:w-[84%] p-4 md:p-10 overflow-y-scroll no-scrollbar ">
+
+      <div className="w-[100%] md:w-[90%] lg:w-[84%] xl:w-[84%]  overflow-y-scroll no-scrollbar ">
+        <div className="p-4 md:p-10">
         <div className="flex items-center justify-between md:justify-end ">
           <div className="flex md:hidden items-center ">
             <Image
@@ -55,7 +57,15 @@ export default function DashboardLayout({ children }) {
         </div>
         <BannerComponent />
         {children}
+</div>
+          <footer className="w-full bg-white p-4 pt-0 text-center text-gray-600 ">
+        <p className="text-sm">
+          &copy; {new Date().getFullYear()} mitoslearning.com. All rights reserved.
+        </p>
+      </footer>
       </div>
+
+    
     </div>
   );
 }

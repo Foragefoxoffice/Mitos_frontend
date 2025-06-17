@@ -54,9 +54,9 @@ export const fetchChaptersBySubject = async (subjectId) => {
     throw error;
   }
 };
-export const fetchChapter = async (subjectId) => {
+export const fetchChapter = async (chapterId) => {
   try {
-    const response = await API.get(`/chapters/chapter/${subjectId}`);
+    const response = await API.get(`/chapters/chapter/${chapterId}`);
     return response.data;
   } catch (error) {
     console.error("Error fetching chapter:", error);
@@ -89,6 +89,14 @@ export const fetchQuestionsByTypes = (selectedQuestionTypes, chapterId) => {
   return API.get(`/questions/questiontype?questionTypeIds=${questionTypeIds}&chapterId=${chapterId}`); // Use 'topicIds' here
 };
 
+export const getQuestionsBySubjectAndQuestionId = (subjectId, selectedQuestionTypes) => {
+  return API.get(`/questions/by-subject-and-id?subjectId=${subjectId}&questiontypeId=${selectedQuestionTypes}`);
+};
+
+export const getQuestionsBySubjectAndChapterId = (subjectId, chapterId) => {
+  return API.get(`/questions/by-subject-and-chapter-id?subjectId=${subjectId}&chapterId=${chapterId}`);
+};
+
 export const fetchFullTestQuestion = () => API.get(`/questions/fulltest`);
 
 export const fetchFullTestByPortion = (portionId) => API.get(`/questions/portion/${portionId}`);
@@ -100,6 +108,7 @@ export const fetchFullTestByChapter = (portionId, subjectId,chapterId) => API.ge
 export const fetchCustomTestQuestions = async (
   portionId,
   chapterIds,
+  questionLimit
 ) => {
 
   const token = localStorage.getItem("token"); // Retrieve the token from localStorage
@@ -116,7 +125,8 @@ export const fetchCustomTestQuestions = async (
     },
     body: JSON.stringify({
       portionId,
-      chapterIds
+      chapterIds,
+      questionLimit,
     }),
   });
 

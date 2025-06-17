@@ -1,4 +1,4 @@
-"use client"; // 👈 Add this at the top
+"use client";
 
 import { useEffect, useState } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
@@ -6,6 +6,8 @@ import "./globals.css";
 import { SelectedTopicsProvider } from "@/contexts/SelectedTopicsContext";
 import { SelectedQuestionTypesProvider } from "@/contexts/SelectedQuestionTypesContext";
 import { TestProvider } from "@/contexts/TestContext";
+import RouteGuard from "@/components/RouteGuard";
+import LoadingScreen from "@/components/LoadingScreen"; // Create this component for better UX
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,7 +16,7 @@ const geistSans = Geist({
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
-  subsets: ["latin"],
+  subsets: ["latin"], 
 });
 
 export default function RootLayout({ children }) {
@@ -24,19 +26,27 @@ export default function RootLayout({ children }) {
     setIsClient(true);
   }, []);
 
+  // Show loading state instead of null for better UX
   if (!isClient) {
-    return null; // Prevents SSR errors by rendering only in the browser
+    return <LoadingScreen />;
   }
 
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased `}>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased `} style={{paddingRight:0}} >
         <TestProvider>
           <SelectedTopicsProvider>
-            <SelectedQuestionTypesProvider>{children}</SelectedQuestionTypesProvider>
+            <SelectedQuestionTypesProvider>
+              <RouteGuard>
+                {children}
+              </RouteGuard>
+            </SelectedQuestionTypesProvider>
           </SelectedTopicsProvider>
         </TestProvider>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/turn.js/4.1.0/turn.min.js"></script>
+        <script 
+          src="https://cdnjs.cloudflare.com/ajax/libs/turn.js/4.1.0/turn.min.js" 
+          strategy="beforeInteractive" // Better loading strategy
+        />
       </body>
     </html>
   );

@@ -29,6 +29,24 @@ const GRID_STYLE = {
   stroke: "#e0e0e0" 
 };
 
+// Animation configurations
+const ANIMATION_PROPS = {
+  isAnimationActive: true,
+  animationBegin: 0,
+  animationDuration: 1500,
+  animationEasing: "ease-out"
+};
+
+const BAR_ANIMATION = {
+  ...ANIMATION_PROPS,
+  animationDuration: 1000
+};
+
+const LINE_ANIMATION = {
+  ...ANIMATION_PROPS,
+  animationDuration: 2000
+};
+
 // Color mappings for consistency
 const COLOR_MAP = {
   "Correct": "#4CAF50",
@@ -145,185 +163,181 @@ export default function ChartResultsByWeek({ results = [] }) {
     );
   }
 
-// Add this helper function at the top of your file
-const safeParse = (str) => {
-  try {
-    return str ? JSON.parse(str) : {};
-  } catch (error) {
-    console.error("Failed to parse JSON:", error);
-    return {};
-  }
-};
-
-// Then modify the useMemo block where you process the results:
-const { weeklyResults, subjectWeeklyResults } = useMemo(() => {
-  const monthMap = new Map();
-  const subjectMonthMap = new Map();
-
-  results.forEach((test) => {
-    if (!test?.createdAt) return;
-
+  const safeParse = (str) => {
     try {
-      const testDate = new Date(test.createdAt);
-      const monthStart = startOfMonth(testDate);
-      const monthLabel = format(monthStart, "MMMM yyyy");
-      const monthShort = format(monthStart, "MMM");
+      return str ? JSON.parse(str) : {};
+    } catch (error) {
+      console.error("Failed to parse JSON:", error);
+      return {};
+    }
+  };
 
-      // Initialize month data if not exists
-      if (!monthMap.has(monthLabel)) {
-        const weeks = Array.from({ length: 4 }, (_, i) => ({
-          weekLabel: `${monthShort} Week ${i + 1}`,
-          totalQuestions: 0,
-          totalCorrect: 0,
-          totalWrong: 0,
-          totalUnanswered: 0,
-          accuracy: 0,
-        }));
-        monthMap.set(monthLabel, weeks);
-      }
-      
-      if (!subjectMonthMap.has(monthLabel)) {
-        subjectMonthMap.set(monthLabel, new Map());
-      }
+  const { weeklyResults, subjectWeeklyResults } = useMemo(() => {
+    const monthMap = new Map();
+    const subjectMonthMap = new Map();
 
-      const monthWeeks = monthMap.get(monthLabel);
-      const subjectWeeks = subjectMonthMap.get(monthLabel);
-      
-      // Create date ranges for each week
-      const weeksInMonth = monthWeeks.map((week, index) => {
-        const weekStart = new Date(monthStart);
-        weekStart.setDate(weekStart.getDate() + (index * 7));
-        const weekEnd = new Date(weekStart);
-        weekEnd.setDate(weekEnd.getDate() + 6);
-        return { 
-          ...week,
-          weekStart,
-          weekEnd 
-        };
-      });
+    results.forEach((test) => {
+      if (!test?.createdAt) return;
 
-      // Find which week this test belongs to
-      const testWeek = weeksInMonth.find(({ weekStart, weekEnd }) => 
-        testDate >= weekStart && testDate <= weekEnd
-      );
-      
-      if (!testWeek) return;
+      try {
+        const testDate = new Date(test.createdAt);
+        const monthStart = startOfMonth(testDate);
+        const monthLabel = format(monthStart, "MMMM yyyy");
+        const monthShort = format(monthStart, "MMM");
 
-      // Update overall metrics
-      const weekData = monthWeeks.find(w => w.weekLabel === testWeek.weekLabel);
-      if (weekData) {
-        const totalQuestions = test.totalQuestions || (test.answered + test.unanswered) || 0;
-        const correct = test.correct || 0;
+        // Initialize month data if not exists
+        if (!monthMap.has(monthLabel)) {
+          const weeks = Array.from({ length: 4 }, (_, i) => ({
+            weekLabel: `${monthShort} Week ${i + 1}`,
+            totalQuestions: 0,
+            totalCorrect: 0,
+            totalWrong: 0,
+            totalUnanswered: 0,
+            accuracy: 0,
+          }));
+          monthMap.set(monthLabel, weeks);
+        }
         
-        weekData.totalQuestions += totalQuestions;
-        weekData.totalCorrect += correct;
-        weekData.totalWrong += test.wrong || 0;
-        weekData.totalUnanswered += test.unanswered || 0;
-        weekData.accuracy = weekData.totalQuestions > 0
-          ? Math.min(Math.round((weekData.totalCorrect / weekData.totalQuestions) * 100), 100)
-          : 0;
-      }
-
-      // Update subject metrics if available - PARSE THE JSON HERE
-      const resultsBySubject = safeParse(test.resultsBySubject);
-      if (resultsBySubject && Object.keys(resultsBySubject).length > 0) {
-        if (!subjectWeeks.has(testWeek.weekLabel)) {
-          subjectWeeks.set(testWeek.weekLabel, {});
+        if (!subjectMonthMap.has(monthLabel)) {
+          subjectMonthMap.set(monthLabel, new Map());
         }
 
-        const weekSubjectData = subjectWeeks.get(testWeek.weekLabel);
+        const monthWeeks = monthMap.get(monthLabel);
+        const subjectWeeks = subjectMonthMap.get(monthLabel);
         
-        Object.values(resultsBySubject).forEach((subjectData) => {
-          if (!subjectData) return;
+        // Create date ranges for each week
+        const weeksInMonth = monthWeeks.map((week, index) => {
+          const weekStart = new Date(monthStart);
+          weekStart.setDate(weekStart.getDate() + (index * 7));
+          const weekEnd = new Date(weekStart);
+          weekEnd.setDate(weekEnd.getDate() + 6);
+          return { 
+            ...week,
+            weekStart,
+            weekEnd 
+          };
+        });
+
+        // Find which week this test belongs to
+        const testWeek = weeksInMonth.find(({ weekStart, weekEnd }) => 
+          testDate >= weekStart && testDate <= weekEnd
+        );
+        
+        if (!testWeek) return;
+
+        // Update overall metrics
+        const weekData = monthWeeks.find(w => w.weekLabel === testWeek.weekLabel);
+        if (weekData) {
+          const totalQuestions = test.totalQuestions || (test.answered + test.unanswered) || 0;
+          const correct = test.correct || 0;
           
-          const subjectName = subjectData.subjectName || subjectData.name || "Unknown";
-          const totalSubjectQuestions = (subjectData.attempted || 0) + (subjectData.unanswered || 0);
-          const correct = subjectData.correct || 0;
-          
-          if (!weekSubjectData[subjectName]) {
-            weekSubjectData[subjectName] = {
-              totalQuestions: 0,
-              correct: 0,
-              wrong: 0,
-              accuracy: 0,
-            };
+          weekData.totalQuestions += totalQuestions;
+          weekData.totalCorrect += correct;
+          weekData.totalWrong += test.wrong || 0;
+          weekData.totalUnanswered += test.unanswered || 0;
+          weekData.accuracy = weekData.totalQuestions > 0
+            ? Math.min(Math.round((weekData.totalCorrect / weekData.totalQuestions) * 100), 100)
+            : 0;
+        }
+
+        // Update subject metrics if available - PARSE THE JSON HERE
+        const resultsBySubject = safeParse(test.resultsBySubject);
+        if (resultsBySubject && Object.keys(resultsBySubject).length > 0) {
+          if (!subjectWeeks.has(testWeek.weekLabel)) {
+            subjectWeeks.set(testWeek.weekLabel, {});
           }
 
-          weekSubjectData[subjectName].totalQuestions += totalSubjectQuestions;
-          weekSubjectData[subjectName].correct += correct;
-          weekSubjectData[subjectName].wrong += subjectData.wrong || 0;
+          const weekSubjectData = subjectWeeks.get(testWeek.weekLabel);
           
-          weekSubjectData[subjectName].accuracy = 
-            weekSubjectData[subjectName].totalQuestions > 0
-              ? Math.min(Math.round((weekSubjectData[subjectName].correct / 
-                  weekSubjectData[subjectName].totalQuestions) * 100), 100)
-              : 0;
-        });
-      }
-    } catch (error) {
-      console.error("Error processing test result:", error);
-    }
-  });
+          Object.values(resultsBySubject).forEach((subjectData) => {
+            if (!subjectData) return;
+            
+            const subjectName = subjectData.subjectName || subjectData.name || "Unknown";
+            const totalSubjectQuestions = (subjectData.attempted || 0) + (subjectData.unanswered || 0);
+            const correct = subjectData.correct || 0;
+            
+            if (!weekSubjectData[subjectName]) {
+              weekSubjectData[subjectName] = {
+                totalQuestions: 0,
+                correct: 0,
+                wrong: 0,
+                accuracy: 0,
+              };
+            }
 
-  // Rest of your processing logic remains the same...
-  // Process subject data
-  const subjectWeeklyResults = new Map();
-  subjectMonthMap.forEach((weekData, monthLabel) => {
-    const subjectData = {};
-    const allSubjects = new Set();
-
-    // Collect all subjects
-    weekData.forEach((subjects) => {
-      Object.keys(subjects).forEach(subject => {
-        if (subjects[subject]?.totalQuestions > 0) {
-          allSubjects.add(subject);
+            weekSubjectData[subjectName].totalQuestions += totalSubjectQuestions;
+            weekSubjectData[subjectName].correct += correct;
+            weekSubjectData[subjectName].wrong += subjectData.wrong || 0;
+            
+            weekSubjectData[subjectName].accuracy = 
+              weekSubjectData[subjectName].totalQuestions > 0
+                ? Math.min(Math.round((weekSubjectData[subjectName].correct / 
+                    weekSubjectData[subjectName].totalQuestions) * 100), 100)
+                : 0;
+          });
         }
-      });
+      } catch (error) {
+        console.error("Error processing test result:", error);
+      }
     });
 
-    // Initialize subject data structure
-    Array.from(allSubjects).forEach(subject => {
-      subjectData[subject] = [];
-    });
+    // Process subject data
+    const subjectWeeklyResults = new Map();
+    subjectMonthMap.forEach((weekData, monthLabel) => {
+      const subjectData = {};
+      const allSubjects = new Set();
 
-    // Sort weeks in order
-    const weekLabels = Array.from(weekData.keys())
-      .filter(label => /Week [1-4]$/.test(label))
-      .sort((a, b) => {
-        const weekNumA = parseInt(a.match(/Week (\d+)/)[1], 10);
-        const weekNumB = parseInt(b.match(/Week (\d+)/)[1], 10);
-        return weekNumA - weekNumB;
-      });
-
-    // Populate subject data
-    weekLabels.slice(0, 4).forEach(weekLabel => {
-      const weekSubjects = weekData.get(weekLabel) || {};
-      
-      Array.from(allSubjects).forEach(subject => {
-        const metrics = weekSubjects[subject] || {
-          totalQuestions: 0,
-          correct: 0,
-          wrong: 0,
-          accuracy: 0
-        };
-
-        subjectData[subject].push({
-          weekLabel,
-          accuracy: Number(metrics.accuracy) || 0,
-          correct: metrics.correct || 0,
-          wrong: metrics.wrong || 0,
-          totalQuestions: metrics.totalQuestions || 0,
+      // Collect all subjects
+      weekData.forEach((subjects) => {
+        Object.keys(subjects).forEach(subject => {
+          if (subjects[subject]?.totalQuestions > 0) {
+            allSubjects.add(subject);
+          }
         });
       });
+
+      // Initialize subject data structure
+      Array.from(allSubjects).forEach(subject => {
+        subjectData[subject] = [];
+      });
+
+      // Sort weeks in order
+      const weekLabels = Array.from(weekData.keys())
+        .filter(label => /Week [1-4]$/.test(label))
+        .sort((a, b) => {
+          const weekNumA = parseInt(a.match(/Week (\d+)/)[1], 10);
+          const weekNumB = parseInt(b.match(/Week (\d+)/)[1], 10);
+          return weekNumA - weekNumB;
+        });
+
+      // Populate subject data
+      weekLabels.slice(0, 4).forEach(weekLabel => {
+        const weekSubjects = weekData.get(weekLabel) || {};
+        
+        Array.from(allSubjects).forEach(subject => {
+          const metrics = weekSubjects[subject] || {
+            totalQuestions: 0,
+            correct: 0,
+            wrong: 0,
+            accuracy: 0
+          };
+
+          subjectData[subject].push({
+            weekLabel,
+            accuracy: Number(metrics.accuracy) || 0,
+            correct: metrics.correct || 0,
+            wrong: metrics.wrong || 0,
+            totalQuestions: metrics.totalQuestions || 0,
+          });
+        });
+      });
+      
+      subjectWeeklyResults.set(monthLabel, subjectData);
     });
-    
-    subjectWeeklyResults.set(monthLabel, subjectData);
-  });
 
-  return { weeklyResults: monthMap, subjectWeeklyResults };
-}, [results]);
+    return { weeklyResults: monthMap, subjectWeeklyResults };
+  }, [results]);
 
-  // Get unique subjects for the legend
   const getUniqueSubjects = (monthLabel) => {
     const subjectData = subjectWeeklyResults.get(monthLabel);
     if (!subjectData) return [];
@@ -437,6 +451,7 @@ const { weeklyResults, subjectWeeklyResults } = useMemo(() => {
                       fill="url(#correctGradient)" 
                       name="Correct" 
                       radius={[4, 4, 0, 0]}
+                      {...BAR_ANIMATION}
                     />
                     <Bar 
                       dataKey="totalWrong" 
@@ -444,6 +459,7 @@ const { weeklyResults, subjectWeeklyResults } = useMemo(() => {
                       fill="url(#wrongGradient)" 
                       name="Wrong" 
                       radius={[4, 4, 0, 0]}
+                      {...BAR_ANIMATION}
                     />
                     <Bar 
                       dataKey="totalUnanswered" 
@@ -451,6 +467,7 @@ const { weeklyResults, subjectWeeklyResults } = useMemo(() => {
                       fill="url(#unansweredGradient)" 
                       name="Unanswered" 
                       radius={[4, 4, 0, 0]}
+                      {...BAR_ANIMATION}
                     />
                   </BarChart>
                 </ResponsiveContainer>
@@ -516,6 +533,7 @@ const { weeklyResults, subjectWeeklyResults } = useMemo(() => {
                         strokeWidth: 2, 
                         fill: "#fff" 
                       }}
+                      {...LINE_ANIMATION}
                     />
                   </LineChart>
                 </ResponsiveContainer>
@@ -571,6 +589,7 @@ const { weeklyResults, subjectWeeklyResults } = useMemo(() => {
                               strokeWidth: 2,
                               fill: "#fff"
                             }}
+                            {...LINE_ANIMATION}
                           />
                         );
                       })}

@@ -3,13 +3,26 @@ import React, { useState, useEffect, useContext } from "react";
 import { fetchPortions, fetchSubjectsByPortions } from "@/utils/api";
 import { TestContext } from "@/contexts/TestContext";
 import { useRouter } from "next/navigation";
+import PremiumPopup from "../PremiumPopup";
 
 export default function Portion({ onPortionSelect, onScreenSelection }) {
   const [portions, setPortions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showPremiumPopup, setShowPremiumPopup] = useState(false);
   const { setTestData } = useContext(TestContext);
   const router = useRouter();
+
+  // Check if user is guest
+  const isGuestUser = () => {
+    // Check localStorage
+    if (typeof window !== 'undefined') {
+      const userRole = localStorage.getItem('role') || 
+                       document.cookie.split('; ').find(row => row.startsWith('role='))?.split('=')[1];
+      return userRole === 'guest';
+    }
+    return false;
+  };
 
   useEffect(() => {
     const loadPortions = async () => {
@@ -25,7 +38,7 @@ export default function Portion({ onPortionSelect, onScreenSelection }) {
               const details = await fetchSubjectsByPortions(portion.id);
               return { ...portion, detailCount: Array.isArray(details) ? details.length : 0 };
             } catch {
-              return { ...portion, detailCount: 0 }; // Use 0 instead of "No" for consistency
+              return { ...portion, detailCount: 0 };
             }
           })
         );
@@ -42,28 +55,49 @@ export default function Portion({ onPortionSelect, onScreenSelection }) {
     loadPortions();
   }, []);
 
+  const handleTestClick = () => {
+    if (isGuestUser()) {
+      setShowPremiumPopup(true);
+      return;
+    }
+  };
+
   const handlePortionClick = (portion) => {
+    if (isGuestUser()) {
+      setShowPremiumPopup(true);
+      return;
+    }
+    
     const fullPortionTestData = {
       testname: "portion-full-test",
       portionId: portion.id,
     };
-    setTestData(fullPortionTestData); // Set the full portion test data in context
+    setTestData(fullPortionTestData);
     router.push("/user/test");
   };
 
   const handleFullPortionTestClick = () => {
+    if (isGuestUser()) {
+      setShowPremiumPopup(true);
+      return;
+    }
+    
     const fullPortionTestData = {
       testname: "full-portion",
     };
-    setTestData(fullPortionTestData); // Set the full portion test data in context
+    setTestData(fullPortionTestData);
     router.push("/user/test");
   };
 
   const handleCustomPortionClick = (portion) => {
+    if (isGuestUser()) {
+      setShowPremiumPopup(true);
+      return;
+    }
+    
     onPortionSelect(portion);
     onScreenSelection("test-subject");
   };
-
 
   return (
     <div className="py-6">
@@ -76,7 +110,10 @@ export default function Portion({ onPortionSelect, onScreenSelection }) {
             <h2>Full Portion Test</h2>
             <p className="text-sm text-gray-700">11th & 12th </p>
 
-            <button onClick={handleFullPortionTestClick} className="cursor-pointer">
+            <button 
+              onClick={handleFullPortionTestClick} 
+              className={`cursor-pointer ${isGuestUser() ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
               Full Portion Test
             </button>
           </div>
@@ -86,10 +123,16 @@ export default function Portion({ onPortionSelect, onScreenSelection }) {
               <p className="text-sm text-gray-700">{portion.detailCount} Subjects</p>
 
               <div className="btns_group">
-                <button onClick={() => handleCustomPortionClick(portion)}>
-                  Customize Chapter DPP
+                <button 
+                  onClick={() => handleCustomPortionClick(portion)}
+                  className={isGuestUser() ? 'opacity-50 cursor-not-allowed' : ''}
+                >
+                  Customize Chapter Test
                 </button>
-                <button onClick={() => handlePortionClick(portion)}>
+                <button 
+                  onClick={() => handlePortionClick(portion)}
+                  className={isGuestUser() ? 'opacity-50 cursor-not-allowed' : ''}
+                >
                   Full Test
                 </button>
               </div>
@@ -97,6 +140,8 @@ export default function Portion({ onPortionSelect, onScreenSelection }) {
           ))}
         </div>
       )}
+      
+      {showPremiumPopup && <PremiumPopup onClose={() => setShowPremiumPopup(false)} />}
     </div>
   );
 }

@@ -74,7 +74,7 @@ export default function TestChapter({selectedPortion, selectedSubject, onChapter
 
               <div className="btns_group">
                 <button onClick={() => handleCustomTopicsClick(chapter)}>
-                  Customize Chapter DPP
+                  Customize Chapter Test
                 </button>
                 <button onClick={() => handleChapterClick(chapter)}>
                   Full Test

@@ -314,9 +314,8 @@ animation-delay: 2s;
  topic page style 
  --------------------*/
 .topic_cards{
-  display: grid
-  ;
-      grid-template-columns: repeat(4, 1fr);
+  display: grid;
+      grid-template-columns: repeat(3, 1fr);
       place-items: flex-start;
       place-content: center;
       gap: 20px;
@@ -396,13 +395,32 @@ input[type="checkbox"] {
   margin-top: 40px;
  }
  .test_containerss{
-  display: flex;
-  align-self: center;
-  justify-content: center;
+  display: grid;
   gap: 30px;
   margin: 40px 0;
  }
-
+.navborders{
+      box-shadow: 0 2px 8px #d3cbfb33;
+    border: 1px solid #d3cbfb6a;
+    border-radius: var(--borderRadius);
+}
+.question-navigation::-webkit-scrollbar {
+      height: 8px;
+     
+    }
+    .question-navigation::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 10px;
+    }
+    .question-navigation::-webkit-scrollbar-thumb {
+      background: #35095e;
+      
+      border-radius: 10px;
+    }
+    .question-navigation::-webkit-scrollbar-thumb:hover {
+      background: #555;
+      
+    }
  .test_container1{
   width: 70%;
   box-shadow: rgba(211, 203, 251, 0.2) 0px 2px 8px 0px;
@@ -762,8 +780,8 @@ width: 100%;
     transition: all .3s ease-in-out;
     cursor: pointer;
 }
-.selected p{
-  color: white;
+.selected .question_option p,.selected .question_option span{
+  color: #fff !important;
 }
 .bscore_content *{
 color: #fff;
@@ -864,4 +882,11 @@ tr{
 }
 .topicc_card button:hover span{
   color: #6712B7;
+}
+.hint-section{
+      padding: 20px;
+    background: #ffffff;
+    border-radius: var(--borderRadius);
+    border: 1px solid #d3cbfb6a;
+    box-shadow: 0 2px 8px #590f9d4a;
 }
