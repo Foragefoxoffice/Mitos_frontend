@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback, useContext } from "react";
+import { useState, useEffect, useRef, useCallback, Suspense } from "react";
 import { RotateCw, Maximize, Minimize, ChevronLeft, ChevronRight } from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { HiViewBoards, HiViewList } from 'react-icons/hi'; 
@@ -16,7 +16,7 @@ const PDF_BASE_URL = "https://mitoslearning.in";
 // Canvas cache to store rendered pages
 const canvasCache = new Map();
 
-const PdfViewer = () => {
+const PdfViewerComponent = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isFullscreen, setIsFullscreen] = useState(false);
@@ -34,14 +34,15 @@ const PdfViewer = () => {
     const animationFrameRef = useRef(null);
     const touchStartX = useRef(0);
     const touchEndX = useRef(0);
-     const router = useRouter();
- const { setSelectedTopics } = useSelectedTopics();
+    const router = useRouter();
+    const { setSelectedTopics } = useSelectedTopics();
+
     // Set initial pages per view based on device
     useEffect(() => {
         setPagesPerView(isMobile ? 1 : 2);
     }, [isMobile]);
 
-      // Handle navigation to practice page
+    // Handle navigation to practice page
     const handlePracticeNavigation = () => {
         if (topicId) {
             setSelectedTopics([topicId]);
@@ -330,15 +331,14 @@ const PdfViewer = () => {
                     <div className="flex items-center space-x-3">
                         {/* Page navigation controls */}
                         <div className="hidden md:flex items-center space-x-2">
-                           
-                             <div className=" flex justify-center">
-                    <button
-                        onClick={handlePracticeNavigation}
-                        className="bg-[#35095e] hover:bg-[#35095e]/90    text-white font-medium py-2 px-6 rounded-full shadow-lg transition-colors"
-                    >
-                        Practice This Topic
-                    </button>
-                </div>
+                            <div className="flex justify-center">
+                                <button
+                                    onClick={handlePracticeNavigation}
+                                    className="bg-[#35095e] hover:bg-[#35095e]/90 text-white font-medium py-2 px-6 rounded-full shadow-lg transition-colors"
+                                >
+                                    Practice This Topic
+                                </button>
+                            </div>
                             <button 
                                 onClick={() => goToPage(1)}
                                 disabled={currentPage === 1}
@@ -370,51 +370,46 @@ const PdfViewer = () => {
                         </div>
 
                         {/* Pages per view toggle (only show when not mobile) */}
-                      {!isMobile && (
-  <div
-    onClick={togglePagesPerView}
-    className="relative inline-flex items-center cursor-pointer bg-gray-100 dark:bg-[#35095e] p-1 rounded-full transition-all duration-300 w-32 shadow-md hover:shadow-lg"
-  >
-    {/* Animated Toggle Background */}
-    <span
-      className={`absolute top-1 left-1 h-5 w-14 rounded-full bg-white shadow transform transition-transform duration-300 ${
-        pagesPerView === 2 ? 'translate-x-16' : ''
-      }`}
-    ></span>
-
-    {/* 1 Page Icon + Label */}
-    <div className="z-10 w-1/2 flex items-center justify-center space-x-1">
-      <HiViewList
-        className={`text-lg transition-colors duration-300 ${
-          pagesPerView === 1 ? 'text-[#35095e]' : 'text-white'
-        }`}
-      />
-      <span
-        className={`text-sm font-medium transition-colors duration-300 ${
-          pagesPerView === 1 ? 'text-[#35095e]' : 'text-white'
-        }`}
-      >
-        1
-      </span>
-    </div>
-
-    {/* 2 Pages Icon + Label */}
-    <div className="z-10 w-1/2 flex items-center justify-center space-x-1">
-      <HiViewBoards
-        className={`text-lg transition-colors duration-300 ${
-          pagesPerView === 2 ? 'text-[#35095e]' : 'text-white'
-        }`}
-      />
-      <span
-        className={`text-sm font-medium transition-colors duration-300 ${
-          pagesPerView === 2 ? 'text-[#35095e]' : 'text-white'
-        }`}
-      >
-        2
-      </span>
-    </div>
-  </div>
-)}
+                        {!isMobile && (
+                            <div
+                                onClick={togglePagesPerView}
+                                className="relative inline-flex items-center cursor-pointer bg-gray-100 dark:bg-[#35095e] p-1 rounded-full transition-all duration-300 w-32 shadow-md hover:shadow-lg"
+                            >
+                                <span
+                                    className={`absolute top-1 left-1 h-5 w-14 rounded-full bg-white shadow transform transition-transform duration-300 ${
+                                        pagesPerView === 2 ? 'translate-x-16' : ''
+                                    }`}
+                                ></span>
+                                <div className="z-10 w-1/2 flex items-center justify-center space-x-1">
+                                    <HiViewList
+                                        className={`text-lg transition-colors duration-300 ${
+                                            pagesPerView === 1 ? 'text-[#35095e]' : 'text-white'
+                                        }`}
+                                    />
+                                    <span
+                                        className={`text-sm font-medium transition-colors duration-300 ${
+                                            pagesPerView === 1 ? 'text-[#35095e]' : 'text-white'
+                                        }`}
+                                    >
+                                        1
+                                    </span>
+                                </div>
+                                <div className="z-10 w-1/2 flex items-center justify-center space-x-1">
+                                    <HiViewBoards
+                                        className={`text-lg transition-colors duration-300 ${
+                                            pagesPerView === 2 ? 'text-[#35095e]' : 'text-white'
+                                        }`}
+                                    />
+                                    <span
+                                        className={`text-sm font-medium transition-colors duration-300 ${
+                                            pagesPerView === 2 ? 'text-[#35095e]' : 'text-white'
+                                        }`}
+                                    >
+                                        2
+                                    </span>
+                                </div>
+                            </div>
+                        )}
                         
                         {/* Fullscreen toggle */}
                         <button 
@@ -435,7 +430,7 @@ const PdfViewer = () => {
             {/* PDF container */}
             <div 
                 ref={containerRef}
-                className={`pdf-container w-full ${isFullscreen ? ' mt-14' : ''} flex items-center justify-center p-4 ${isMobile ? 'overflow-hidden' : 'overflow-auto'}`}
+                className={`pdf-container w-full ${isFullscreen ? 'mt-14' : ''} flex items-center justify-center p-4 ${isMobile ? 'overflow-hidden' : 'overflow-auto'}`}
                 onTouchStart={handleTouchStart}
                 onTouchMove={handleTouchMove}
                 onTouchEnd={handleTouchEnd}
@@ -482,9 +477,22 @@ const PdfViewer = () => {
                     )}
                 </div>
             </div>
-           
         </div>
     );
 };
 
-export default PdfViewer;
+// Wrapper component with Suspense boundary
+export default function PdfViewer() {
+    return (
+        <Suspense fallback={
+            <div className="flex items-center justify-center h-screen">
+                <div className="flex flex-col items-center">
+                    <RotateCw className="w-12 h-12 text-blue-500 animate-spin" />
+                    <p className="mt-4 text-lg">Loading document...</p>
+                </div>
+            </div>
+        }>
+            <PdfViewerComponent />
+        </Suspense>
+    );
+}
