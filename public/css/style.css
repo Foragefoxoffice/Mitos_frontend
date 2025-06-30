@@ -505,6 +505,8 @@ input[type="checkbox"] {
   padding: 40px;
   height:75vh;
   overflow-y: scroll;
+      position: sticky;
+    top: 50px;
  }
  .test_container2::-webkit-scrollbar {
   width: 5px;
@@ -536,7 +538,6 @@ input[type="checkbox"] {
  }
  .answer_label li{
   font-family: 20px;
-  color: #E49331;
   font-weight: 500;
   position: relative;
  }
@@ -545,29 +546,11 @@ input[type="checkbox"] {
   content: "";
   width: 12px;
   height: 12px;
-  background: #e49331;
   border-radius: 50%;
   top: 5.5px;
   left: -17px;
  }
- .answer_label li:first-child{
-  color: var(--primery);
- }
- .answer_label li:nth-child(3){
-  color:#B19CBE;
- }
- .answer_label li:last-child{
-  color:#498fe0;
- }
- .answer_label li:first-child::after{
-  background: var(--primery);
- }
- .answer_label li:nth-child(3):after{
-  background:#B19CBE;
- }
-.answer_label li:last-child::after{
-  background:#498fe0;
- }
+ 
  .rounded_navs {
   display: grid
 ;
@@ -838,7 +821,7 @@ tr{
   color: gold;
 }
 .question_option *{
-  font-size: 18px !important;
+  font-size: 20px !important;
 }
 /* Custom slider styles */
 .banner-slider-container {

@@ -11,6 +11,7 @@ export const TestNavigation = ({
   question,
   getUniqueSubjects = [],
   subjectFilter,
+  onShowAnswers,
 }) => {
   const isLastQuestionInSubject = currentQuestionIndex === filteredQuestions.length - 1;
   const currentSubjectIndex = getUniqueSubjects?.findIndex?.(subj => subj.id === subjectFilter) ?? -1;
@@ -30,6 +31,7 @@ export const TestNavigation = ({
       >
         Previous
       </button>
+      { onShowAnswers == false && (
       <button
         onClick={() => toggleMarkAsReview(question?.id)}
         className={`px-4 py-2 ${
@@ -42,6 +44,7 @@ export const TestNavigation = ({
           ? "Unmark Review"
           : "Mark as Review"}
       </button>
+      )}
       <button
         onClick={handleNext}
         className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"

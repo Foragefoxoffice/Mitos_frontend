@@ -146,13 +146,13 @@ export const TestResults = ({
                       {typeData.typeName}
                     </h3>
                     <div className="flex gap-4">
-                      <span className="text-blue-600">
+                      <span className="text-blue-600 text-lg">
                         Attempted: {typeData.attempted}
                       </span>
-                      <span className="text-green-600">
+                      <span className="text-green-600 text-lg">
                         Correct: {typeData.correct}
                       </span>
-                      <span className="text-red-600">
+                      <span className="text-red-600 text-lg">
                         Wrong: {typeData.wrong}
                       </span>
                       
@@ -167,15 +167,15 @@ export const TestResults = ({
                           key={subjectId}
                           className="flex justify-between items-center bg-white p-2 rounded shadow-sm"
                         >
-                          <span className="font-medium">{subjectId}</span>
+                          <span className="text-lg">{subjectId}</span>
                           <div className="flex gap-4">
-                            <span className="text-blue-600">
+                            <span className="text-blue-600 text-lg">
                               ↻ {subjectData.attempted}
                             </span>
-                            <span className="text-green-600">
+                            <span className="text-green-600 text-lg">
                               ✓ {subjectData.correct}
                             </span>
-                            <span className="text-red-600">
+                            <span className="text-red-600 text-lg">
                               ✗ {subjectData.wrong}
                             </span>
                             

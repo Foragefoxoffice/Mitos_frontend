@@ -1,14 +1,15 @@
 "use client";
-import React, { useCallback } from "react";
+import React, { useCallback,useState } from "react";
 import DOMPurify from "dompurify";
-import { FaHeart, FaRegHeart } from 'react-icons/fa';
+import { FaHeart, FaRegHeart,FaFlag  } from 'react-icons/fa';
 import { MathJax, MathJaxContext } from 'better-react-mathjax';
+import ImagePopup from "@/components/ImagePopup";
 
 // Helper component to render HTML with MathJax support
 const HtmlWithMath = ({ html }) => {
   // Sanitize the HTML first
   const cleanHtml = DOMPurify.sanitize(html);
-  
+
   return (
     <MathJax inline dynamic>
       <div dangerouslySetInnerHTML={{ __html: cleanHtml }} />
@@ -24,9 +25,14 @@ export const TestQuestion = ({
   filteredQuestions,
   toggleFavorite,
   isFavorite,
-  onShowAnswers
+  onShowAnswers,
+  onReportQuestion
 }) => {
- 
+     const [imagePopup, setImagePopup] = useState({
+    show: false,
+    src: "",
+  });
+
   const renderOptionButtons = useCallback(
   (question) => {
     return question.options.map((option, index) => {
@@ -95,12 +101,21 @@ export const TestQuestion = ({
           onClick={() => toggleFavorite(question.id)}
           className="p-2 rounded-full bg-transparent transition duration-200"
         >
+       
           {isFavorite ? (
             <FaHeart className="text-red-500 w-6 h-6" />
           ) : (
             <FaRegHeart className="text-black w-6 h-6" />
           )}
         </button>
+           <button
+  onClick={onReportQuestion}
+  className="p-2 text-sm bg-red-100 text-red-600 rounded hover:bg-red-200 flex items-center gap-1"
+  title="Report this question"
+>
+  <FaFlag className="w-4 h-4" />
+  <span>Report</span>
+</button>
       </div>
       
       <div className="mb-4 question_option">
@@ -111,6 +126,12 @@ export const TestQuestion = ({
           alt=""
           src={`https://mitoslearning.in/${question.image}`}
           className="max-w-full h-auto my-4 rounded"
+           onClick={() =>
+                            setImagePopup({
+                              show: true,
+                              src: `https://mitoslearning.in/${question.image}`,
+                            })
+                          }
         />
       )}
       <div className="option_btns flex flex-col gap-3">
@@ -131,11 +152,23 @@ export const TestQuestion = ({
                 src={`https://mitoslearning.in/${question.hintImage}`}
                 alt="Hint illustration"
                 className="max-w-full h-auto my-2"
+                 onClick={() =>
+                            setImagePopup({
+                              show: true,
+                              src: `https://mitoslearning.in/${question.hintImage}`,
+                            })
+                          }
               />
             )}
           </div>
         </>
       )}
+       {imagePopup.show && (
+          <ImagePopup
+            src={imagePopup.src}
+            onClose={() => setImagePopup({ show: false, src: "" })}
+          />
+        )}
     </MathJaxContext>
   );
 };  

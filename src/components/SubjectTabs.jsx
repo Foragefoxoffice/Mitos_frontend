@@ -150,42 +150,47 @@ const SubjectTabs = ({ monthData, section }) => {
                             <th className="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">Attempted</th>
                             <th className="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">Correct</th>
                             <th className="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">Wrong</th>
-                            <th className="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">Accuracy</th>
+                                <th className="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">Correct %</th>
+    <th className="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">Wrong %</th>
                             <th className="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">Action</th>
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                        {Object.entries(mergedChapterData).map(([chapter, metrics]) => {
-                            if (!metrics.subjects[activeSubject]) return null;
+                       {Object.entries(mergedChapterData).map(([chapter, metrics]) => {
+  if (!metrics.subjects[activeSubject]) return null;
 
-                            const accuracy = calculateAccuracy(
-                                metrics.subjects[activeSubject].correct,
-                                metrics.subjects[activeSubject].attempted
-                            );
+  const subjectData = metrics.subjects[activeSubject];
+  const { attempted, correct, wrong } = subjectData;
 
-                            return (
-                                <tr key={chapter}>
-                                    <td className="flex gap-3 item-center px-6 py-4 whitespace-nowrap font-medium text-gray-900">
-                                        <div className="flex justify-center">
-                                            <CircularProgress percentage={parseFloat(accuracy)} />
-                                        </div>
-                                        <p className="flex items-center">{chapter}</p>
-                                    </td>
-                                    <td className="px-6 py-4 text-center">{metrics.subjects[activeSubject].attempted}</td>
-                                    <td className="px-6 py-4 text-center">{metrics.subjects[activeSubject].correct}</td>
-                                    <td className="px-6 py-4 text-center text-red-500">{metrics.subjects[activeSubject].wrong}</td>
-                                    <td className="px-6 py-4 text-center text-green-500">{accuracy}%</td>
-                                    <td className="px-6 py-4 text-center">
-                                        <button
-                                            onClick={() => handlePracticeNavigation(chapter, metrics)}
-                                            className="px-3 py-1 bg-[#35095e] text-white rounded hover:bg-[#4a0d7a] transition-colors"
-                                        >
-                                            Practice
-                                        </button>
-                                    </td>
-                                </tr>
-                            );
-                        })}
+  const accuracy = calculateAccuracy(correct, attempted);
+  const correctAccuracy = calculateAccuracy(correct, attempted);
+  const wrongAccuracy = calculateAccuracy(wrong, attempted);
+
+  return (
+    <tr key={chapter}>
+      <td className="flex gap-3 item-center px-6 py-4 whitespace-nowrap font-medium text-gray-900">
+        <div className="flex justify-center">
+          <CircularProgress percentage={parseFloat(accuracy)} />
+        </div>
+        <p className="flex items-center">{chapter}</p>
+      </td>
+      <td className="px-6 py-4 text-center">{attempted}</td>
+      <td className="px-6 py-4 text-center">{correct}</td>
+      <td className="px-6 py-4 text-center text-red-500">{wrong}</td>
+      <td className="px-6 py-4 text-center text-blue-600">{correctAccuracy}%</td>
+      <td className="px-6 py-4 text-center text-red-600">{wrongAccuracy}%</td>
+      <td className="px-6 py-4 text-center">
+        <button
+          onClick={() => handlePracticeNavigation(chapter, metrics)}
+          className="px-3 py-1 bg-[#35095e] text-white rounded hover:bg-[#4a0d7a] transition-colors"
+        >
+          Practice
+        </button>
+      </td>
+    </tr>
+  );
+})}
+
                     </tbody>
                 </table>
             </div>

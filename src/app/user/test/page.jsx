@@ -13,8 +13,9 @@ import {
   fetchFullTestByPortion,
   fetchCustomTestQuestions,
   checkFavoriteStatus,
-   addFavoriteQuestion,
-  removeFavoriteQuestion
+  addFavoriteQuestion,
+  removeFavoriteQuestion,
+  reportWrongQuestion,
 } from "@/utils/api";
 import { TestContext } from "@/contexts/TestContext";
 import { TestHeader } from "@/components/fulltest/TestHeader";
@@ -25,6 +26,8 @@ import { TestInstructions } from "@/components/fulltest/TestInstructions";
 import { TestSidebar } from "@/components/fulltest/TestSidebar";
 import { TestTimer } from "@/components/fulltest/TestTimer";
 import Notification from "@/components/Notification";
+import ImagePopup from "@/components/ImagePopup";
+import { FaHeart, FaRegHeart, FaFlag } from "react-icons/fa";
 
 export default function TestPage() {
   const [questions, setQuestions] = useState([]);
@@ -48,12 +51,22 @@ export default function TestPage() {
   const [userId, setUserId] = useState(null);
   const [showSubmitConfirmation, setShowSubmitConfirmation] = useState(false);
   const [notification, setNotification] = useState({
-  show: false,
-  message: "",
-  type: "success"
-});
+    show: false,
+    message: "",
+    type: "success",
+  });
+  const [imagePopup, setImagePopup] = useState({
+    show: false,
+    src: "",
+  });
   const [favoriteQuestions, setFavoriteQuestions] = useState({});
- const [showAnswer, setShowAnswer] = useState(false);
+  const [showAnswer, setShowAnswer] = useState(false);
+  const [reportModal, setReportModal] = useState({
+    show: false,
+    reason: "",
+    questionId: null,
+  });
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       setToken(localStorage.getItem("token"));
@@ -68,14 +81,25 @@ export default function TestPage() {
 
     questions.forEach((question) => {
       if (question.subjectId) {
-        const name = typeof question.subject === "string"
-          ? question.subject
-          : `Subject ${question.subjectId}`;
+        const fullSubjectName =
+          typeof question.subject === "string"
+            ? question.subject
+            : `Subject ${question.subjectId}`;
 
-        subjectsMap.set(question.subjectId, {
-          id: question.subjectId,
-          name: name,
-        });
+        const baseSubjectName = fullSubjectName.replace(
+          /^\d+(th|rd|nd|st)\s/,
+          ""
+        );
+
+        if (!subjectsMap.has(baseSubjectName)) {
+          subjectsMap.set(baseSubjectName, {
+            id: baseSubjectName,
+            name: baseSubjectName,
+            originalIds: new Set(),
+          });
+        }
+
+        subjectsMap.get(baseSubjectName).originalIds.add(question.subjectId);
       }
     });
 
@@ -86,8 +110,17 @@ export default function TestPage() {
 
   const filteredQuestions = useMemo(() => {
     if (!subjectFilter) return questions;
-    return questions.filter((question) => question.subjectId === subjectFilter);
-  }, [questions, subjectFilter]);
+
+    const subjectGroup = getUniqueSubjects.find(
+      (subj) => subj.id === subjectFilter
+    );
+
+    if (!subjectGroup) return questions;
+
+    return questions.filter((question) =>
+      subjectGroup.originalIds.has(question.subjectId)
+    );
+  }, [questions, subjectFilter, getUniqueSubjects]);
 
   const formatTime = useCallback((seconds) => {
     const minutes = Math.floor(seconds / 60);
@@ -125,53 +158,58 @@ export default function TestPage() {
     }));
   }, []);
 
-const handleNext = useCallback(() => {
-  if (!filteredQuestions.length) return;
+  const handleNext = useCallback(() => {
+    if (!filteredQuestions.length) return;
 
-  if (currentQuestionIndex < filteredQuestions.length - 1) {
-    // Normal case - go to next question in current subject
-    setCurrentQuestionIndex((prev) => prev + 1);
-    const nextQuestionId = filteredQuestions[currentQuestionIndex + 1]?.id;
-    if (nextQuestionId) {
-      setVisitedQuestions((prev) => ({ ...prev, [nextQuestionId]: true }));
-    }
-  } else {
-    // Last question in current subject - find next subject
-    const currentSubjectIndex = getUniqueSubjects?.findIndex?.(
-      (subj) => subj.id === subjectFilter
-    ) ?? -1;
-    
-    if (currentSubjectIndex >= 0 && currentSubjectIndex < (getUniqueSubjects?.length ?? 0) - 1) {
-      // There are more subjects - go to next subject
-      const nextSubject = getUniqueSubjects[currentSubjectIndex + 1];
-      if (nextSubject) {
-        setSubjectFilter(nextSubject.id);
+    if (currentQuestionIndex < filteredQuestions.length - 1) {
+      setCurrentQuestionIndex((prev) => prev + 1);
+      const nextQuestionId = filteredQuestions[currentQuestionIndex + 1]?.id;
+      if (nextQuestionId) {
+        setVisitedQuestions((prev) => ({ ...prev, [nextQuestionId]: true }));
+      }
+    } else {
+      const currentSubjectIndex =
+        getUniqueSubjects?.findIndex?.((subj) => subj.id === subjectFilter) ??
+        -1;
+
+      if (
+        currentSubjectIndex >= 0 &&
+        currentSubjectIndex < (getUniqueSubjects?.length ?? 0) - 1
+      ) {
+        const nextSubject = getUniqueSubjects[currentSubjectIndex + 1];
+        if (nextSubject) {
+          setSubjectFilter(nextSubject.id);
+          setCurrentQuestionIndex(0);
+
+          const firstQuestionOfNewSubject = questions.find(
+            (q) => q.subjectId === nextSubject.id
+          );
+          if (firstQuestionOfNewSubject?.id) {
+            setVisitedQuestions((prev) => ({
+              ...prev,
+              [firstQuestionOfNewSubject.id]: true,
+            }));
+          }
+        }
+      } else {
+        setSubjectFilter(null);
         setCurrentQuestionIndex(0);
-        
-        const firstQuestionOfNewSubject = questions.find(
-          (q) => q.subjectId === nextSubject.id
-        );
-        if (firstQuestionOfNewSubject?.id) {
+
+        if (questions.length > 0 && questions[0]?.id) {
           setVisitedQuestions((prev) => ({
             ...prev,
-            [firstQuestionOfNewSubject.id]: true,
+            [questions[0].id]: true,
           }));
         }
       }
-    } else {
-      // Last subject - switch back to "All Subjects"
-      setSubjectFilter(null);
-      setCurrentQuestionIndex(0);
-      
-      if (questions.length > 0 && questions[0]?.id) {
-        setVisitedQuestions((prev) => ({
-          ...prev,
-          [questions[0].id]: true,
-        }));
-      }
     }
-  }
-}, [currentQuestionIndex, filteredQuestions, getUniqueSubjects, questions, subjectFilter]);
+  }, [
+    currentQuestionIndex,
+    filteredQuestions,
+    getUniqueSubjects,
+    questions,
+    subjectFilter,
+  ]);
 
   const handlePrevious = useCallback(() => {
     if (currentQuestionIndex > 0) {
@@ -235,84 +273,86 @@ const handleNext = useCallback(() => {
       : Math.round((correctAnswers / totalAnswered) * 100);
   }, [questions, userAnswers]);
 
-const calculateResultsByType = useCallback(() => {
-  const resultsByType = {};
+  const calculateResultsByType = useCallback(() => {
+    const resultsByType = {};
 
-  questions.forEach((question) => {
-    const typeId = question.typeId;
-    const typeName = question.type; // This should now have the correct name
-    const subject = question.subject;
-    const subjectId = question.subjectId; // Added subjectId
+    questions.forEach((question) => {
+      const typeName = question.type === "Unknown Type" ? "Uncategorized" : question.type;
+      const typeId = question.typeId === "unknown" ? "uncategorized" : question.typeId;
+      const subject = question.subject;
+      const subjectId = question.subjectId;
 
-    if (userAnswers[question.id] !== undefined) {
-      if (!resultsByType[typeId]) {
-        resultsByType[typeId] = {
-          typeName,
-          attempted: 0,
-          correct: 0,
-          wrong: 0,
-          subjects: {},
-        };
+      if (userAnswers[question.id] !== undefined) {
+        if (!resultsByType[typeId]) {
+          resultsByType[typeId] = {
+            typeName,
+            typeId,
+            attempted: 0,
+            correct: 0,
+            wrong: 0,
+            subjects: {},
+          };
+        }
+
+        if (!resultsByType[typeId].subjects[subject]) {
+          resultsByType[typeId].subjects[subject] = {
+            subjectId,
+            attempted: 0,
+            correct: 0,
+            wrong: 0,
+          };
+        }
+
+        resultsByType[typeId].attempted += 1;
+        resultsByType[typeId].subjects[subject].attempted += 1;
+
+        if (userAnswers[question.id] === question.correctOption) {
+          resultsByType[typeId].correct += 1;
+          resultsByType[typeId].subjects[subject].correct += 1;
+        } else {
+          resultsByType[typeId].wrong += 1;
+          resultsByType[typeId].subjects[subject].wrong += 1;
+        }
       }
+    });
 
-      if (!resultsByType[typeId].subjects[subject]) {
-        resultsByType[typeId].subjects[subject] = {
-          subjectId, // Added subjectId here
-          attempted: 0,
-          correct: 0,
-          wrong: 0,
-        };
+    return resultsByType;
+  }, [questions, userAnswers]);
+
+  const calculateResultsByChapter = useCallback(() => {
+    const resultsByChapter = {};
+
+    questions.forEach((question) => {
+      const chapterId = question.chapterId;
+      const chapterName = question.chapter;
+      const subject = question.subject;
+      const subjectId = question.subjectId;
+
+      if (userAnswers[question.id] !== undefined) {
+        if (!resultsByChapter[chapterId]) {
+          resultsByChapter[chapterId] = {
+            chapterName,
+            attempted: 0,
+            correct: 0,
+            wrong: 0,
+            subjectId,
+            subject,
+          };
+        }
+
+        resultsByChapter[chapterId].attempted += 1;
+
+        if (userAnswers[question.id] === question.correctOption) {
+          resultsByChapter[chapterId].correct += 1;
+        } else {
+          resultsByChapter[chapterId].wrong += 1;
+        }
       }
+    });
 
-      resultsByType[typeId].attempted += 1;
-      resultsByType[typeId].subjects[subject].attempted += 1;
+    return resultsByChapter;
+  }, [questions, userAnswers]);
 
-      if (userAnswers[question.id] === question.correctOption) {
-        resultsByType[typeId].correct += 1;
-        resultsByType[typeId].subjects[subject].correct += 1;
-      } else {
-        resultsByType[typeId].wrong += 1;
-        resultsByType[typeId].subjects[subject].wrong += 1;
-      }
-    }
-  });
-
-  return resultsByType;
-}, [questions, userAnswers]);
-
-const calculateResultsByChapter = useCallback(() => {
-  const resultsByChapter = {};
-
-  questions.forEach((question) => {
-    const chapterId = question.chapterId;
-    const chapterName = question.chapter;
-    const subject = question.subject;
-    const subjectId = question.subjectId; // Added subjectId
-
-    if (userAnswers[question.id] !== undefined) {
-      if (!resultsByChapter[chapterId]) {
-        resultsByChapter[chapterId] = {
-          chapterName,
-          attempted: 0,
-          correct: 0,
-          wrong: 0,
-          subjectId, // Added subjectId here
-          subject, // Kept existing subject name
-        };
-      }
-
-      resultsByChapter[chapterId].attempted += 1;
-
-      if (userAnswers[question.id] === question.correctOption) {
-        resultsByChapter[chapterId].correct += 1;
-      } else {
-        resultsByChapter[chapterId].wrong += 1;
-      }
-    }
-  });
-
-  return resultsByChapter;
-}, [questions, userAnswers]);
   const calculateResultsBySubject = useCallback(() => {
     const resultsBySubject = {};
 
@@ -384,170 +424,202 @@ const calculateResultsByChapter = useCallback(() => {
     [token]
   );
 
-    const checkFavorites = useCallback(async () => {
-      if (questions.length > 0 && token && userId) {
-        try {
-          const response = await checkFavoriteStatus(userId, token);
-          const favoriteStatus = {};
-          
-          questions.forEach(question => {
-            favoriteStatus[question.id] = false;
-          });
-          
-          response.data.forEach(favQuestion => {
-            favoriteStatus[favQuestion.questionId] = true;
-          });
-          
-          setFavoriteQuestions(favoriteStatus);
-        } catch (error) {
-          console.error("Error checking favorite status:", error);
-        }
+  const checkFavorites = useCallback(async () => {
+    if (questions.length > 0 && token && userId) {
+      try {
+        const response = await checkFavoriteStatus(userId, token);
+        const favoriteStatus = {};
+
+        questions.forEach((question) => {
+          favoriteStatus[question.id] = false;
+        });
+
+        response.data.forEach((favQuestion) => {
+          favoriteStatus[favQuestion.questionId] = true;
+        });
+
+        setFavoriteQuestions(favoriteStatus);
+      } catch (error) {
+        console.error("Error checking favorite status:", error);
       }
-    }, [questions, token, userId]);
-  
-    useEffect(() => {
-      checkFavorites();
-    }, [checkFavorites]);
-
-const toggleFavorite = useCallback(async (questionId) => {
-  try {
-    const isCurrentlyFavorite = favoriteQuestions[questionId];
-    let success = false;
-    
-    if (isCurrentlyFavorite) {
-      success = await removeFavoriteQuestion(userId, questionId, token);
-    } else {
-      success = await addFavoriteQuestion(userId, questionId, token);
     }
-    
-    if (success) {
-      // Update local state
-      setFavoriteQuestions(prev => ({
-        ...prev,
-        [questionId]: !isCurrentlyFavorite
-      }));
-      
-      // Show notification
-      setNotification({
-        show: true,
-        message: isCurrentlyFavorite 
-          ? "Question removed from favorites" 
-          : "Question added to Favorite",
-        type: "success"
-      });
-      
-      // Hide notification after 3 seconds
-      setTimeout(() => {
-        setNotification(prev => ({ ...prev, show: false }));
-      }, 3000);
-      
-      return true;
-    } else {
-      setNotification({
-        show: true,
-        message: "Operation failed. Please try again.",
-        type: "error"
-      });
-      return false;
-    }
-  } catch (error) {
-    console.error("Error updating favorite status:", error);
-    setNotification({
-      show: true,
-      message: "An error occurred. Please try again.",
-      type: "error"
-    });
-    return false;
-  }
-}, [token, userId, favoriteQuestions]);
+  }, [questions, token, userId]);
 
-const handleSubmit = useCallback(async () => {
-  setShowSubmitConfirmation(false);
-  
-  if (!userId) {
-    setError("User ID not found. Please log in again.");
-    return;
-  }
+  useEffect(() => {
+    checkFavorites();
+  }, [checkFavorites]);
 
-  if (questions.length === 0) {
-    setError("No questions available to submit.");
-    return;
-  }
+  const toggleFavorite = useCallback(
+    async (questionId) => {
+      try {
+        const isCurrentlyFavorite = favoriteQuestions[questionId];
+        let success = false;
 
-  try {
-    const resultsBySubject = calculateResultsBySubject();
-
-    const resultData = {
-      userId: parseInt(userId, 10),
-      score: calculateScore(),
-      totalMarks: questions.length * 4,
-      answered: Object.keys(userAnswers).length,
-      correct: calculateCorrectAnswers(),
-      wrong: calculateWrongAnswers(),
-      unanswered: questions.length - Object.keys(userAnswers).length,
-      accuracy: calculateAccuracy(),
-      totalTimeTaken: formatTime(totalTime - timeLeft),
-      resultsByType: calculateResultsByType(),
-      resultsByChapter: calculateResultsByChapter(),
-      resultsBySubject,
-    };
-
-    await saveTestResult(resultData);
-    setShowResults(true);
-    
-   
-  } catch (error) {
-    console.error("Failed to save test result:", error);
-    setError("Failed to save test result. Please try again.");
-  }
-}, [
-  userId,
-  questions.length,
-  userAnswers,
-  calculateScore,
-  calculateCorrectAnswers,
-  calculateWrongAnswers,
-  calculateAccuracy,
-  calculateResultsByType,
-  calculateResultsByChapter,
-  calculateResultsBySubject,
-  formatTime,
-  totalTime,
-  timeLeft,
-  saveTestResult,
-  router
-]);
-
-const showSubmitConfirmationPopup = useCallback(() => {
-  setShowSubmitConfirmation(true);
-}, []);
-
-
-
- useEffect(() => {
-  let timer;
-  
-  if (!showInstructionPopup && !showResults && questions.length > 0) {
-    if (timeLeft === 0) {
-      setTimeLeft(totalTime);
-    }
-
-    timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          handleSubmit(); // This will submit directly when time runs out
-          return 0;
+        if (isCurrentlyFavorite) {
+          success = await removeFavoriteQuestion(userId, questionId, token);
+        } else {
+          success = await addFavoriteQuestion(userId, questionId, token);
         }
-        return prev - 1;
-      });
-    }, 1000);
-  }
 
-  return () => {
-    if (timer) clearInterval(timer);
+        if (success) {
+          setFavoriteQuestions((prev) => ({
+            ...prev,
+            [questionId]: !isCurrentlyFavorite,
+          }));
+
+          setNotification({
+            show: true,
+            message: isCurrentlyFavorite
+              ? "Question removed from favorites"
+              : "Question added to Favorite",
+            type: "success",
+          });
+
+          setTimeout(() => {
+            setNotification((prev) => ({ ...prev, show: false }));
+          }, 3000);
+
+          return true;
+        } else {
+          setNotification({
+            show: true,
+            message: "Operation failed. Please try again.",
+            type: "error",
+          });
+          return false;
+        }
+      } catch (error) {
+        console.error("Error updating favorite status:", error);
+        setNotification({
+          show: true,
+          message: "An error occurred. Please try again.",
+          type: "error",
+        });
+        return false;
+      }
+    },
+    [token, userId, favoriteQuestions]
+  );
+
+  const handleReportQuestion = async () => {
+    try {
+      if (!reportModal.questionId || !reportModal.reason.trim()) {
+        setNotification({
+          show: true,
+          message: "Please provide a reason for reporting",
+          type: "error",
+        });
+        return;
+      }
+
+      await reportWrongQuestion(reportModal.questionId, reportModal.reason);
+      
+      setNotification({
+        show: true,
+        message: "Question reported successfully. Thank you for your feedback!",
+        type: "success",
+      });
+      
+      setReportModal({ show: false, reason: "", questionId: null });
+    } catch (error) {
+      console.error("Error reporting question:", error);
+      setNotification({
+        show: true,
+        message: "Failed to report question. Please try again.",
+        type: "error",
+      });
+    }
   };
-}, [showInstructionPopup, showResults, questions.length, totalTime, handleSubmit]);
+
+  const handleSubmit = useCallback(async () => {
+    setShowSubmitConfirmation(false);
+
+    if (!userId) {
+      setError("User ID not found. Please log in again.");
+      return;
+    }
+
+    if (questions.length === 0) {
+      setError("No questions available to submit.");
+      return;
+    }
+
+    try {
+      const resultsBySubject = calculateResultsBySubject();
+
+      const resultData = {
+        userId: parseInt(userId, 10),
+        score: calculateScore(),
+        totalMarks: questions.length * 4,
+        answered: Object.keys(userAnswers).length,
+        correct: calculateCorrectAnswers(),
+        wrong: calculateWrongAnswers(),
+        unanswered: questions.length - Object.keys(userAnswers).length,
+        accuracy: calculateAccuracy(),
+        totalTimeTaken: formatTime(totalTime - timeLeft),
+        resultsByType: calculateResultsByType(),
+        resultsByChapter: calculateResultsByChapter(),
+        resultsBySubject,
+      };
+
+      await saveTestResult(resultData);
+      setShowResults(true);
+    } catch (error) {
+      console.error("Failed to save test result:", error);
+      setError("Failed to save test result. Please try again.");
+    }
+  }, [
+    userId,
+    questions.length,
+    userAnswers,
+    calculateScore,
+    calculateCorrectAnswers,
+    calculateWrongAnswers,
+    calculateAccuracy,
+    calculateResultsByType,
+    calculateResultsByChapter,
+    calculateResultsBySubject,
+    formatTime,
+    totalTime,
+    timeLeft,
+    saveTestResult,
+    router,
+  ]);
+
+  const showSubmitConfirmationPopup = useCallback(() => {
+    setShowSubmitConfirmation(true);
+  }, []);
+
+  useEffect(() => {
+    let timer;
+
+    if (!showInstructionPopup && !showResults && questions.length > 0) {
+      if (timeLeft === 0) {
+        setTimeLeft(totalTime);
+      }
+
+      timer = setInterval(() => {
+        setTimeLeft((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            handleSubmit();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [
+    showInstructionPopup,
+    showResults,
+    questions.length,
+    totalTime,
+    handleSubmit,
+  ]);
 
   useEffect(() => {
     const loadQuestions = async () => {
@@ -555,7 +627,7 @@ const showSubmitConfirmationPopup = useCallback(() => {
         if (!testData) {
           setError("Test data is not available. Please go back and try again.");
           setLoading(false);
-          router.push('/user/dashboard');
+          router.push("/user/dashboard");
           return;
         }
 
@@ -570,24 +642,27 @@ const showSubmitConfirmationPopup = useCallback(() => {
             if (!portionId) {
               setError("Portion ID is missing. Please go back and try again.");
               setLoading(false);
-              router.push('/dashboard');
+              router.push("/dashboard");
               return;
             }
-            testQuestions = (await fetchFullTestByPortion(portionId))?.data || [];
+            testQuestions =
+              (await fetchFullTestByPortion(portionId))?.data || [];
             break;
 
           case "custom-test":
             if (!portionId || !chapterIds?.length) {
-              setError("Portion ID or Chapter IDs are missing. Please go back and try again.");
+              setError(
+                "Portion ID or Chapter IDs are missing. Please go back and try again."
+              );
               setLoading(false);
-              router.push('/dashboard');
+              router.push("/dashboard");
               return;
             }
 
             const customQuestions = await fetchCustomTestQuestions(
               portionId,
               chapterIds,
-              questionLimit 
+              questionLimit
             );
             testQuestions = customQuestions || [];
             break;
@@ -595,7 +670,7 @@ const showSubmitConfirmationPopup = useCallback(() => {
           default:
             setError("Invalid test type. Please go back and try again.");
             setLoading(false);
-            router.push('/dashboard');
+            router.push("/dashboard");
             return;
         }
 
@@ -604,38 +679,44 @@ const showSubmitConfirmationPopup = useCallback(() => {
             index === self.findIndex((q) => q.id === question.id)
         );
 
-       const formattedQuestions = deduplicatedQuestions.map((question) => ({
-  id: question.id || "N/A",
-  question: question.question || "No question text available",
-  image: question.image || null,
-  options: [
-    question.optionA || "Option A",
-    question.optionB || "Option B",
-    question.optionC || "Option C",
-    question.optionD || "Option D",
-  ],
-  correctOption: question.correctOption || "N/A",
-  hint: question.hint || "No hint available",
-  typeId: question.questionTypeId || question.typeId || "Unknown",
-  type: question.questionType?.name || 
-       question.type?.name ||
-       question.questionType ||
-       question.type ||
-       "Unknown",
-  subject: question.subject?.name || 
-          (question.subjectId ? `Subject ${question.subjectId}` : "Unknown"),
-  subjectId: question.subjectId,
-  chapter: question.chapter?.name || 
-          (question.chapter ? String(question.chapter) :
-          (question.chapterId ? `Chapter ${question.chapterId}` : "Unknown")),
-  chapterId: question.chapterId,
-}));
+        const formattedQuestions = deduplicatedQuestions.map((question) => ({
+          id: question.id || "N/A",
+          question: question.question || "No question text available",
+          image: question.image || null,
+          options: [
+            question.optionA || "Option A",
+            question.optionB || "Option B",
+            question.optionC || "Option C",
+            question.optionD || "Option D",
+          ],
+          correctOption: question.correctOption || "N/A",
+          hint: question.hint || "No hint available",
+          typeId: question.questionTypeId || question.typeId || "unknown",
+          type:
+            question.questionType?.name ||
+            question.type?.name ||
+            question.questionType ||
+            question.type ||
+            "Unknown Type",
+          subject:
+            question.subject?.name ||
+            (question.subjectId ? `Subject ${question.subjectId}` : "Unknown"),
+          subjectId: question.subjectId,
+          chapter:
+            question.chapter?.name ||
+            (question.chapter
+              ? String(question.chapter)
+              : question.chapterId
+              ? `Chapter ${question.chapterId}`
+              : "Unknown"),
+          chapterId: question.chapterId,
+        }));
 
         setQuestions(formattedQuestions);
       } catch (err) {
         console.error("Failed to fetch questions:", err);
         setError("Unable to load questions. Please try again later.");
-        router.push('/user/dashboard');
+        router.push("/user/dashboard");
       } finally {
         setLoading(false);
       }
@@ -647,7 +728,7 @@ const showSubmitConfirmationPopup = useCallback(() => {
   useEffect(() => {
     if (error) {
       const timer = setTimeout(() => {
-        router.push('/user/dashboard');
+        router.push("/user/dashboard");
       }, 3000);
       return () => clearTimeout(timer);
     }
@@ -669,27 +750,65 @@ const showSubmitConfirmationPopup = useCallback(() => {
   return (
     <div className="container py-6">
       {showSubmitConfirmation && (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div className="bg-white p-6 rounded-lg max-w-md w-full">
-      <h3 className="text-xl text-[#35095E] font-bold mb-4">Confirm Submission</h3>
-      <p className="mb-6">Are you sure you want to submit the test? You won't be able to make changes after submission.</p>
-      <div className="flex justify-end gap-4">
-        <button
-          onClick={() => setShowSubmitConfirmation(false)}
-          className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100"
-        >
-          Cancel
-        </button>
-        <button
-          onClick={handleSubmit}
-          className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-        >
-          Submit Test
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg max-w-md w-full">
+            <h3 className="text-xl text-[#35095E] font-bold mb-4">
+              Confirm Submission
+            </h3>
+            <p className="mb-6">
+              Are you sure you want to submit the test? You won't be able to
+              make changes after submission.
+            </p>
+            <div className="flex justify-end gap-4">
+              <button
+                onClick={() => setShowSubmitConfirmation(false)}
+                className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSubmit}
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+              >
+                Submit Test
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {reportModal.show && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg max-w-md w-full">
+            <h3 className="text-xl text-black font-bold mb-4">Report Question</h3>
+            <p className="mb-4">Please explain what's wrong with this question:</p>
+            
+            <textarea
+              value={reportModal.reason}
+              onChange={(e) => setReportModal(prev => ({...prev, reason: e.target.value}))}
+              className="w-full p-2 text-black border rounded mb-4"
+              rows={4}
+              placeholder="Enter your reason for reporting..."
+            />
+            
+            <div className="flex justify-end gap-4">
+              <button
+                onClick={() => setReportModal({ show: false, reason: "", questionId: null })}
+                className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 hover:text-black"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleReportQuestion}
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+              >
+                Submit Report
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showResults && showAnswer == false && (
         <TestResults
           calculateScore={calculateScore}
@@ -701,12 +820,11 @@ const showSubmitConfirmationPopup = useCallback(() => {
           calculateCorrectAnswers={calculateCorrectAnswers}
           calculateWrongAnswers={calculateWrongAnswers}
           calculateAccuracy={calculateAccuracy}
-          resultsBySubject={calculateResultsBySubject()} 
+          resultsBySubject={calculateResultsBySubject()}
           resultsByType={calculateResultsByType()}
-            onShowAnswers={(value) => {
-   
-    setShowAnswer(value); // example state setter in parent
-  }}
+          onShowAnswers={(value) => {
+            setShowAnswer(value);
+          }}
         />
       )}
 
@@ -721,15 +839,23 @@ const showSubmitConfirmationPopup = useCallback(() => {
           <div className="test_container1">
             <TestTimer
               timeLeft={timeLeft}
+              totalTime={totalTime}
               formatTime={formatTime}
               getUniqueSubjects={getUniqueSubjects}
               subjectFilter={subjectFilter}
               setSubjectFilter={setSubjectFilter}
               showSubmitConfirmationPopup={showSubmitConfirmationPopup}
               showAnswer={showAnswer}
-               onShowAnswers={(value) => {
-          setShowAnswer(value); // example state setter in parent
-        }}
+              onShowAnswers={(value) => {
+                setShowAnswer(value);
+              }}
+              onReportQuestion={() => {
+                setReportModal({
+                  show: true,
+                  reason: "",
+                  questionId: filteredQuestions[currentQuestionIndex].id
+                });
+              }}
             />
 
             <TestQuestion
@@ -738,22 +864,32 @@ const showSubmitConfirmationPopup = useCallback(() => {
               handleAnswer={handleAnswer}
               currentQuestionIndex={currentQuestionIndex}
               filteredQuestions={filteredQuestions}
-              isFavorite={favoriteQuestions[filteredQuestions[currentQuestionIndex].id]}
+              isFavorite={
+                favoriteQuestions[filteredQuestions[currentQuestionIndex].id]
+              }
               toggleFavorite={toggleFavorite}
               onShowAnswers={showAnswer}
+              onReportQuestion={() => {
+                setReportModal({
+                  show: true,
+                  reason: "",
+                  questionId: filteredQuestions[currentQuestionIndex].id
+                });
+              }}
             />
 
-           <TestNavigation
-  currentQuestionIndex={currentQuestionIndex}
-  filteredQuestions={filteredQuestions}
-  handlePrevious={handlePrevious}
-  handleNext={handleNext}
-  toggleMarkAsReview={toggleMarkAsReview}
-  markedQuestions={markedQuestions}
-  question={filteredQuestions[currentQuestionIndex]}
-  getUniqueSubjects={getUniqueSubjects}
-  subjectFilter={subjectFilter}
-/>
+            <TestNavigation
+              currentQuestionIndex={currentQuestionIndex}
+              filteredQuestions={filteredQuestions}
+              handlePrevious={handlePrevious}
+              handleNext={handleNext}
+              toggleMarkAsReview={toggleMarkAsReview}
+              markedQuestions={markedQuestions}
+              question={filteredQuestions[currentQuestionIndex]}
+              getUniqueSubjects={getUniqueSubjects}
+              subjectFilter={subjectFilter}
+              onShowAnswers={showAnswer}
+            />
           </div>
           <div className="test_container2">
             <TestSidebar
@@ -763,18 +899,19 @@ const showSubmitConfirmationPopup = useCallback(() => {
               markedQuestions={markedQuestions}
               handleQuestionNavigation={handleQuestionNavigation}
               questionNavRefs={questionNavRefs}
+              onShowAnswers={showAnswer}
             />
           </div>
         </div>
       )}
 
-       {notification.show && (
-          <Notification 
-            message={notification.message}
-            type={notification.type}
-            onClose={() => setNotification(prev => ({ ...prev, show: false }))}
-          />
-        )}
+      {notification.show && (
+        <Notification
+          message={notification.message}
+          type={notification.type}
+          onClose={() => setNotification((prev) => ({ ...prev, show: false }))}
+        />
+      )}
     </div>
   );
 }

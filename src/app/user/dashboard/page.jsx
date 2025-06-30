@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Subject from "@/components/practice/subject";
 import Chapter from "@/components/practice/chapter";
 import TopicsPage from "@/components/practice/topics";
@@ -14,108 +14,103 @@ import TestChapter from "@/components/test/test-chapter";
 import TestTopics from "@/components/test/test-topic";
 import { FaAngleLeft } from "react-icons/fa6";
 
-// Custom Hook to Manage Tab State
-const useTabState = (initialScreen) => {
-  const [currentScreen, setCurrentScreen] = useState(initialScreen);
-  const [selectedPortion, setSelectedPortion] = useState(null);
-  const [selectedSubject, setSelectedSubject] = useState(null);
-  const [selectedChapter, setSelectedChapter] = useState(null);
-  const [selectedTopic, setSelectedTopic] = useState(null);
-  const [selectedQuestiontype, setSelectedQuestiontype] = useState(null);
-  const [history, setHistory] = useState([initialScreen]); // History stack
+// Custom Hook for Tab State with SessionStorage Persistence
+const useTabState = (tabKey, initialScreen) => {
+  const sessionKey = `tabState-${tabKey}`;
 
-  const navigateTo = (screen) => {
-    setHistory((prevHistory) => [...prevHistory, screen]); // Add new screen to history
-    setCurrentScreen(screen); // Update current screen
+  const getInitialState = () => {
+    if (typeof window !== "undefined") {
+      const saved = sessionStorage.getItem(sessionKey);
+      if (saved) return JSON.parse(saved);
+    }
+    return {
+      currentScreen: initialScreen,
+      selectedPortion: null,
+      selectedSubject: null,
+      selectedChapter: null,
+      selectedTopic: null,
+      selectedQuestiontype: null,
+      history: [initialScreen],
+    };
   };
 
-  const goBack = () => {
-    setHistory((prevHistory) => {
-      if (prevHistory.length > 1) {
-        const newHistory = prevHistory.slice(0, -1); // Remove last screen
-        const previousScreen = newHistory[newHistory.length - 1]; // Get last screen
-        setCurrentScreen(previousScreen); // Update screen immediately
-        return newHistory;
-      }
-      return prevHistory;
+  const [state, setState] = useState(getInitialState);
+
+  useEffect(() => {
+    sessionStorage.setItem(sessionKey, JSON.stringify(state));
+  }, [state]);
+
+  const update = (updates) => {
+    setState((prev) => ({ ...prev, ...updates }));
+  };
+
+  const navigateTo = (screen) => {
+    update({
+      history: [...state.history, screen],
+      currentScreen: screen,
     });
   };
 
-  const handlePortionSelect = (portion) => {
-    setSelectedPortion(portion);
-    navigateTo("test-subject");
-  };
-
-  const handleTestSubjectSelect = (subject, portion) => {
-    setSelectedSubject(subject);
-    setSelectedPortion(portion);
-    navigateTo("test-chapter");
-  };
-
-  const handleTestChapterSelect = (subject, portion, chapter) => {
-    setSelectedSubject(subject);
-    setSelectedChapter(chapter);
-    setSelectedPortion(portion);
-    navigateTo("test-topic");
-  };
-
-  const handleSubjectSelect = (subject) => {
-    setSelectedSubject(subject);
-    navigateTo("chapter");
-  };
-
-  const handleChapterSelect = (chapter) => {
-    setSelectedChapter(chapter);
-    navigateTo("topic");
-  };
-
-  const handleTopicSelect = (topic) => {
-    setSelectedTopic(topic);
-    navigateTo("questiontype");
-  };
-
-  const handleQuestiontypeSelect = (questiontype) => {
-    setSelectedQuestiontype(questiontype);
-  };
-
-  const handleScreenSelection = (screen) => {
-    navigateTo(screen);
+  const goBack = () => {
+    if (state.history.length > 1) {
+      const newHistory = state.history.slice(0, -1);
+      const previousScreen = newHistory[newHistory.length - 1];
+      update({
+        history: newHistory,
+        currentScreen: previousScreen,
+      });
+    }
   };
 
   return {
-    currentScreen,
-    selectedPortion,
-    selectedSubject,
-    selectedChapter,
-    selectedTopic,
-    selectedQuestiontype,
-    handlePortionSelect,
-    handleSubjectSelect,
-    handleChapterSelect,
-    handleTopicSelect,
-    handleQuestiontypeSelect,
-    handleScreenSelection,
-    handleTestSubjectSelect,
-    handleTestChapterSelect,
+    ...state,
     goBack,
+    navigateTo,
+    handlePortionSelect: (portion) =>
+      update({ selectedPortion: portion }) || navigateTo("test-subject"),
+
+    handleTestSubjectSelect: (subject, portion) =>
+      update({ selectedSubject: subject, selectedPortion: portion }) || navigateTo("test-chapter"),
+
+    handleTestChapterSelect: (subject, portion, chapter) =>
+      update({
+        selectedSubject: subject,
+        selectedPortion: portion,
+        selectedChapter: chapter,
+      }) || navigateTo("test-topic"),
+
+    handleSubjectSelect: (subject) =>
+      update({ selectedSubject: subject }) || navigateTo("chapter"),
+
+    handleChapterSelect: (chapter) =>
+      update({ selectedChapter: chapter }) || navigateTo("topic"),
+
+    handleTopicSelect: (topic) =>
+      update({ selectedTopic: topic }) || navigateTo("questiontype"),
+
+    handleQuestiontypeSelect: (questiontype) =>
+      update({ selectedQuestiontype: questiontype }),
+
+    handleScreenSelection: (screen) => navigateTo(screen),
   };
 };
 
 export default function Practice() {
   const [activeTab, setActiveTab] = useState("tab1");
 
-  // State for Practice Tab (Tab 1)
-  const practiceState = useTabState("subject");
-
-  // State for Test Tab (Tab 2)
-  const testState = useTabState("full-portion");
-
-  // State for Study Material Tab (Tab 3)
-  const studyMaterialState = useTabState("subject");
+  useEffect(() => {
+    const savedTab = sessionStorage.getItem("activeTab");
+    if (savedTab) setActiveTab(savedTab);
+  }, []);
 
   const handleTabClick = (tab) => {
     setActiveTab(tab);
+    sessionStorage.setItem("activeTab", tab);
   };
+
+  const practiceState = useTabState("practice", "subject");
+  const testState = useTabState("test", "full-portion");
+  const studyMaterialState = useTabState("study-material", "subject");
 
   return (
     <div className="pt-6">
@@ -129,12 +124,9 @@ export default function Practice() {
                 : "text-gray-500"
               } px-4 md:px-6 py-2`}
             onClick={() => handleTabClick(tab)}
-            aria-label={`${tab === "tab1"
-                ? "Practice"
-                : tab === "tab2"
-                  ? "Test"
-                  : "Study Material"
-              } Tab`}
+            aria-label={
+              tab === "tab1" ? "Practice" : tab === "tab2" ? "Test" : "Study Material"
+            }
             aria-selected={activeTab === tab}
           >
             {tab === "tab1"
@@ -148,7 +140,7 @@ export default function Practice() {
 
       {/* Tab Content */}
       <div className="mt-4">
-        {/* Practice Tab (Tab 1) */}
+        {/* Practice Tab */}
         {activeTab === "tab1" && (
           <div>
             {["chapter", "topic", "questiontype"].includes(practiceState.currentScreen) && (
@@ -157,7 +149,6 @@ export default function Practice() {
                 <span className="text-white">Back</span>
               </button>
             )}
-
             {practiceState.currentScreen === "subject" && (
               <Subject
                 onSubjectSelect={practiceState.handleSubjectSelect}
@@ -188,10 +179,10 @@ export default function Practice() {
           </div>
         )}
 
-        {/* Test Tab (Tab 2) */}
+        {/* Test Tab */}
         {activeTab === "tab2" && (
           <div>
-            {["test-subject", "test-chapter", 'test-topic', 'questiontype'].includes(testState.currentScreen) && (
+            {["test-subject", "test-chapter", "test-topic", "questiontype"].includes(testState.currentScreen) && (
               <button onClick={testState.goBack} className="flex items-center p-2 rounded-md ml-4">
                 <FaAngleLeft className="text-xl text-white" />
                 <span className="text-white">Back</span>
@@ -237,7 +228,7 @@ export default function Practice() {
           </div>
         )}
 
-        {/* Study Material Tab (Tab 3) */}
+        {/* Study Material Tab */}
         {activeTab === "tab3" && (
           <div>
             {["chapter", "topic"].includes(studyMaterialState.currentScreen) && (

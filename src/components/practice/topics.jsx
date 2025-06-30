@@ -150,19 +150,20 @@ export default function TopicsPage({ selectedChapter, onTopicSelect }) {
       {!loading && !error && (
         <>
           <div className="topic_cards space-y-3">
-            {filteredTopics.length > 0 && (
-              <div className="topic_card">
-                <input
-                  type="checkbox"
-                  id="selectAll"
-                  checked={selectAll}
-                  onChange={handleSelectAll}
-                />
-                <label htmlFor="selectAll" className="cursor-pointer ml-2">
-                  Full Chapter ({filteredTopics.length} topics)
-                </label>
-              </div>
-            )}
+           {filteredTopics.length > 0 && !isGuestUser() && (
+  <div className="topic_card">
+    <input
+      type="checkbox"
+      id="selectAll"
+      checked={selectAll}
+      onChange={handleSelectAll}
+    />
+    <label htmlFor="selectAll" className="cursor-pointer ml-2">
+      Full Chapter ({filteredTopics.length} topics)
+    </label>
+  </div>
+)}
+
 
             {filteredTopics.map((topic) => {
               const isLocked = isGuestUser() && topic.isPremium;

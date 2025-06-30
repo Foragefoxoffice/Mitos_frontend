@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 import { format } from "date-fns";
+import { FiChevronDown, FiChevronUp, FiCalendar } from "react-icons/fi";
 import SubjectTabs from "@/components/SubjectTabs";
 
 // Helper function to safely parse JSON strings
@@ -56,15 +57,17 @@ const groupResultsByMonth = (results) => {
 
     const testDate = new Date(test.createdAt);
     const monthLabel = format(testDate, "MMM yyyy");
+    const monthKey = format(testDate, "yyyy-MM");
 
-    if (!monthMap.has(monthLabel)) {
-      monthMap.set(monthLabel, {
+    if (!monthMap.has(monthKey)) {
+      monthMap.set(monthKey, {
+        monthLabel,
         resultsByType: {},
         resultsByChapter: {},
       });
     }
 
-    const monthData = monthMap.get(monthLabel);
+    const monthData = monthMap.get(monthKey);
 
     // Process resultsByType with IDs
     Object.entries(resultsByType).forEach(([typeId, typeData]) => {
@@ -201,10 +204,10 @@ const groupResultsByMonth = (results) => {
     });
   });
 
-  return Array.from(monthMap.entries()).map(([monthLabel, data]) => ({ 
-    monthLabel, 
+  return Array.from(monthMap.entries()).map(([monthKey, data]) => ({ 
+    monthKey,
     ...data 
-  })).reverse();
+  })).sort((a, b) => new Date(b.monthKey) - new Date(a.monthKey));
 };
 
 const ResultsByMonth = ({ results, selectedSubject }) => {
@@ -212,62 +215,202 @@ const ResultsByMonth = ({ results, selectedSubject }) => {
   const validResults = Array.isArray(results) ? results : [];
   
   const groupedResults = groupResultsByMonth(validResults);
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    // Default to the most recent month if available
+    return groupedResults.length > 0 ? groupedResults[0].monthKey : '';
+  });
+  const [isMonthDropdownOpen, setIsMonthDropdownOpen] = useState(false);
 
-  return (
-    <div>
-      {groupedResults.map((monthData) => {
-        // Get all unique subjects from resultsByType
-        const typeSubjects = {};
-        Object.values(monthData.resultsByType || {}).forEach(type => {
-          Object.entries(type.subjects || {}).forEach(([subjectName, metrics]) => {
-            typeSubjects[subjectName] = metrics;
-          });
-        });
-        
-        // Get all unique subjects from resultsByChapter
-        const chapterSubjects = {};
-        Object.values(monthData.resultsByChapter || {}).forEach(chapter => {
-          Object.entries(chapter.subjects || {}).forEach(([subjectName, metrics]) => {
-            chapterSubjects[subjectName] = metrics;
-          });
-        });
+  // Get the selected month data
+  const selectedMonthData = groupedResults.find(month => month.monthKey === selectedMonth);
 
-        // Group subjects by grade
-        const groupedTypeSubjects = groupSubjectsByGrade(typeSubjects);
-        const groupedChapterSubjects = groupSubjectsByGrade(chapterSubjects);
+  // Get all available months for the dropdown
+  const availableMonths = groupedResults.map(month => ({
+    key: month.monthKey,
+    label: month.monthLabel,
+    monthData: month
+  }));
 
-        return (
-          <div key={monthData.monthLabel} className="mb-6">
-            <h2 className="text-3xl text-[#35095e] text-center font-bold mb-5">
-              {monthData.monthLabel} Wrong Ans Analysis
-            </h2>
-            <div className="grid gap-7">
-              <div className="p-6 border border-gray-200 transition-shadow duration-300 rounded-lg bg-white">
-                <h3 className="text-xl text-[#35095e] font-bold mb-5">
-                  Wrong Ans Analysis by Question Type
-                </h3>
-                <SubjectTabs 
-                  monthData={monthData} 
-                  section="resultsByType" 
-                  selectedSubject={selectedSubject}
-                  groupedSubjects={groupedTypeSubjects}
-                />
+  if (groupedResults.length === 0) {
+    return (
+      <div className="bg-white p-8 text-center rounded-xl">
+        <p className="text-gray-500 text-lg">
+          No test results available to display analysis.
+        </p>
+      </div>
+    );
+  }
+
+  if (!selectedMonthData) {
+    return (
+      <div className="bg-white p-8 text-center rounded-xl">
+        <p className="text-gray-500 text-lg">
+          No data available for selected month.
+        </p>
+      </div>
+    );
+  }
+
+  // Get all unique subjects from resultsByType
+  const typeSubjects = {};
+  Object.values(selectedMonthData.resultsByType || {}).forEach(type => {
+    Object.entries(type.subjects || {}).forEach(([subjectName, metrics]) => {
+      typeSubjects[subjectName] = metrics;
+    });
+  });
+  
+  // Get all unique subjects from resultsByChapter
+  const chapterSubjects = {};
+  Object.values(selectedMonthData.resultsByChapter || {}).forEach(chapter => {
+    Object.entries(chapter.subjects || {}).forEach(([subjectName, metrics]) => {
+      chapterSubjects[subjectName] = metrics;
+    });
+  });
+
+  // Group subjects by grade
+  const groupedTypeSubjects = groupSubjectsByGrade(typeSubjects);
+  const groupedChapterSubjects = groupSubjectsByGrade(chapterSubjects);
+
+  // Enhanced MonthSelector component
+  const MonthSelector = () => {
+    const currentDate = new Date(selectedMonth);
+    const formattedCurrentMonth = format(currentDate, 'MMMM yyyy');
+    
+    // Calculate month stats for the dropdown items
+    const monthsWithStats = availableMonths.map(month => {
+      const monthData = month.monthData;
+      
+      // Calculate total wrong answers
+      const wrongCount = Object.values(monthData.resultsByType || {}).reduce(
+        (sum, type) => sum + (type.wrong || 0), 0
+      ) + Object.values(monthData.resultsByChapter || {}).reduce(
+        (sum, chapter) => sum + (chapter.wrong || 0), 0
+      );
+      
+      // Calculate test count (unique types)
+      const testCount = Object.keys(monthData.resultsByType || {}).length;
+      
+      return {
+        key: month.key,
+        label: month.label,
+        wrongCount,
+        testCount
+      };
+    });
+
+    return (
+      <div className="flex justify-end mb-8 relative">
+        <div 
+          className="relative w-full max-w-xs cursor-pointer"
+          onClick={() => setIsMonthDropdownOpen(!isMonthDropdownOpen)}
+        >
+          <div className="flex items-center justify-between px-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm hover:border-[#35095e] transition-colors duration-200">
+            <div className="flex items-center">
+              <FiCalendar className="text-[#35095e] mr-3 text-lg" />
+              <span className="text-lg font-medium text-gray-800">
+                {formattedCurrentMonth}
+              </span>
+            </div>
+            {isMonthDropdownOpen ? (
+              <FiChevronUp className="text-gray-500 text-lg" />
+            ) : (
+              <FiChevronDown className="text-gray-500 text-lg" />
+            )}
+          </div>
+          
+          {isMonthDropdownOpen && (
+            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
+              <div className="max-h-96 overflow-y-auto">
+                {monthsWithStats.map((month) => (
+                  <div
+                    key={month.key}
+                    className={`px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors duration-150 flex justify-between items-center ${
+                      selectedMonth === month.key ? 'bg-[#35095e10]' : ''
+                    }`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedMonth(month.key);
+                      setIsMonthDropdownOpen(false);
+                    }}
+                  >
+                    <div className="flex items-center">
+                      <span className={`font-medium ${
+                        selectedMonth === month.key ? 'text-[#35095e]' : 'text-gray-700'
+                      }`}>
+                        {month.label}
+                      </span>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      {month.testCount > 0 && (
+                        <span className="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded-full">
+                          {month.testCount} test{month.testCount !== 1 ? 's' : ''}
+                        </span>
+                      )}
+                      <span className="text-xs px-2 py-1 bg-red-100 text-red-800 rounded-full">
+                        {month.wrongCount} wrong
+                      </span>
+                    </div>
+                  </div>
+                ))}
               </div>
-              <div className="p-6 border border-gray-200 transition-shadow duration-300 rounded-lg bg-white">
-                <h3 className="text-xl text-[#35095e] font-bold mb-5">
-                  Wrong Ans Analysis by Chapter
-                </h3>
-                <SubjectTabs 
-                  monthData={monthData} 
-                  section="resultsByChapter" 
-                  selectedSubject={selectedSubject}
-                  groupedSubjects={groupedChapterSubjects}
-                />
+              
+              <div className="px-4 py-2 bg-gray-50 border-t border-gray-200 text-xs text-gray-500">
+                Showing {monthsWithStats.length} month{monthsWithStats.length !== 1 ? 's' : ''}
               </div>
             </div>
+          )}
+        </div>
+        
+        {/* Click outside to close */}
+        {isMonthDropdownOpen && (
+          <div 
+            className="fixed inset-0 z-0"
+            onClick={() => setIsMonthDropdownOpen(false)}
+          />
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <div className="bg-white rounded-xl p-6">
+      {/* Month Selector */}
+      <MonthSelector />
+
+      <div key={selectedMonthData.monthKey} className="mb-6">
+        <h2 className="text-3xl text-[#35095e] text-center font-bold mb-5">
+          {selectedMonthData.monthLabel} Wrong Answer Analysis
+        </h2>
+        
+        <div className="grid gap-7">
+          {/* Question Type Analysis */}
+          <div className="p-6 border border-gray-200 transition-shadow duration-300 rounded-lg bg-white hover:shadow-md">
+            <h3 className="text-xl text-[#35095e] font-bold mb-5">
+              Wrong Answer Analysis by Question Type
+            </h3>
+            <SubjectTabs 
+              monthData={selectedMonthData} 
+              section="resultsByType" 
+              selectedSubject={selectedSubject}
+              groupedSubjects={groupedTypeSubjects}
+            />
           </div>
-        );
-      })}
+          
+          {/* Chapter Analysis */}
+          <div className="p-6 border border-gray-200 transition-shadow duration-300 rounded-lg bg-white hover:shadow-md">
+            <h3 className="text-xl text-[#35095e] font-bold mb-5">
+              Wrong Answer Analysis by Chapter
+            </h3>
+            <SubjectTabs 
+              monthData={selectedMonthData} 
+              section="resultsByChapter" 
+              selectedSubject={selectedSubject}
+              groupedSubjects={groupedChapterSubjects}
+            />
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

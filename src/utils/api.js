@@ -189,5 +189,40 @@ export const removeFavoriteQuestion = async (userId, questionId) => {
   }
 };
 
+export const reportWrongQuestion = async (questionId, reason) => {
+  try {
+    const { data } = await API.post("/wrong-reports", {
+      questionId,
+      reason
+    });
+    return data;
+  } catch (error) {
+    console.error("Error reporting wrong question:", error);
+    throw error;
+  }
+};
+
+export const getAllWrongQuestionReports = async () => {
+  try {
+    const { data } = await API.get("/wrong-reports");
+    return data;
+  } catch (error) {
+    console.error("Error fetching wrong question reports:", error);
+    throw error;
+  }
+};
+
+export const updateWrongQuestionReportStatus = async (id, status) => {
+  try {
+    const { data } = await API.patch(`/wrong-reports/${id}`, {
+      status
+    });
+    return data;
+  } catch (error) {
+    console.error("Error updating report status:", error);
+    throw error;
+  }
+};
+
 
 export default API;
