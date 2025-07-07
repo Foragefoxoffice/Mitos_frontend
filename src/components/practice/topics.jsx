@@ -65,13 +65,18 @@ export default function TopicsPage({ selectedChapter, onTopicSelect }) {
               if (axios.isAxiosError(error) && error.response?.status === 404) {
                 return { ...topic, questionCount: 0 };
               }
-              console.error(`Error fetching questions for topic ${topic.id}:`, error);
+              console.error(
+                `Error fetching questions for topic ${topic.id}:`,
+                error
+              );
               return { ...topic, questionCount: 0 };
             }
           })
         );
 
-        const validTopics = topicsWithQuestions.filter((topic) => topic.questionCount > 0);
+        const validTopics = topicsWithQuestions.filter(
+          (topic) => topic.questionCount > 0
+        );
 
         setTopics(topicsWithQuestions);
         setFilteredTopics(validTopics);
@@ -150,23 +155,28 @@ export default function TopicsPage({ selectedChapter, onTopicSelect }) {
       {!loading && !error && (
         <>
           <div className="topic_cards space-y-3">
-           {filteredTopics.length > 0 && !isGuestUser() && (
-  <div className="topic_card">
-    <input
-      type="checkbox"
-      id="selectAll"
-      checked={selectAll}
-      onChange={handleSelectAll}
-    />
-    <label htmlFor="selectAll" className="cursor-pointer ml-2">
-      Full Chapter ({filteredTopics.length} topics)
-    </label>
-  </div>
-)}
+            {filteredTopics.length > 0 && !isGuestUser() && (
+              <div className="topic_card">
+                <input
+                  type="checkbox"
+                  id="selectAll"
+                  checked={selectAll}
+                  onChange={handleSelectAll}
+                />
+                <label htmlFor="selectAll" className="cursor-pointer text-lg ml-2">
+                  Full Chapter ({filteredTopics.length} topics)
+                </label>
+              </div>
+            )}
 
-
-            {filteredTopics.map((topic) => {
-              const isLocked = isGuestUser() && topic.isPremium;
+         {[...filteredTopics]
+    .sort((a, b) => {
+      const aLocked = isGuestUser() && a.isPremium;
+      const bLocked = isGuestUser() && b.isPremium;
+      return aLocked - bLocked;
+    })
+    .map((topic) => {
+      const isLocked = isGuestUser() && topic.isPremium;
               return (
                 <div
                   key={topic.id}
@@ -189,10 +199,13 @@ export default function TopicsPage({ selectedChapter, onTopicSelect }) {
                       handleCheckboxChange(topic);
                     }}
                   />
-                  <label htmlFor={`topic-${topic.id}`} className="cursor-pointer">
+                  <label
+                    htmlFor={`topic-${topic.id}`}
+                    className="cursor-pointer text-lg"
+                  >
                     {topic.name}
                     {topic.isPremium && isGuestUser() && (
-                      <span className="text-red-500 ml-2">🔒 Premium</span>
+                      <span className="text-red-500 ml-2">🔒 Locked</span>
                     )}
                   </label>
                 </div>
@@ -201,7 +214,10 @@ export default function TopicsPage({ selectedChapter, onTopicSelect }) {
           </div>
 
           {filteredTopics.length > 0 && (
-            <button className="mx-auto mt-6 btn bg-blue-600 text-white px-4 py-2 rounded" onClick={startTest}>
+            <button
+              className="mx-auto mt-6 btn bg-blue-600 text-white px-4 py-2 rounded"
+              onClick={startTest}
+            >
               Start Practice
             </button>
           )}

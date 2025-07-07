@@ -103,10 +103,19 @@ export default function Practice() {
     if (savedTab) setActiveTab(savedTab);
   }, []);
 
-  const handleTabClick = (tab) => {
-    setActiveTab(tab);
-    sessionStorage.setItem("activeTab", tab);
-  };
+const handleTabClick = (tab) => {
+  setActiveTab(tab);
+  sessionStorage.setItem("activeTab", tab);
+
+  // Reset state to first screen on tab change
+  if (tab === "tab1") {
+    practiceState.navigateTo("subject");
+  } else if (tab === "tab2") {
+    testState.navigateTo("full-portion");
+  } else if (tab === "tab3") {
+    studyMaterialState.navigateTo("subject");
+  }
+};
 
   const practiceState = useTabState("practice", "subject");
   const testState = useTabState("test", "full-portion");

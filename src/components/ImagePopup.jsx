@@ -4,19 +4,18 @@ import { useState, useRef, useEffect } from "react";
 const ImagePopup = ({ src, onClose }) => {
   const [scale, setScale] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [isDragging, setIsDragging] = useState(false);
   const [startPos, setStartPos] = useState({ x: 0, y: 0 });
+  const [lastTouchDistance, setLastTouchDistance] = useState(null);
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
 
-  const imgRef = useRef(null);
   const containerRef = useRef(null);
   const contentRef = useRef(null);
 
+  // Initial load
   useEffect(() => {
     const img = new Image();
     img.src = src;
-
     img.onload = () => {
       setImageSize({ width: img.naturalWidth, height: img.naturalHeight });
 
@@ -32,30 +31,26 @@ const ImagePopup = ({ src, onClose }) => {
       }
     };
 
-    const updateContainerSize = () => {
+    const updateSize = () => {
       if (containerRef.current) {
         setContainerSize({
           width: containerRef.current.clientWidth,
-          height: containerRef.current.clientHeight - 48
+          height: containerRef.current.clientHeight - 48,
         });
       }
     };
 
-    updateContainerSize();
-    window.addEventListener("resize", updateContainerSize);
-    document.body.style.overflow = "hidden"; // Prevent background scroll
+    updateSize();
+    window.addEventListener("resize", updateSize);
+    document.body.style.overflow = "hidden";
 
     return () => {
-      window.removeEventListener("resize", updateContainerSize);
-      document.body.style.overflow = ""; // Restore scroll
+      window.removeEventListener("resize", updateSize);
+      document.body.style.overflow = "";
     };
   }, [src]);
 
   const getBoundaries = () => {
-    if (!imageSize.width || !imageSize.height || !containerSize.width || !containerSize.height) {
-      return { minX: 0, maxX: 0, minY: 0, maxY: 0 };
-    }
-
     const scaledWidth = imageSize.width * scale;
     const scaledHeight = imageSize.height * scale;
 
@@ -63,7 +58,7 @@ const ImagePopup = ({ src, onClose }) => {
       minX: Math.min(containerSize.width - scaledWidth, 0),
       maxX: 0,
       minY: Math.min(containerSize.height - scaledHeight, 0),
-      maxY: 0
+      maxY: 0,
     };
   };
 
@@ -71,8 +66,49 @@ const ImagePopup = ({ src, onClose }) => {
     const { minX, maxX, minY, maxY } = getBoundaries();
     return {
       x: Math.min(maxX, Math.max(minX, x)),
-      y: Math.min(maxY, Math.max(minY, y))
+      y: Math.min(maxY, Math.max(minY, y)),
     };
+  };
+
+  const handleTouchStart = (e) => {
+    if (e.touches.length === 1) {
+      const touch = e.touches[0];
+      setStartPos({ x: touch.clientX - position.x, y: touch.clientY - position.y });
+    } else if (e.touches.length === 2) {
+      const dist = getTouchDistance(e.touches);
+      setLastTouchDistance(dist);
+    }
+  };
+
+  const handleTouchMove = (e) => {
+    if (e.touches.length === 1) {
+      const touch = e.touches[0];
+      const newX = touch.clientX - startPos.x;
+      const newY = touch.clientY - startPos.y;
+      setPosition(constrainPosition(newX, newY));
+    } else if (e.touches.length === 2) {
+      const newDist = getTouchDistance(e.touches);
+      if (lastTouchDistance) {
+        const zoomFactor = newDist / lastTouchDistance;
+        let newScale = Math.max(0.1, Math.min(scale * zoomFactor, 10));
+        setScale(newScale);
+      }
+      setLastTouchDistance(newDist);
+    }
+
+    e.preventDefault();
+  };
+
+  const handleTouchEnd = (e) => {
+    if (e.touches.length < 2) {
+      setLastTouchDistance(null);
+    }
+  };
+
+  const getTouchDistance = (touches) => {
+    const dx = touches[0].clientX - touches[1].clientX;
+    const dy = touches[0].clientY - touches[1].clientY;
+    return Math.sqrt(dx * dx + dy * dy);
   };
 
   const handleWheel = (e) => {
@@ -92,27 +128,7 @@ const ImagePopup = ({ src, onClose }) => {
     setPosition(constrainPosition(newX, newY));
   };
 
-  const handleMouseDown = (e) => {
-    if (e.button !== 0) return;
-    setIsDragging(true);
-    setStartPos({ x: e.clientX - position.x, y: e.clientY - position.y });
-    e.preventDefault();
-  };
-
-  const handleMouseMove = (e) => {
-    if (!isDragging) return;
-
-    const newX = e.clientX - startPos.x;
-    const newY = e.clientY - startPos.y;
-    setPosition(constrainPosition(newX, newY));
-    e.preventDefault();
-  };
-
-  const handleMouseUp = () => setIsDragging(false);
-
   const resetView = () => {
-    if (!containerRef.current || !imageSize.width) return;
-
     const containerWidth = containerRef.current.clientWidth;
     const containerHeight = containerRef.current.clientHeight - 48;
 
@@ -125,27 +141,27 @@ const ImagePopup = ({ src, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex flex-col" ref={containerRef}>
+    <div className="fixed inset-0 touch-none bg-black bg-opacity-90 z-50 flex flex-col" ref={containerRef}>
       <div className="flex justify-between items-center p-3 bg-black bg-opacity-70">
         <div className="flex gap-2">
           <button
             onClick={() => setScale((prev) => Math.min(prev + 0.2, 10))}
-            className="bg-white text-black p-1 rounded w-8 h-8 flex items-center justify-center"
+            className="bg-white text-black p-1 rounded w-8 h-8"
             title="Zoom In"
           >
             +
           </button>
           <button
             onClick={() => setScale((prev) => Math.max(prev - 0.2, 0.1))}
-            className="bg-white text-black p-1 rounded w-8 h-8 flex items-center justify-center"
+            className="bg-white text-black p-1 rounded w-8 h-8"
             title="Zoom Out"
           >
             -
           </button>
           <button
             onClick={resetView}
-            className="bg-white text-black p-1 rounded w-8 h-8 flex items-center justify-center"
-            title="Reset View"
+            className="bg-white text-black p-1 rounded w-8 h-8"
+            title="Reset"
           >
             ⟲
           </button>
@@ -155,7 +171,7 @@ const ImagePopup = ({ src, onClose }) => {
         </div>
         <button
           onClick={onClose}
-          className="bg-white text-black p-1 rounded w-8 h-8 flex items-center justify-center"
+          className="bg-white text-black p-1 rounded w-8 h-8"
           title="Close"
         >
           ×
@@ -164,12 +180,11 @@ const ImagePopup = ({ src, onClose }) => {
 
       <div
         className="flex-1 overflow-hidden relative"
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
         onWheel={handleWheel}
-        style={{ cursor: isDragging ? "grabbing" : "grab", touchAction: "none" }}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        style={{ touchAction: "none" }}
       >
         <div
           ref={contentRef}
@@ -178,11 +193,10 @@ const ImagePopup = ({ src, onClose }) => {
             width: `${imageSize.width * scale}px`,
             height: `${imageSize.height * scale}px`,
             transform: `translate(${position.x}px, ${position.y}px)`,
-            transition: isDragging ? "none" : "transform 0.2s ease"
+            transition: "transform 0.1s ease",
           }}
         >
           <img
-            ref={imgRef}
             src={src}
             alt="Zoomed"
             className="w-full h-full object-contain"

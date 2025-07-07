@@ -272,106 +272,73 @@ const ResultsByMonth = ({ results, selectedSubject }) => {
   const groupedChapterSubjects = groupSubjectsByGrade(chapterSubjects);
 
   // Enhanced MonthSelector component
-  const MonthSelector = () => {
-    const currentDate = new Date(selectedMonth);
-    const formattedCurrentMonth = format(currentDate, 'MMMM yyyy');
-    
-    // Calculate month stats for the dropdown items
-    const monthsWithStats = availableMonths.map(month => {
-      const monthData = month.monthData;
-      
-      // Calculate total wrong answers
-      const wrongCount = Object.values(monthData.resultsByType || {}).reduce(
-        (sum, type) => sum + (type.wrong || 0), 0
-      ) + Object.values(monthData.resultsByChapter || {}).reduce(
-        (sum, chapter) => sum + (chapter.wrong || 0), 0
-      );
-      
-      // Calculate test count (unique types)
-      const testCount = Object.keys(monthData.resultsByType || {}).length;
-      
-      return {
-        key: month.key,
-        label: month.label,
-        wrongCount,
-        testCount
-      };
-    });
+const MonthSelector = () => {
+  const currentDate = new Date(selectedMonth);
+  const formattedCurrentMonth = format(currentDate, 'MMMM yyyy');
 
-    return (
-      <div className="flex justify-end mb-8 relative">
-        <div 
-          className="relative w-full max-w-xs cursor-pointer"
-          onClick={() => setIsMonthDropdownOpen(!isMonthDropdownOpen)}
-        >
-          <div className="flex items-center justify-between px-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm hover:border-[#35095e] transition-colors duration-200">
-            <div className="flex items-center">
-              <FiCalendar className="text-[#35095e] mr-3 text-lg" />
-              <span className="text-lg font-medium text-gray-800">
-                {formattedCurrentMonth}
-              </span>
-            </div>
-            {isMonthDropdownOpen ? (
-              <FiChevronUp className="text-gray-500 text-lg" />
-            ) : (
-              <FiChevronDown className="text-gray-500 text-lg" />
-            )}
+  return (
+    <div className="flex justify-end mb-8 relative">
+      <div
+        className="relative w-full max-w-xs cursor-pointer"
+        onClick={() => setIsMonthDropdownOpen(!isMonthDropdownOpen)}
+      >
+        <div className="flex items-center justify-between px-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm hover:border-[#35095e] transition-colors duration-200">
+          <div className="flex items-center">
+            <FiCalendar className="text-[#35095e] mr-3 text-lg" />
+            <span className="text-lg font-medium text-gray-800">
+              {formattedCurrentMonth}
+            </span>
           </div>
-          
-          {isMonthDropdownOpen && (
-            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
-              <div className="max-h-96 overflow-y-auto">
-                {monthsWithStats.map((month) => (
-                  <div
-                    key={month.key}
-                    className={`px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors duration-150 flex justify-between items-center ${
-                      selectedMonth === month.key ? 'bg-[#35095e10]' : ''
-                    }`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedMonth(month.key);
-                      setIsMonthDropdownOpen(false);
-                    }}
-                  >
-                    <div className="flex items-center">
-                      <span className={`font-medium ${
-                        selectedMonth === month.key ? 'text-[#35095e]' : 'text-gray-700'
-                      }`}>
-                        {month.label}
-                      </span>
-                    </div>
-                    
-                    <div className="flex items-center space-x-2">
-                      {month.testCount > 0 && (
-                        <span className="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded-full">
-                          {month.testCount} test{month.testCount !== 1 ? 's' : ''}
-                        </span>
-                      )}
-                      <span className="text-xs px-2 py-1 bg-red-100 text-red-800 rounded-full">
-                        {month.wrongCount} wrong
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              
-              <div className="px-4 py-2 bg-gray-50 border-t border-gray-200 text-xs text-gray-500">
-                Showing {monthsWithStats.length} month{monthsWithStats.length !== 1 ? 's' : ''}
-              </div>
-            </div>
+          {isMonthDropdownOpen ? (
+            <FiChevronUp className="text-gray-500 text-lg" />
+          ) : (
+            <FiChevronDown className="text-gray-500 text-lg" />
           )}
         </div>
-        
-        {/* Click outside to close */}
+
         {isMonthDropdownOpen && (
-          <div 
-            className="fixed inset-0 z-0"
-            onClick={() => setIsMonthDropdownOpen(false)}
-          />
+          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
+            <div className="max-h-96 overflow-y-auto">
+              {availableMonths.map((month) => (
+                <div
+                  key={month.key}
+                  className={`px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors duration-150 ${
+                    selectedMonth === month.key ? 'bg-[#35095e10]' : ''
+                  }`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedMonth(month.key);
+                    setIsMonthDropdownOpen(false);
+                  }}
+                >
+                  <span
+                    className={`font-medium ${
+                      selectedMonth === month.key ? 'text-[#35095e]' : 'text-gray-700'
+                    }`}
+                  >
+                    {month.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            <div className="px-4 py-2 bg-gray-50 border-t border-gray-200 text-xs text-gray-500">
+              Showing {availableMonths.length} month{availableMonths.length !== 1 ? 's' : ''}
+            </div>
+          </div>
         )}
       </div>
-    );
-  };
+
+      {isMonthDropdownOpen && (
+        <div
+          className="fixed inset-0 z-0"
+          onClick={() => setIsMonthDropdownOpen(false)}
+        />
+      )}
+    </div>
+  );
+};
+
 
   return (
     <div className="bg-white rounded-xl p-6">

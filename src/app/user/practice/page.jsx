@@ -29,6 +29,7 @@ const HtmlWithMath = ({ html }) => {
   );
 };
 
+
 export default function TestPage() {
   const { selectedTopics } = useSelectedTopics();
   const { selectedQuestionTypes, chapterId, subjectId } =
@@ -55,11 +56,21 @@ export default function TestPage() {
     show: false,
     src: "",
   });
-  const [reportModal, setReportModal] = useState({
-    show: false,
-    reason: "",
-    questionId: null,
-  });
+const [reportModal, setReportModal] = useState({
+  show: false,
+  selectedOptions: [],
+  additionalMessage: "",
+  questionId: null,
+});
+
+const REPORT_OPTIONS = [
+  "Wrong/Unclear Question",
+  "Wrong/Unclear Option(s)",
+  "Wrong/Blurry/No Image(s)",
+  "Incorrect Answer Key",
+  "Wrong/Unclear Solution",
+];
+
   const router = useRouter();
   const navButtonRefs = useRef([]);
 
@@ -244,35 +255,48 @@ export default function TestPage() {
     [token, userId, favoriteQuestions]
   );
 
-  const handleReportQuestion = async () => {
-    try {
-      if (!reportModal.questionId || !reportModal.reason.trim()) {
-        setNotification({
-          show: true,
-          message: "Please provide a reason for reporting",
-          type: "error",
-        });
-        return;
-      }
+const handleReportQuestion = async () => {
+  try {
+    const { selectedOptions, additionalMessage, questionId } = reportModal;
 
-      await reportWrongQuestion(reportModal.questionId, reportModal.reason);
-      
+    if (!questionId || selectedOptions.length === 0) {
       setNotification({
         show: true,
-        message: "Question reported successfully. Thank you for your feedback!",
-        type: "success",
-      });
-      
-      setReportModal({ show: false, reason: "", questionId: null });
-    } catch (error) {
-      console.error("Error reporting question:", error);
-      setNotification({
-        show: true,
-        message: "Failed to report question. Please try again.",
+        message: "Please select at least one reason.",
         type: "error",
       });
+      return;
     }
-  };
+
+    const finalReason = `${selectedOptions.join(", ")}${
+      additionalMessage ? ` | Details: ${additionalMessage}` : ""
+    }`;
+
+    await reportWrongQuestion(questionId, finalReason);
+
+    setNotification({
+      show: true,
+      message: "Question reported successfully. Thank you!",
+      type: "success",
+    });
+
+    setReportModal({
+      show: false,
+      selectedOptions: [],
+      additionalMessage: "",
+      questionId: null,
+    });
+  } catch (error) {
+    console.error("Error reporting question:", error);
+    setNotification({
+      show: true,
+      message: "Failed to report question. Please try again.",
+      type: "error",
+    });
+  }
+};
+
+
 
   useEffect(() => {
     if (hasCheckedQuestions && !loading) {
@@ -299,35 +323,37 @@ export default function TestPage() {
     }
   }, [questionLimit, questions]);
 
-  const generateQuestionLimits = (totalQuestions) => {
-    if (totalQuestions === 0) return [];
+const generateQuestionLimits = (totalQuestions) => {
+  if (totalQuestions === 0) return [];
 
-    const limits = new Set();
+  const limits = new Set();
 
-    if (totalQuestions <= 10) {
-      return ["full"];
+  if (totalQuestions <= 10) {
+    return ["full"];
+  }
+
+  if (totalQuestions <= 180) {
+    const step = totalQuestions <= 40 ? 10 : totalQuestions <= 80 ? 20 : 30;
+    for (let i = step; i < totalQuestions; i += step) {
+      limits.add(i);
     }
-
-    if (totalQuestions <= 180) {
-      const step = totalQuestions <= 40 ? 10 : totalQuestions <= 80 ? 20 : 30;
-      for (let i = step; i < totalQuestions; i += step) {
-        limits.add(i);
-      }
-      limits.add("full");
-    } else {
-      const step = 30;
-      for (let i = step; i < 180; i += step) {
-        limits.add(i);
-      }
-      limits.add(180);
+    limits.add("full"); // Always allow full if <= 180
+  } else {
+    const step = 30;
+    for (let i = step; i < 180; i += step) {
+      limits.add(i);
     }
+    limits.add(180);
+    limits.add("full"); // Add full only if > 180
+  }
 
-    return Array.from(limits).sort((a, b) => {
-      if (a === "full") return 1;
-      if (b === "full") return -1;
-      return a - b;
-    });
-  };
+  return Array.from(limits).sort((a, b) => {
+    if (a === "full") return 1;
+    if (b === "full") return -1;
+    return a - b;
+  });
+};
+
 
   const handleAnswer = (questionId, answerLabel) => {
     setUserAnswers((prev) => ({ ...prev, [questionId]: answerLabel }));
@@ -406,6 +432,8 @@ export default function TestPage() {
 
   const questionLimits = generateQuestionLimits(questions.length);
 
+
+
   return (
     <MathJaxContext
       config={{
@@ -449,47 +477,121 @@ export default function TestPage() {
                     className="form-radio"
                   />
                   <span className="text-gray-800">
-                    {limit === "full"
-                      ? ` Practice full chapter (${questions.length} Questions)`
-                      : `${limit} Questions`}
-                  </span>
+  {limit === "full"
+    ? `Practice Full Chapter (${questions.length})`
+    : `${limit} Questions`}
+</span>
+
                 </label>
               ))}
             </div>
           </div>
         )}
 
-        {reportModal.show && (
-          <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-75 z-50">
-            <div className="question_popup p-6 max-w-md w-full">
-              <h2 className="text-xl font-bold mb-4">Report Question</h2>
-              <p className="mb-4">Please explain what's wrong with this question:</p>
-              
-              <textarea
-                value={reportModal.reason}
-                onChange={(e) => setReportModal(prev => ({...prev, reason: e.target.value}))}
-                className="w-full p-2 border text-black rounded mb-4"
-                rows={4}
-                placeholder="Enter your reason for reporting..."
-              />
-              
-              <div className="flex justify-end gap-2">
-                <button
-                  onClick={() => setReportModal({ show: false, reason: "", questionId: null })}
-                  className="px-4 py-2 bg-gray-300 text-black rounded hover:bg-gray-400"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleReportQuestion}
-                  className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
-                >
-                  Submit Report
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+    {reportModal.show && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-[black/50] backdrop-blur-sm">
+    <div className="w-full max-w-xl rounded-2xl shadow-2xl p-6 bg-[#35095e] dark:bg-gray-900/90 border border-gray-200 dark:border-gray-700 animate-fade-in">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
+          🚨 Report Issue
+        </h2>
+        <button
+          onClick={() =>
+            setReportModal({
+              show: false,
+              selectedOptions: [],
+              additionalMessage: "",
+              questionId: null,
+            })
+          }
+          className="text-xl text-white p-2 py-0 rounded-full hover:text-red-500 transition"
+        >
+          &times;
+        </button>
+      </div>
+
+      {/* Description */}
+      <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+        What seems to be the problem with this question? You can select multiple options.
+      </p>
+
+      {/* Issue Options */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+        {REPORT_OPTIONS.map((option) => (
+          <label
+            key={option}
+            className={`flex items-center gap-3 p-4 rounded-xl border text-sm font-medium cursor-pointer transition duration-150 hover:shadow-md ${
+              reportModal.selectedOptions.includes(option)
+                ? "bg-purple-100 border-purple-500 dark:bg-purple-800/30"
+                : "bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"
+            }`}
+          >
+            <input
+              type="checkbox"
+              checked={reportModal.selectedOptions.includes(option)}
+              onChange={(e) => {
+                const updatedOptions = e.target.checked
+                  ? [...reportModal.selectedOptions, option]
+                  : reportModal.selectedOptions.filter((o) => o !== option);
+                setReportModal((prev) => ({
+                  ...prev,
+                  selectedOptions: updatedOptions,
+                }));
+              }}
+              className="h-5 w-5 text-purple-600 accent-purple-600"
+            />
+            <span className="flex-1 text-white">{option}</span>
+          </label>
+        ))}
+      </div>
+
+      {/* Additional Comments */}
+      <div className="mb-4">
+        <label className="block text-sm font-semibold mb-1 text-gray-700 dark:text-gray-300">
+          Additional Comments <span className="text-gray-400">(optional)</span>
+        </label>
+        <textarea
+          value={reportModal.additionalMessage}
+          onChange={(e) =>
+            setReportModal((prev) => ({
+              ...prev,
+              additionalMessage: e.target.value,
+            }))
+          }
+          placeholder="Tell us anything else you noticed..."
+          rows={3}
+          className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 text-sm dark:bg-gray-800 bg-white text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none"
+        />
+      </div>
+
+      {/* Actions */}
+      <div className="flex justify-end gap-3 mt-6">
+        <button
+          onClick={() =>
+            setReportModal({
+              show: false,
+              selectedOptions: [],
+              additionalMessage: "",
+              questionId: null,
+            })
+          }
+          className="px-4 py-2 rounded-lg text-gray-600 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-sm font-semibold"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={handleReportQuestion}
+          className="px-5 py-2 rounded-lg bg-gradient-to-r from-[#35095e] to-[#51216e] text-white hover:brightness-110 text-sm font-semibold shadow-lg"
+        >
+          Submit Report
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+
 
         <div className="test_nav">
           <PracticeNavbar />
@@ -545,17 +647,21 @@ export default function TestPage() {
                 </h2>
                 <div className="flex gap-2">
                   <button
-                    onClick={() => setReportModal({
-                      show: true,
-                      reason: "",
-                      questionId: filteredQuestions[currentQuestionIndex].id
-                    })}
-                    className="p-2 text-sm bg-red-100 text-red-600 rounded hover:bg-red-200 flex items-center gap-1"
-                    title="Report this question"
-                  >
-                    <FaFlag className="w-4 h-4" />
-                    <span className="hidden sm:inline">Report</span>
-                  </button>
+  onClick={() =>
+    setReportModal({
+      show: true,
+      selectedOptions: [],
+      additionalMessage: "",
+      questionId: filteredQuestions[currentQuestionIndex].id,
+    })
+  }
+  className="p-2 text-sm bg-red-100 text-red-600 rounded hover:bg-red-200 flex items-center gap-1"
+  title="Report this question"
+>
+  <FaFlag className="w-4 h-4" />
+  <span className="hidden sm:inline">Report</span>
+</button>
+
                   <button
                     onClick={() =>
                       toggleFavorite(filteredQuestions[currentQuestionIndex].id)
@@ -605,7 +711,7 @@ export default function TestPage() {
               </div>
 
               {userAnswers[filteredQuestions[currentQuestionIndex].id] && (
-                <div className="mt-4 hint-section">
+                <div className="mt-4 p-6 bg-yellow-50 rounded-lg border border-yellow-200">
                   <p className="text-green-500 font-semibold">
                     Correct Answer:{" "}
                     {filteredQuestions[currentQuestionIndex].correctOption}

@@ -16,6 +16,7 @@ import {
 } from "recharts";
 import { format, startOfMonth, parseISO, isWithinInterval, endOfMonth, getDaysInMonth } from "date-fns";
 import { FiChevronDown, FiChevronUp, FiCalendar } from "react-icons/fi";
+import { fetchResultByUser } from "@/utils/api";
 
 // Constants for reusable styles and configurations
 const CHART_MARGIN = { top: 20, right: 30, left: 20, bottom: 60 };
@@ -55,7 +56,7 @@ const COLOR_MAP = {
   "Unanswered": "#78909C",
   "Overall Accuracy": "#FF9800",
   "Accuracy": "#4E79A7", // Base color for subject accuracies (overridden by specific colors)
-  "Total Questions": "#9E9E9E"
+  "Total Questions": "#35095e"
 };
 
 const SUBJECT_COLORS = [
@@ -95,7 +96,7 @@ const CustomTooltip = ({ active, payload, label }) => {
       {totalQuestions > 0 && (
         <div className="mb-3 pb-2 border-b border-gray-100">
           <div className="flex items-center">
-            <div className="w-3 h-3 rounded-full mr-2 bg-gray-400" />
+            <div className="w-3 h-3 rounded-full mr-2 bg-[#35095e]" />
             <span className="text-gray-600 font-medium">Total Questions:</span>
             <span className="ml-1 font-semibold">{totalQuestions}</span>
           </div>
@@ -455,109 +456,117 @@ export default function ChartResultsByWeek({ results = [] }) {
   };
 
   // Enhanced month selector component
-  const MonthSelector = () => {
-    const currentDate = new Date(selectedMonth);
-    const formattedCurrentMonth = format(currentDate, 'MMMM yyyy');
-    
-    // Calculate month stats for the dropdown items
-    const monthsWithStats = availableMonths.map(monthKey => {
-      const monthData = monthlyResults.get(monthKey);
-      const weeks = monthData?.weeks || [];
-      const validWeeks = weeks.filter(week => week.totalQuestions > 0);
-      
-      const totalCorrect = validWeeks.reduce((sum, week) => sum + week.totalCorrect, 0);
-      const totalQuestions = validWeeks.reduce((sum, week) => sum + week.totalQuestions, 0);
-      const avgAccuracy = totalQuestions > 0 
-        ? (totalCorrect / totalQuestions) * 100
-        : 0;
-      
-      return {
-        key: monthKey,
-        label: format(new Date(monthKey), 'MMMM yyyy'),
-        accuracy: avgAccuracy,
-        testCount: weeks.reduce((count, week) => count + (week.totalQuestions > 0 ? 1 : 0), 0)
-      };
+const MonthSelector = () => {
+  const currentDate = new Date(selectedMonth);
+  const formattedCurrentMonth = format(currentDate, 'MMMM yyyy');
+
+  const monthsWithStats = availableMonths.map(monthKey => {
+    const monthStart = parseISO(`${monthKey}-01`);
+    const monthEnd = endOfMonth(monthStart);
+
+    // Filter results within this month
+    const testsInMonth = results.filter(test => {
+      const testDate = parseISO(test.createdAt);
+      return isWithinInterval(testDate, { start: monthStart, end: monthEnd });
     });
 
-    return (
-      <div className="flex justify-end mb-8 relative">
-        <div 
-          className="relative w-full max-w-xs cursor-pointer"
-          onClick={() => setIsMonthDropdownOpen(!isMonthDropdownOpen)}
-        >
-          <div className="flex items-center justify-between px-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm hover:border-[#35095e] transition-colors duration-200">
-            <div className="flex items-center">
-              <FiCalendar className="text-[#35095e] mr-3 text-lg" />
-              <span className="text-lg font-medium text-gray-800">
-                {formattedCurrentMonth}
-              </span>
-            </div>
-            {isMonthDropdownOpen ? (
-              <FiChevronUp className="text-gray-500 text-lg" />
-            ) : (
-              <FiChevronDown className="text-gray-500 text-lg" />
-            )}
+    const totalCorrect = testsInMonth.reduce((sum, test) => sum + (test.correct || 0), 0);
+    const totalQuestions = testsInMonth.reduce((sum, test) => {
+      const answered = test.answered ?? (test.correct + test.wrong) ?? 0;
+      const unanswered = test.unanswered ?? 0;
+      const total = test.totalQuestions ?? (answered + unanswered);
+      return sum + total;
+    }, 0);
+
+    const avgAccuracy = totalQuestions > 0 ? (totalCorrect / totalQuestions) * 100 : 0;
+
+    return {
+      key: monthKey,
+      label: format(new Date(monthKey + '-01'), 'MMMM yyyy'),
+      accuracy: avgAccuracy,
+      testCount: testsInMonth.length
+    };
+  });
+
+  return (
+    <div className="flex justify-end mb-8 relative">
+      <div
+        className="relative w-full max-w-xs cursor-pointer"
+        onClick={() => setIsMonthDropdownOpen(!isMonthDropdownOpen)}
+      >
+        <div className="flex items-center justify-between px-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm hover:border-[#35095e] transition-colors duration-200">
+          <div className="flex items-center">
+            <FiCalendar className="text-[#35095e] mr-3 text-lg" />
+            <span className="text-lg font-medium text-gray-800">
+              {formattedCurrentMonth}
+            </span>
           </div>
-          
-          {isMonthDropdownOpen && (
-            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
-              <div className="max-h-96 overflow-y-auto">
-                {monthsWithStats.map((month) => (
-                  <div
-                    key={month.key}
-                    className={`px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors duration-150 flex justify-between items-center ${
-                      selectedMonth === month.key ? 'bg-[#35095e10]' : ''
-                    }`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedMonth(month.key);
-                      setIsMonthDropdownOpen(false);
-                    }}
-                  >
-                    <div className="flex items-center">
-                      <span className={`font-medium ${
-                        selectedMonth === month.key ? 'text-[#35095e]' : 'text-gray-700'
-                      }`}>
-                        {month.label}
-                      </span>
-                    </div>
-                    
-                    <div className="flex items-center space-x-2">
-                      {month.testCount > 0 && (
-                        <span className="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded-full">
-                          {month.testCount} test{month.testCount !== 1 ? 's' : ''}
-                        </span>
-                      )}
-                      <span 
-                        className={`text-sm font-medium ${
-                          month.accuracy >= 70 ? 'text-green-600' : 
-                          month.accuracy >= 50 ? 'text-yellow-600' : 'text-red-600'
-                        }`}
-                      >
-                        {month.accuracy.toFixed(0)}%
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              
-              <div className="px-4 py-2 bg-gray-50 border-t border-gray-200 text-xs text-gray-500">
-                Showing {monthsWithStats.length} month{monthsWithStats.length !== 1 ? 's' : ''}
-              </div>
-            </div>
+          {isMonthDropdownOpen ? (
+            <FiChevronUp className="text-gray-500 text-lg" />
+          ) : (
+            <FiChevronDown className="text-gray-500 text-lg" />
           )}
         </div>
-        
-        {/* Click outside to close */}
+
         {isMonthDropdownOpen && (
-          <div 
-            className="fixed inset-0 z-0"
-            onClick={() => setIsMonthDropdownOpen(false)}
-          />
+          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
+            <div className="max-h-96 overflow-y-auto">
+              {monthsWithStats.map((month) => (
+                <div
+                  key={month.key}
+                  className={`px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors duration-150 flex justify-between items-center ${
+                    selectedMonth === month.key ? 'bg-[#35095e10]' : ''
+                  }`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedMonth(month.key);
+                    setIsMonthDropdownOpen(false);
+                  }}
+                >
+                  <div className="flex items-center">
+                    <span className={`font-medium ${
+                      selectedMonth === month.key ? 'text-[#35095e]' : 'text-gray-700'
+                    }`}>
+                      {month.label}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <span className="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded-full">
+                      {month.testCount} test{month.testCount !== 1 ? 's' : ''}
+                    </span>
+                    <span 
+                      className={`text-sm font-medium ${
+                        month.accuracy >= 70 ? 'text-green-600' : 
+                        month.accuracy >= 50 ? 'text-yellow-600' : 'text-red-600'
+                      }`}
+                    >
+                      {month.accuracy.toFixed(0)}%
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="px-4 py-2 bg-gray-50 border-t border-gray-200 text-xs text-gray-500">
+              Showing {monthsWithStats.length} month{monthsWithStats.length !== 1 ? 's' : ''}
+            </div>
+          </div>
         )}
       </div>
-    );
-  };
+
+      {/* Click outside to close */}
+      {isMonthDropdownOpen && (
+        <div 
+          className="fixed inset-0 z-0"
+          onClick={() => setIsMonthDropdownOpen(false)}
+        />
+      )}
+    </div>
+  );
+};
+
+
 
   // Get data for selected month
   const selectedMonthData = monthlyResults.get(selectedMonth);

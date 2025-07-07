@@ -182,7 +182,7 @@ const Menu = () => {
                       </span>
                       <span className="text-white">
                         {item.title}
-                        <span className="ml-2 text-xs text-yellow-300">(Premium)</span>
+                        <span className="ml-2 text-xs text-yellow-300">(Locked)</span>
                       </span>
                     </button>
                   );

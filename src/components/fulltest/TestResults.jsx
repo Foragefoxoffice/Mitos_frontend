@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 
 export const TestResults = ({
   calculateScore,
+  totalMarks,
   totalTime,
   timeLeft,
   formatTime,
@@ -27,7 +28,7 @@ export const TestResults = ({
         </h2>
         <div className="above_score">
           <div className="ascore_content shadow-md">
-            <p>Your score:</p> <span>{calculateScore()}/700</span>
+            <p>Your score:</p> <span>{calculateScore()}/{totalMarks}</span>
           </div>
           <div className="ascore_content shadow-md">
             <p>Total Time Taken: </p>
@@ -45,17 +46,35 @@ export const TestResults = ({
         {/* Subject-wise performance section without table */}
         <div className="subject-performance">
           <div className="flex justify-center flex-wrap gap-3">
-            {Object.entries(resultsBySubject).map(([subjectId, subjectData]) => {
-              const marks = subjectData.correct * 4 - subjectData.wrong;
-              return (
-                <div key={subjectId} className="p-3 bg-white rounded-lg shadow-md">
-                  <span className="font-medium">{subjectData.subjectName}</span>
-                  <span className={` block text-center font-bold ${marks < 0 ? "text-red-500" : "text-[#35095e]"}`}>
-                    {marks} 
-                  </span>
-                </div>
-              );
-            })}
+          {Object.values(
+  Object.entries(resultsBySubject).reduce((acc, [_, subjectData]) => {
+    const pureName = subjectData.subjectName.replace(/^\d+\w*\s/, '').trim();
+
+    if (!acc[pureName]) {
+      acc[pureName] = {
+        subjectName: pureName,
+        correct: 0,
+        wrong: 0,
+      };
+    }
+
+    acc[pureName].correct += subjectData.correct;
+    acc[pureName].wrong += subjectData.wrong;
+
+    return acc;
+  }, {})
+).map((subjectData) => {
+  const marks = subjectData.correct * 4 - subjectData.wrong;
+  return (
+    <div key={subjectData.subjectName} className="p-4 px-6 bg-white rounded-lg shadow-md">
+      <span className="text-lg">{subjectData.subjectName}</span>
+      <span className={` block text-center font-bold ${marks < 0 ? "text-red-500" : "text-[#35095e]"}`}>
+        {marks}
+      </span>
+    </div>
+  );
+})}
+
           </div>
         </div>
 

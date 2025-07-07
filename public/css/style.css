@@ -336,7 +336,6 @@ animation-delay: 2s;
   width: 30px !important;
   height: 20px;
   position: relative;
-  top: 4px;
   width: 10%;
 }
 .topic_card label{
@@ -863,9 +862,7 @@ tr{
     height: 100%;
     border: 1px solid #35095e61;
 }
-.topicc_card button:hover span{
-  color: #6712B7;
-}
+
 .hint-section{
       padding: 20px;
     background: #ffffff;

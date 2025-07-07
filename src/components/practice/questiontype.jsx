@@ -150,7 +150,7 @@ export default function QuestiontypePage({ selectedChapter }) {
                     checked={selectAll}
                     onChange={handleSelectAll}
                   />
-                  <label htmlFor="selectAll" className="cursor-pointer ml-2">
+                  <label htmlFor="selectAll" className="cursor-pointer text-lg ml-2">
                     Select All ({availableQuestionTypes.length} Types)
                   </label>
                 </div>
@@ -181,11 +181,11 @@ export default function QuestiontypePage({ selectedChapter }) {
                       />
                       <label
                         htmlFor={`questionType-${type.id}`}
-                        className="cursor-pointer"
+                        className="cursor-pointer text-lg"
                       >
                         {type.name}
                        {type.isPremium && isGuestUser() && (
-    <span className="text-red-500 ml-2">🔒 Premium</span>
+    <span className="text-red-500 ml-2">🔒 Locked</span>
   )}
                       </label>
                     </div>

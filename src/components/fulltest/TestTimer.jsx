@@ -53,13 +53,22 @@ export const TestTimer = ({
 }) => {
   // Prepare options for react-select
   console.log("onShowAnswers", showAnswer);
-const subjectOptions = useMemo(() => [
-  { value: null, label: "All Subjects" },
-  ...getUniqueSubjects.map((subject) => ({
-    value: subject.id,
-    label: subject.name,
-  })),
-], [getUniqueSubjects]);
+const subjectOrder = ["Physics", "Chemistry", "Biology"];
+
+const subjectOptions = useMemo(() => {
+  const sortedSubjects = [...getUniqueSubjects].sort((a, b) => {
+    return subjectOrder.indexOf(a.name) - subjectOrder.indexOf(b.name);
+  });
+
+  return [
+    { value: null, label: "All Subjects" },
+    ...sortedSubjects.map((subject) => ({
+      value: subject.id,
+      label: subject.name,
+    })),
+  ];
+}, [getUniqueSubjects]);
+
 
 
   // Handle select change
