@@ -100,8 +100,32 @@ export default function ResultPage() {
   }, [userId]);
 
   if (loading) return <div className="container pt-6">Loading results...</div>;
-  if (error) return <div className="container pt-6 text-black text-center">{error}</div>;
-  if (weeklyResults.length === 0) return <div className="container pt-6">No results available.</div>;
+  
+if (weeklyResults.length === 0) {
+  return (
+    <div className="relative w-full h-[400px] overflow-hidden">
+
+      <img
+        src="/images/progress.png"
+        alt="No Results"
+        className="absolute inset-0 w-full h-full object-cover filter blur-sm opacity-70"
+      />
+
+      <div className="relative z-10 flex flex-col items-center justify-center h-full text-center">
+        <h2 className="text-2xl font-bold text-gray-800">No results available</h2>
+        <p className="text-md text-gray-600 mt-2">Please take the test to see your results.</p>
+           <a
+          href="/user/dashboard" // Replace with your actual test page URL
+          className="mt-6 px-6 py-2 bg-[#35095e] text-white font-medium rounded-lg hover:bg-[#35095e]/80 transition"
+        >
+          Take the Test
+        </a>
+      </div>
+    </div>
+  );
+}
+
+
 
   return (
     <div className="container px-2 mx-auto">

@@ -1,8 +1,14 @@
 "use client";
+
 import { FaAngleDown } from "react-icons/fa6";
-import { HiMiniArrowUturnLeft, HiOutlineCog8Tooth, HiOutlineUserCircle } from "react-icons/hi2";
+import {
+  HiMiniArrowUturnLeft,
+  HiOutlineCog8Tooth,
+  HiOutlineUserCircle,
+} from "react-icons/hi2";
 import { useRef, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 const UserDropdown = ({ user }) => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
@@ -45,24 +51,27 @@ const UserDropdown = ({ user }) => {
     setIsPopupOpen(false);
   };
 
+  // Build full image URL
+  const profileImage =
+    user?.profile?.startsWith("http")
+      ? user.profile
+      : `https://mitoslearning.in${user?.profile || ""}`;
+
   return (
-    <div>
+    <div className="relative">
       <button
         className="flex items-center bg-transparent space-x-2 focus:outline-none"
         onClick={togglePopup}
       >
-        <img
-  src={
-    user?.profile
-      ? user.profile.startsWith("http")
-        ? user.profile
-        : `https://mitoslearning.in${user.profile}`
-      : "/images/user/default.png"
-  }
-  alt="User Icon"
-  className="w-12 h-12 rounded-full object-cover"
-/>
-
+        <div className="w-12 h-12 relative rounded-full overflow-hidden">
+          <Image
+            src={user?.profile ? profileImage : "/images/user/default.png"}
+            alt="User Icon"
+            fill
+            className="object-cover rounded-full"
+            sizes="48px"
+          />
+        </div>
         <FaAngleDown className="text-xl text-gray-600" />
       </button>
 

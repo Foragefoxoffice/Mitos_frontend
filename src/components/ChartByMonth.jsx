@@ -536,12 +536,12 @@ const MonthSelector = () => {
                       {month.testCount} test{month.testCount !== 1 ? 's' : ''}
                     </span>
                     <span 
-                      className={`text-sm font-medium ${
-                        month.accuracy >= 70 ? 'text-green-600' : 
-                        month.accuracy >= 50 ? 'text-yellow-600' : 'text-red-600'
+                      className={`text-sm font-medium  px-2 py-1 rounded-full ${
+                        month.accuracy >= 70 ? 'text-green-600 bg-green-100' : 
+                        month.accuracy >= 50 ? 'text-yellow-600 bg-yellow-100' : 'text-red-600 bg-red-100'
                       }`}
                     >
-                      {month.accuracy.toFixed(0)}%
+                      accuracy {month.accuracy.toFixed(0)}%
                     </span>
                   </div>
                 </div>

@@ -19,6 +19,7 @@ export default function QuestiontypePage({ selectedChapter }) {
   const [error, setError] = useState(null);
   const [selectAll, setSelectAll] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
+  const [isGuest, setIsGuest] = useState(false);
 
   const router = useRouter();
 
@@ -33,6 +34,10 @@ export default function QuestiontypePage({ selectedChapter }) {
     }
     return false;
   };
+
+  useEffect(() => {
+    setIsGuest(isGuestUser());
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -74,7 +79,15 @@ export default function QuestiontypePage({ selectedChapter }) {
           questionTypeIdsInChapter.includes(type.id)
         );
 
-        setAvailableQuestionTypes(chapterQuestionTypes);
+        // Sort question types - unlocked first for guest users
+        const sortedQuestionTypes = isGuest 
+          ? [...chapterQuestionTypes].sort((a, b) => {
+              if (a.isPremium === b.isPremium) return 0;
+              return a.isPremium ? 1 : -1;
+            })
+          : chapterQuestionTypes;
+
+        setAvailableQuestionTypes(sortedQuestionTypes);
       } catch (err) {
         console.error("Failed to fetch data:", err);
         setError("Unable to load question types. Please try again later.");
@@ -86,10 +99,10 @@ export default function QuestiontypePage({ selectedChapter }) {
     if (chapterId) {
       loadData();
     }
-  }, [chapterId]);
+  }, [chapterId, isGuest]);
 
   const handleCheckboxChange = (questionType) => {
-    const isLocked = isGuestUser() && questionType.isPremium;
+    const isLocked = isGuest && questionType.isPremium;
     if (isLocked) {
       setShowPopup(true);
       return;
@@ -103,7 +116,7 @@ export default function QuestiontypePage({ selectedChapter }) {
       const updated = [...selectedQuestionTypes, id];
       setSelectedQuestionTypes(updated);
       const allowedCount = availableQuestionTypes.filter(
-        (t) => !isGuestUser() || !t.isPremium
+        (t) => !isGuest || !t.isPremium
       ).length;
       if (updated.length === allowedCount) {
         setSelectAll(true);
@@ -116,7 +129,7 @@ export default function QuestiontypePage({ selectedChapter }) {
       setSelectedQuestionTypes([]);
     } else {
       const allowed = availableQuestionTypes.filter(
-        (type) => !isGuestUser() || !type.isPremium
+        (type) => !isGuest || !type.isPremium
       );
       setSelectedQuestionTypes(allowed.map((type) => type.id));
     }
@@ -143,20 +156,22 @@ export default function QuestiontypePage({ selectedChapter }) {
           {availableQuestionTypes.length > 0 ? (
             <>
               <div className="topic_cards space-y-3">
-                <div className="topic_card">
-                  <input
-                    type="checkbox"
-                    id="selectAll"
-                    checked={selectAll}
-                    onChange={handleSelectAll}
-                  />
-                  <label htmlFor="selectAll" className="cursor-pointer text-lg ml-2">
-                    Select All ({availableQuestionTypes.length} Types)
-                  </label>
-                </div>
+                {!isGuest && (
+                  <div className="topic_card">
+                    <input
+                      type="checkbox"
+                      id="selectAll"
+                      checked={selectAll}
+                      onChange={handleSelectAll}
+                    />
+                    <label htmlFor="selectAll" className="cursor-pointer text-lg ml-2">
+                      Select All ({availableQuestionTypes.length} Types)
+                    </label>
+                  </div>
+                )}
 
                 {availableQuestionTypes.map((type) => {
-                  const isLocked = isGuestUser() && type.isPremium;
+                  const isLocked = isGuest && type.isPremium;
                   return (
                     <div
                       key={type.id}
@@ -184,9 +199,9 @@ export default function QuestiontypePage({ selectedChapter }) {
                         className="cursor-pointer text-lg"
                       >
                         {type.name}
-                       {type.isPremium && isGuestUser() && (
-    <span className="text-red-500 ml-2">🔒 Locked</span>
-  )}
+                        {type.isPremium && isGuest && (
+                          <span className="text-red-500 ml-2">🔒 Locked</span>
+                        )}
                       </label>
                     </div>
                   );

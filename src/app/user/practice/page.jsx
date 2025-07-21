@@ -403,13 +403,13 @@ const generateQuestionLimits = (totalQuestions) => {
       const isCorrectOption = question.correctOption === currentOptionLabel;
 
       let buttonClass =
-        "flex items-center gap-2 w-full text-left p-2 rounded-lg border ";
+        "flex items-center gap-2 w-full text-left p-2 rounded-lg border m-0 ";
 
       if (isSelected) {
         if (isCorrect) {
-          buttonClass += "bg-green-500 text-white";
+          buttonClass += "bg-green-500 text-white active";
         } else {
-          buttonClass += "bg-red-500 text-white";
+          buttonClass += "bg-red-500 text-white active";
         }
       } else if (isCorrectOption && userAnswers[question.id]) {
         buttonClass += "bg-green-500 text-white";
@@ -599,7 +599,7 @@ const generateQuestionLimits = (totalQuestions) => {
 
         {filteredQuestions.length > 0 && (
           <div className="test_containerss">
-            <div className="question-navigation mb-4 navborders overflow-x-auto m-auto w-full md:w-[70%] scroll-smooth">
+            <div className="question-navigation mb-4 navborders overflow-x-auto m-auto w-full md:w-[90%] scroll-smooth">
               <div className="flex gap-2 m-3 p-2 rounded-lg min-w-max">
                 {filteredQuestions.map((question, index) => {
                   const isCurrent = currentQuestionIndex === index;
@@ -691,7 +691,7 @@ const generateQuestionLimits = (totalQuestions) => {
                   html={filteredQuestions[currentQuestionIndex].question}
                 />
               </div>
-
+             
               {filteredQuestions[currentQuestionIndex].image && (
                 <img
                   src={`https://mitoslearning.in/${filteredQuestions[currentQuestionIndex].image}`}
@@ -706,7 +706,7 @@ const generateQuestionLimits = (totalQuestions) => {
                 />
               )}
 
-              <div className="option_btns space-y-2">
+              <div className="option_btns grid md:grid-cols-2 gap-4">
                 {renderOptionButtons(filteredQuestions[currentQuestionIndex])}
               </div>
 

@@ -57,7 +57,7 @@ const Leaderboard = () => {
       <h2 className="text-3xl font-bold text-left text-[#35095E] mb-6">
         Top Rankers
       </h2>
-      <div className="space-y-4 max-h-[500px] overflow-y-auto">
+      <div className="space-y-4 ">
         {leaderboard.map((user) => {
           const isCurrentUser = user.userId === currentUserId;
           const profileImageUrl = getProfileImageUrl(
@@ -77,16 +77,20 @@ const Leaderboard = () => {
               <div className="flex items-center gap-4">
                 {/* User Image */}
                 <div className="relative h-10 w-10 rounded-full overflow-hidden">
-                  <img
-                    src={
-                      profileImageUrl
-                        ? profileImageUrl.startsWith("http")
-                          ? profileImageUrl
-                          : `https://mitoslearning.in${profileImageUrl}`
-                        : "/images/user/default.png"
-                    }
-                    alt="User Icon"
-                  />
+                 <div className="relative h-10 w-10 rounded-full overflow-hidden">
+  <Image
+    src={
+      profileImageUrl.startsWith("http")
+        ? profileImageUrl
+        : `https://mitoslearning.in${profileImageUrl}`
+    }
+    alt="User Icon"
+    width={40}
+    height={40}
+    className="rounded-full object-cover"
+  />
+</div>
+
                 </div>
 
                 <div>
