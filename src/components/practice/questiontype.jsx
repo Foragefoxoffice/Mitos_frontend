@@ -5,6 +5,7 @@ import { fetchQuestionType, fetchQuestionBychapter } from "@/utils/api";
 import { useSelectedQuestionTypes } from "@/contexts/SelectedQuestionTypesContext";
 import PremiumPopup from "../PremiumPopup"; // Make sure this exists
 import { m } from "framer-motion";
+import CommonLoader from "@/commonLoader";
 
 export default function QuestiontypePage({ selectedChapter }) {
   const {
@@ -148,7 +149,7 @@ export default function QuestiontypePage({ selectedChapter }) {
     <div className="p-6">
       <h1 className="text-xl font-bold mb-4">Select Question Types</h1>
 
-      {loading && <p className="text-gray-500">Loading...</p>}
+      {loading && <CommonLoader />}
       {error && <p className="text-center pt-10 text-red-500">{error}</p>}
 
       {!loading && !error && (

@@ -3,6 +3,7 @@ import React, { useState, useEffect, useContext } from "react";
 import { fetchChaptersBySubject, fetchChapterTopics } from "@/utils/api";
 import { TestContext } from "@/contexts/TestContext";
 import { useRouter } from "next/navigation";
+import CommonLoader from "@/commonLoader";
 
 export default function TestChapter({selectedPortion, selectedSubject, onChapterSelect, onScreenSelection }) {
   const [chapters, setChapters] = useState([]);
@@ -62,7 +63,7 @@ export default function TestChapter({selectedPortion, selectedSubject, onChapter
 
   return (
     <div className="py-6">
-      {loading && <p className="text-gray-500 text-center">Loading...</p>}
+      {loading &&  <CommonLoader />}
       {error && <p className="text-red-500 text-center">{error}</p>}
 
       {!loading && !error && (

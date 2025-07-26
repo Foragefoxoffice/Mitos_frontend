@@ -8,6 +8,7 @@ import ChartResultsByWeek from "@/components/ChartByMonth";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
+import CommonLoader from "@/commonLoader";
 
 // Custom Arrows
 const NextArrow = ({ onClick }) => (
@@ -99,7 +100,7 @@ export default function ResultPage() {
     fetchResults();
   }, [userId]);
 
-  if (loading) return <div className="container pt-6">Loading results...</div>;
+  if (loading) return <div className="container pt-6"><CommonLoader /></div>;
   
 if (weeklyResults.length === 0) {
   return (
@@ -115,7 +116,7 @@ if (weeklyResults.length === 0) {
         <h2 className="text-2xl font-bold text-gray-800">No results available</h2>
         <p className="text-md text-gray-600 mt-2">Please take the test to see your results.</p>
            <a
-          href="/user/dashboard" // Replace with your actual test page URL
+          href="/user/dashboard"
           className="mt-6 px-6 py-2 bg-[#35095e] text-white font-medium rounded-lg hover:bg-[#35095e]/80 transition"
         >
           Take the Test

@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
+import CommonLoader from '@/commonLoader';
 
 export default function NewsListPage() {
   const [newsList, setNewsList] = useState([]);
@@ -75,7 +76,7 @@ export default function NewsListPage() {
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      <CommonLoader />
       </div>
     );
   }

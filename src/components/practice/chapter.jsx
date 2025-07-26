@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { fetchChapter, fetchChapterTopics, fetchQuestionBychapter } from "@/utils/api";
 import axios from "axios"; 
+import CommonLoader from "@/commonLoader";
 
 export default function Chapter({ selectedSubject, onChapterSelect, onScreenSelection }) {
   const [chapters, setChapters] = useState([]);
@@ -100,7 +101,7 @@ export default function Chapter({ selectedSubject, onChapterSelect, onScreenSele
 
   return (
     <div className="p-4">
-      {loading && <p>Loading...</p>}
+      {loading && <CommonLoader />}
       {error && <p className="text-center pt-10">{error}</p>}
       {!loading && !error && (
         <div className="chapter_cards">

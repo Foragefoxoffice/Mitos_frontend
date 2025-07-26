@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import CommonLoader from "@/commonLoader";
 
 export default function UserSettings() {
   // State management
@@ -186,8 +187,7 @@ export default function UserSettings() {
   if (loading) {
     return (
       <div className="max-w-md mx-auto p-5 text-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500 mx-auto my-4"></div>
-        <p>Loading your profile...</p>
+       <CommonLoader />
       </div>
     );
   }

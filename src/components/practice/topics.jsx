@@ -5,6 +5,7 @@ import { fetchTopics, fetchQuestionByTopic } from "@/utils/api";
 import { useSelectedTopics } from "@/contexts/SelectedTopicsContext";
 import axios from "axios";
 import PremiumPopup from "../PremiumPopup";
+import CommonLoader from "@/commonLoader";
 
 export default function TopicsPage({ selectedChapter, onTopicSelect }) {
   const searchParams = useSearchParams();
@@ -149,7 +150,7 @@ export default function TopicsPage({ selectedChapter, onTopicSelect }) {
       <h1 className="text-xl font-bold mb-4">Attempt by Topic</h1>
       {chapterName && <h2 className="text-lg mb-4">{chapterName}</h2>}
 
-      {loading && <p className="text-gray-500">Loading...</p>}
+      {loading && <CommonLoader />}
       {error && <p className="text-center pt-10 text-red-500">{error}</p>}
 
       {!loading && !error && (

@@ -5,6 +5,7 @@ import { MathJax, MathJaxContext } from "better-react-mathjax";
 import { FaHeart, FaArrowLeft, FaLightbulb, FaCheck, FaTimes, FaAngleLeft, FaAngleRight, FaAngleDoubleLeft, FaAngleDoubleRight } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 import DOMPurify from "dompurify";
+import CommonLoader from "@/commonLoader";
 
 const HtmlWithMath = ({ html }) => {
   const cleanHtml = DOMPurify.sanitize(html);
@@ -403,7 +404,7 @@ export default function FavoriteQuestionsPage() {
 
           {loading && (
             <div className="flex justify-center items-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+             <CommonLoader />
             </div>
           )}
 

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { fetchLeaderBoard } from "@/utils/api";
 import Image from "next/image";
+import CommonLoader from "@/commonLoader";
 
 const Leaderboard = () => {
   const [leaderboard, setLeaderboard] = useState([]);
@@ -49,7 +50,7 @@ const Leaderboard = () => {
     return url;
   };
 
-  if (loading) return <p className="text-center mt-5">Loading...</p>;
+  if (loading) return <CommonLoader />;
   if (error) return <p className="text-center text-red-500">{error}</p>;
 
   return (

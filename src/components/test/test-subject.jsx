@@ -5,7 +5,7 @@ import { fetchSubjectsByPortions, fetchChaptersBySubject } from "@/utils/api";
 import { TestContext } from "@/contexts/TestContext";
 import { useRouter } from "next/navigation";
 import { FaAngleDown, FaCircleCheck, FaXmark, FaMinus } from "react-icons/fa6";
-
+import CommonLoader from "@/commonLoader";
 export default function TestSubject({ selectedPortion }) {
   const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -123,7 +123,7 @@ export default function TestSubject({ selectedPortion }) {
 
   return (
     <div className="py-6 relative">
-      {loading && <p className="text-gray-500 text-center">Loading...</p>}
+      {loading &&  <CommonLoader />}
       {error && <p className="text-red-500 text-center">{error}</p>}
 
       {/* Display selected chapters */}

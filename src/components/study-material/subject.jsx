@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { fetchSubjects, fetchChapter } from "@/utils/api";
-
+import CommonLoader from "@/commonLoader";
 export default function MeterialsSubject({ onSubjectSelect, onScreenSelection }) {
   const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -56,7 +56,7 @@ export default function MeterialsSubject({ onSubjectSelect, onScreenSelection })
 
   return (
     <div className="p-4">
-      {loading && <p className="text-gray-500 text-center">Loading...</p>}
+      {loading &&  <CommonLoader />}
       {error && <p className="text-red-500 text-center">{error}</p>}
 
       {!loading && !error && (

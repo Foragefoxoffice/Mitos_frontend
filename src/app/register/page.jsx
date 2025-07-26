@@ -12,12 +12,14 @@ export default function AdminRegister() {
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
+      // setIsLoading(true);
       const res = await fetch("https://mitoslearning.in/api/auth/register", {
         method: "POST",
         headers: {
@@ -34,6 +36,7 @@ export default function AdminRegister() {
         localStorage.setItem("role", data.role);
         localStorage.setItem("userId", data.user.id);
         router.push("/user/dashboard");
+        setIsLoading(true);
       } else {
         setError(data.message || "Registration failed. Please try again.");
       }
@@ -52,16 +55,16 @@ export default function AdminRegister() {
         },
         body: JSON.stringify({ credential: credentialResponse.credential }), // Send the Google ID token
       });
-  
+
       const data = await res.json();
-  
+
       if (res.ok) {
         localStorage.setItem("token", data.accessToken);
         localStorage.setItem("refreshToken", data.refreshToken);
         localStorage.setItem("role", data.role);
         localStorage.setItem("userId", data.user.id);
 
-        router.push("/user/dashboard"); 
+        router.push("/user/dashboard");
       } else {
         setError(data.message || "Google authentication failed.");
       }
@@ -76,8 +79,7 @@ export default function AdminRegister() {
 
   return (
     <GoogleOAuthProvider clientId="501560257854-oor7kgad2o2dk9l2qhv5ekd5ilmt9h0r.apps.googleusercontent.com">
-
-<div className="container p-10">
+      <div className="container p-10">
         <div className="flex w-full">
           <div className="w-[40%] hidden md:flex">
             <div className="login">
@@ -97,12 +99,14 @@ export default function AdminRegister() {
               </div>
 
               <h1 className="font-bold text-center pt-6">Create Account</h1>
-             
-                <>
+
+              <>
                 <form onSubmit={handleSubmit} className="mt-6">
                   {/* Email Input */}
                   <div className="mb-4">
-                    <label>Email address<span>*</span></label>
+                    <label>
+                      Email address<span>*</span>
+                    </label>
                     <input
                       type="email"
                       required
@@ -113,7 +117,9 @@ export default function AdminRegister() {
                   </div>
                   {/* Password Input */}
                   <div className="mb-4">
-                    <label>Password<span>*</span></label>
+                    <label>
+                      Password<span>*</span>
+                    </label>
                     <input
                       type="password"
                       required
@@ -124,7 +130,9 @@ export default function AdminRegister() {
                   </div>
                   {/* Name Input */}
                   <div className="mb-4">
-                    <label>User Name<span>*</span></label>
+                    <label>
+                      User Name<span>*</span>
+                    </label>
                     <input
                       type="text"
                       required
@@ -133,32 +141,58 @@ export default function AdminRegister() {
                       placeholder="Enter User Name"
                     />
                   </div>
-               
+
                   {/* Error Message */}
                   {error && <p className="text-red-500">{error}</p>}
                   {/* Submit Button */}
-                  <button type="submit" className="login_btn">
-                    Create Account
+                  <button
+                    type="submit"
+                    className="login_btn flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                    disabled={isLoading}
+                  >
+                    {isLoading && (
+                      <svg
+                        className="animate-spin h-5 w-5 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                        ></path>
+                      </svg>
+                    )}
+                    {isLoading ? "Registering..." : "Create Account"}
                   </button>
-                  
                 </form>
-                 <div className="mt-4 flex justify-center">
-                 <GoogleLogin
-                   onSuccess={handleGoogleSuccess}
-                   onError={handleGoogleError}
-                 />
-               </div>
-               </>
-             
+                <div className="mt-4 flex justify-center">
+                  <GoogleLogin
+                    onSuccess={handleGoogleSuccess}
+                    onError={handleGoogleError}
+                  />
+                </div>
+              </>
+
               <p className="mt-2 text-center">
                 Already have an account?{" "}
-                <a href="/" className="text-[#35095E]">Login here</a>
+                <a href="/" className="text-[#35095E]">
+                  Login here
+                </a>
               </p>
             </div>
           </div>
         </div>
       </div>
-
     </GoogleOAuthProvider>
   );
 }

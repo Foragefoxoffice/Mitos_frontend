@@ -28,6 +28,7 @@ import { TestTimer } from "@/components/fulltest/TestTimer";
 import Notification from "@/components/Notification";
 import ImagePopup from "@/components/ImagePopup";
 import { FaHeart, FaRegHeart, FaFlag } from "react-icons/fa";
+import CommonLoader from "@/commonLoader";
 
 export default function TestPage() {
   const [questions, setQuestions] = useState([]);
@@ -87,7 +88,7 @@ export default function TestPage() {
 
   const getUniqueSubjects = useMemo(() => {
     if (!questions || !Array.isArray(questions)) return [];
-    
+
     const subjectsMap = new Map();
 
     questions.forEach((question) => {
@@ -135,17 +136,17 @@ export default function TestPage() {
   }, [questions, subjectFilter, getUniqueSubjects]);
 
   useEffect(() => {
-  if (filteredQuestions.length > 0) {
-    setCurrentQuestionIndex(0);
-    const firstQuestion = filteredQuestions[0];
-    if (firstQuestion?.id) {
-      setVisitedQuestions((prev) => ({
-        ...prev,
-        [firstQuestion.id]: true,
-      }));
+    if (filteredQuestions.length > 0) {
+      setCurrentQuestionIndex(0);
+      const firstQuestion = filteredQuestions[0];
+      if (firstQuestion?.id) {
+        setVisitedQuestions((prev) => ({
+          ...prev,
+          [firstQuestion.id]: true,
+        }));
+      }
     }
-  }
-}, [filteredQuestions]);
+  }, [filteredQuestions]);
 
   const formatTime = useCallback((seconds) => {
     const minutes = Math.floor(seconds / 60);
@@ -184,7 +185,8 @@ export default function TestPage() {
   }, []);
 
   const handleNext = useCallback(() => {
-    if (!Array.isArray(filteredQuestions) || filteredQuestions.length === 0) return;
+    if (!Array.isArray(filteredQuestions) || filteredQuestions.length === 0)
+      return;
 
     // Regular next question navigation
     if (currentQuestionIndex < filteredQuestions.length - 1) {
@@ -197,18 +199,22 @@ export default function TestPage() {
     }
 
     // Subject change logic
-    const currentSubjectIndex = getUniqueSubjects?.findIndex?.((subj) => subj.id === subjectFilter) ?? -1;
+    const currentSubjectIndex =
+      getUniqueSubjects?.findIndex?.((subj) => subj.id === subjectFilter) ?? -1;
 
-    if (currentSubjectIndex >= 0 && currentSubjectIndex < (getUniqueSubjects?.length ?? 0) - 1) {
+    if (
+      currentSubjectIndex >= 0 &&
+      currentSubjectIndex < (getUniqueSubjects?.length ?? 0) - 1
+    ) {
       const nextSubject = getUniqueSubjects[currentSubjectIndex + 1];
       if (nextSubject) {
         setSubjectFilter(nextSubject.id);
         setCurrentQuestionIndex(0);
 
-        const firstQuestionOfNewSubject = questions.find(
-          (q) => nextSubject.originalIds.has(q?.subjectId)
+        const firstQuestionOfNewSubject = questions.find((q) =>
+          nextSubject.originalIds.has(q?.subjectId)
         );
-        
+
         if (firstQuestionOfNewSubject?.id) {
           setVisitedQuestions((prev) => ({
             ...prev,
@@ -220,7 +226,7 @@ export default function TestPage() {
       // No more subjects, reset to first question
       setSubjectFilter(null);
       setCurrentQuestionIndex(0);
-      
+
       if (questions[0]?.id) {
         setVisitedQuestions((prev) => ({
           ...prev,
@@ -228,7 +234,13 @@ export default function TestPage() {
         }));
       }
     }
-  }, [currentQuestionIndex, filteredQuestions, getUniqueSubjects, questions, subjectFilter]);
+  }, [
+    currentQuestionIndex,
+    filteredQuestions,
+    getUniqueSubjects,
+    questions,
+    subjectFilter,
+  ]);
 
   const handlePrevious = useCallback(() => {
     if (currentQuestionIndex > 0) {
@@ -240,15 +252,22 @@ export default function TestPage() {
     }
   }, [currentQuestionIndex, filteredQuestions]);
 
-  const handleQuestionNavigation = useCallback((index) => {
-    if (Array.isArray(filteredQuestions) && index >= 0 && index < filteredQuestions.length) {
-      setCurrentQuestionIndex(index);
-      const question = filteredQuestions[index];
-      if (question?.id) {
-        setVisitedQuestions((prev) => ({ ...prev, [question.id]: true }));
+  const handleQuestionNavigation = useCallback(
+    (index) => {
+      if (
+        Array.isArray(filteredQuestions) &&
+        index >= 0 &&
+        index < filteredQuestions.length
+      ) {
+        setCurrentQuestionIndex(index);
+        const question = filteredQuestions[index];
+        if (question?.id) {
+          setVisitedQuestions((prev) => ({ ...prev, [question.id]: true }));
+        }
       }
-    }
-  }, [filteredQuestions]);
+    },
+    [filteredQuestions]
+  );
 
   const calculateScore = useCallback(() => {
     let score = 0;
@@ -258,7 +277,11 @@ export default function TestPage() {
     questions.forEach((question) => {
       const userAnswer = userAnswers[question.id];
 
-      if (userAnswer !== undefined && userAnswer !== null && userAnswer !== "") {
+      if (
+        userAnswer !== undefined &&
+        userAnswer !== null &&
+        userAnswer !== ""
+      ) {
         if (userAnswer === question.correctOption) {
           score += 4;
         } else {
@@ -273,7 +296,7 @@ export default function TestPage() {
   const calculateCorrectAnswers = useCallback(() => {
     let correctCount = 0;
     if (!Array.isArray(questions)) return correctCount;
-    
+
     questions.forEach((question) => {
       if (userAnswers[question.id] === question.correctOption) {
         correctCount++;
@@ -285,7 +308,7 @@ export default function TestPage() {
   const calculateWrongAnswers = useCallback(() => {
     let wrongCount = 0;
     if (!Array.isArray(questions)) return wrongCount;
-    
+
     questions.forEach((question) => {
       if (
         userAnswers[question.id] &&
@@ -299,7 +322,7 @@ export default function TestPage() {
 
   const calculateAccuracy = useCallback(() => {
     if (!Array.isArray(questions)) return 0;
-    
+
     const correctAnswers = questions.filter(
       (question) => userAnswers[question.id] === question.correctOption
     ).length;
@@ -315,9 +338,11 @@ export default function TestPage() {
 
     questions.forEach((question) => {
       if (!question) return;
-      
-      const typeName = question.type === "Unknown Type" ? "Uncategorized" : question.type;
-      const typeId = question.typeId === "unknown" ? "uncategorized" : question.typeId;
+
+      const typeName =
+        question.type === "Unknown Type" ? "Uncategorized" : question.type;
+      const typeId =
+        question.typeId === "unknown" ? "uncategorized" : question.typeId;
       const subject = question.subject;
       const subjectId = question.subjectId;
 
@@ -364,7 +389,7 @@ export default function TestPage() {
 
     questions.forEach((question) => {
       if (!question) return;
-      
+
       const chapterId = question.chapterId;
       const chapterName = question.chapter;
       const subject = question.subject;
@@ -401,7 +426,7 @@ export default function TestPage() {
 
     questions.forEach((question) => {
       if (!question) return;
-      
+
       const subjectId = question.subjectId;
       const subjectName = question.subject;
 
@@ -665,7 +690,12 @@ export default function TestPage() {
   useEffect(() => {
     let timer;
 
-    if (!showInstructionPopup && !showResults && Array.isArray(questions) && questions.length > 0) {
+    if (
+      !showInstructionPopup &&
+      !showResults &&
+      Array.isArray(questions) &&
+      questions.length > 0
+    ) {
       if (timeLeft === 0) {
         setTimeLeft(totalTime);
       }
@@ -685,13 +715,7 @@ export default function TestPage() {
     return () => {
       if (timer) clearInterval(timer);
     };
-  }, [
-    showInstructionPopup,
-    showResults,
-    questions,
-    totalTime,
-    handleSubmit,
-  ]);
+  }, [showInstructionPopup, showResults, questions, totalTime, handleSubmit]);
 
   useEffect(() => {
     const loadQuestions = async () => {
@@ -751,42 +775,49 @@ export default function TestPage() {
             index === self.findIndex((q) => q.id === question.id)
         );
 
-  const formattedQuestions = deduplicatedQuestions.map((question) => {
-  const typeName =
-    question.questionType?.name?.trim() ||
-    question.type?.name?.trim() ||
-    (typeof question.questionType === "string" ? question.questionType.trim() : "") ||
-    (typeof question.type === "string" ? question.type.trim() : "") ||
-    "General";
+        const formattedQuestions = deduplicatedQuestions.map((question) => {
+          const typeName =
+            question.questionType?.name?.trim() ||
+            question.type?.name?.trim() ||
+            (typeof question.questionType === "string"
+              ? question.questionType.trim()
+              : "") ||
+            (typeof question.type === "string" ? question.type.trim() : "") ||
+            "General";
 
-  const chapterName =
-    question.chapter?.name?.trim() ||
-    (typeof question.chapter === "string" ? question.chapter.trim() : "") ||
-    (question.chapterId ? `Chapter ${question.chapterId}` : "General Chapter");
+          const chapterName =
+            question.chapter?.name?.trim() ||
+            (typeof question.chapter === "string"
+              ? question.chapter.trim()
+              : "") ||
+            (question.chapterId
+              ? `Chapter ${question.chapterId}`
+              : "General Chapter");
 
-  return {
-    id: question.id || "N/A",
-    question: question.question || "No question text available",
-    image: question.image || null,
-    options: [
-      question.optionA || "Option A",
-      question.optionB || "Option B",
-      question.optionC || "Option C",
-      question.optionD || "Option D",
-    ],
-    correctOption: question.correctOption || "N/A",
-    hint: question.hint || "No hint available",
-    typeId: question.questionTypeId || question.typeId || "general",
-    type: typeName,
-    subject:
-      question.subject?.name ||
-      (question.subjectId ? `Subject ${question.subjectId}` : "General Subject"),
-    subjectId: question.subjectId,
-    chapter: chapterName,
-    chapterId: question.chapterId,
-  };
-});
-
+          return {
+            id: question.id || "N/A",
+            question: question.question || "No question text available",
+            image: question.image || null,
+            options: [
+              question.optionA || "Option A",
+              question.optionB || "Option B",
+              question.optionC || "Option C",
+              question.optionD || "Option D",
+            ],
+            correctOption: question.correctOption || "N/A",
+            hint: question.hint || "No hint available",
+            typeId: question.questionTypeId || question.typeId || "general",
+            type: typeName,
+            subject:
+              question.subject?.name ||
+              (question.subjectId
+                ? `Subject ${question.subjectId}`
+                : "General Subject"),
+            subjectId: question.subjectId,
+            chapter: chapterName,
+            chapterId: question.chapterId,
+          };
+        });
 
         setQuestions(formattedQuestions);
       } catch (err) {
@@ -811,7 +842,11 @@ export default function TestPage() {
   }, [error, router]);
 
   if (loading) {
-    return <div className="container py-6">Loading questions...</div>;
+    return (
+      <div className="container py-6">
+        <CommonLoader />
+      </div>
+    );
   }
 
   if (error) {
@@ -823,9 +858,10 @@ export default function TestPage() {
     );
   }
 
-  const currentQuestion = Array.isArray(filteredQuestions) && filteredQuestions[currentQuestionIndex] 
-    ? filteredQuestions[currentQuestionIndex] 
-    : null;
+  const currentQuestion =
+    Array.isArray(filteredQuestions) && filteredQuestions[currentQuestionIndex]
+      ? filteredQuestions[currentQuestionIndex]
+      : null;
 
   return (
     <div className="container py-6">
@@ -880,7 +916,8 @@ export default function TestPage() {
             </div>
 
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-              What seems to be the problem with this question? You can select multiple options.
+              What seems to be the problem with this question? You can select
+              multiple options.
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
@@ -899,7 +936,9 @@ export default function TestPage() {
                     onChange={(e) => {
                       const updatedOptions = e.target.checked
                         ? [...(reportModal.selectedOptions || []), option]
-                        : (reportModal.selectedOptions || []).filter((o) => o !== option);
+                        : (reportModal.selectedOptions || []).filter(
+                            (o) => o !== option
+                          );
 
                       setReportModal((prev) => ({
                         ...prev,
@@ -915,7 +954,8 @@ export default function TestPage() {
 
             <div className="mb-4">
               <label className="block text-sm font-semibold mb-1 text-gray-700 dark:text-gray-300">
-                Additional Comments <span className="text-gray-400">(optional)</span>
+                Additional Comments{" "}
+                <span className="text-gray-400">(optional)</span>
               </label>
               <textarea
                 value={reportModal.additionalMessage}
@@ -982,78 +1022,80 @@ export default function TestPage() {
 
       <TestHeader />
 
-      {Array.isArray(questions) && questions.length > 0 && !showInstructionPopup && (
-        <div className="test_containers">
-          <div className="test_container1">
-            <TestTimer
-              timeLeft={timeLeft}
-              totalTime={totalTime}
-              formatTime={formatTime}
-              getUniqueSubjects={getUniqueSubjects}
-              subjectFilter={subjectFilter}
-              setSubjectFilter={setSubjectFilter}
-              showSubmitConfirmationPopup={showSubmitConfirmationPopup}
-              showAnswer={showAnswer}
-              onShowAnswers={(value) => {
-                setShowAnswer(value);
-              }}
-              onReportQuestion={() => {
-                setReportModal({
-                  show: true,
-                  selectedOptions: [],
-                  additionalMessage: "",
-                  questionId: currentQuestion?.id || null,
-                });
-              }}
-            />
-
-            {currentQuestion && (
-              <TestQuestion
-                question={currentQuestion}
-                userAnswers={userAnswers}
-                handleAnswer={handleAnswer}
-                currentQuestionIndex={currentQuestionIndex}
-                filteredQuestions={filteredQuestions}
-                isFavorite={favoriteQuestions[currentQuestion.id]}
-                toggleFavorite={toggleFavorite}
-                onShowAnswers={showAnswer}
+      {Array.isArray(questions) &&
+        questions.length > 0 &&
+        !showInstructionPopup && (
+          <div className="test_containers">
+            <div className="test_container1">
+              <TestTimer
+                timeLeft={timeLeft}
+                totalTime={totalTime}
+                formatTime={formatTime}
+                getUniqueSubjects={getUniqueSubjects}
+                subjectFilter={subjectFilter}
+                setSubjectFilter={setSubjectFilter}
+                showSubmitConfirmationPopup={showSubmitConfirmationPopup}
+                showAnswer={showAnswer}
+                onShowAnswers={(value) => {
+                  setShowAnswer(value);
+                }}
                 onReportQuestion={() => {
                   setReportModal({
                     show: true,
                     selectedOptions: [],
                     additionalMessage: "",
-                    questionId: currentQuestion.id,
+                    questionId: currentQuestion?.id || null,
                   });
                 }}
               />
-            )}
 
-            <TestNavigation
-              currentQuestionIndex={currentQuestionIndex}
-              filteredQuestions={filteredQuestions}
-              handlePrevious={handlePrevious}
-              handleNext={handleNext}
-              toggleMarkAsReview={toggleMarkAsReview}
-              markedQuestions={markedQuestions}
-              question={currentQuestion}
-              getUniqueSubjects={getUniqueSubjects}
-              subjectFilter={subjectFilter}
-              onShowAnswers={showAnswer}
-            />
+              {currentQuestion && (
+                <TestQuestion
+                  question={currentQuestion}
+                  userAnswers={userAnswers}
+                  handleAnswer={handleAnswer}
+                  currentQuestionIndex={currentQuestionIndex}
+                  filteredQuestions={filteredQuestions}
+                  isFavorite={favoriteQuestions[currentQuestion.id]}
+                  toggleFavorite={toggleFavorite}
+                  onShowAnswers={showAnswer}
+                  onReportQuestion={() => {
+                    setReportModal({
+                      show: true,
+                      selectedOptions: [],
+                      additionalMessage: "",
+                      questionId: currentQuestion.id,
+                    });
+                  }}
+                />
+              )}
+
+              <TestNavigation
+                currentQuestionIndex={currentQuestionIndex}
+                filteredQuestions={filteredQuestions}
+                handlePrevious={handlePrevious}
+                handleNext={handleNext}
+                toggleMarkAsReview={toggleMarkAsReview}
+                markedQuestions={markedQuestions}
+                question={currentQuestion}
+                getUniqueSubjects={getUniqueSubjects}
+                subjectFilter={subjectFilter}
+                onShowAnswers={showAnswer}
+              />
+            </div>
+            <div className="test_container2">
+              <TestSidebar
+                filteredQuestions={filteredQuestions}
+                userAnswers={userAnswers}
+                visitedQuestions={visitedQuestions}
+                markedQuestions={markedQuestions}
+                handleQuestionNavigation={handleQuestionNavigation}
+                questionNavRefs={questionNavRefs}
+                onShowAnswers={showAnswer}
+              />
+            </div>
           </div>
-          <div className="test_container2">
-            <TestSidebar
-              filteredQuestions={filteredQuestions}
-              userAnswers={userAnswers}
-              visitedQuestions={visitedQuestions}
-              markedQuestions={markedQuestions}
-              handleQuestionNavigation={handleQuestionNavigation}
-              questionNavRefs={questionNavRefs}
-              onShowAnswers={showAnswer}
-            />
-          </div>
-        </div>
-      )}
+        )}
 
       {notification.show && (
         <Notification

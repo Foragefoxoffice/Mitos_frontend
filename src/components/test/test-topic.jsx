@@ -3,6 +3,7 @@ import React, { useState, useEffect, useContext } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { fetchTopics } from "@/utils/api";
 import { TestContext } from "@/contexts/TestContext";
+import CommonLoader from "@/commonLoader";
 
 export default function TestTopics({ selectedChapter, selectedSubject, selectedPortion }) {
   const searchParams = useSearchParams();
@@ -84,7 +85,7 @@ export default function TestTopics({ selectedChapter, selectedSubject, selectedP
     <div className="p-6">
       <h1 className="text-xl font-bold mb-4">Attempt by Topic</h1>
 
-      {loading && <p className="text-gray-500">Loading...</p>}
+      {loading &&  <CommonLoader />}
       {error && <p className="text-red-500">{error}</p>}
 
       {!loading && !error && (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 import useAuth from "@/contexts/useAuth";
@@ -10,12 +10,13 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   useAuth();
 
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(""); // Clear previous errors
+    setError("");
 
     try {
       const response = await fetch("https://mitoslearning.in/api/auth/login", {
@@ -38,6 +39,7 @@ export default function LoginPage() {
         localStorage.setItem("refreshToken", data.refreshToken);
         localStorage.setItem("role", data.role);
         localStorage.setItem("userId", data.user.id);
+        setIsLoading(true);
         // Navigate to admin dashboard
         router.push("/user/dashboard");
       } else {
@@ -53,11 +55,14 @@ export default function LoginPage() {
   // Handle Google Sign-In success
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
-      const response = await fetch("https://mitoslearning.in/api/auth/google-auth", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ credential: credentialResponse.credential }),
-      });
+      const response = await fetch(
+        "https://mitoslearning.in/api/auth/google-auth",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ credential: credentialResponse.credential }),
+        }
+      );
 
       const data = await response.json();
 
@@ -148,17 +153,43 @@ export default function LoginPage() {
                 <div className="forgot">
                   <a href="/auth/register">Forgot your password?</a>
                 </div>
-                <button type="submit" className="login_btn">
-                  Login
+                <button
+                  type="submit"
+                  className="login_btn flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                  disabled={isLoading}
+                >
+                  {isLoading && (
+                    <svg
+                      className="animate-spin h-5 w-5 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                      ></path>
+                    </svg>
+                  )}
+                  {isLoading ? "Logging in..." : "Login"}
                 </button>
               </form>
 
-              <p className="mt-2 text-center" >
-          You don't have an account?{" "}
-          <a href="/register" className="text-[#35095E]">
-            Signin here
-          </a>
-        </p>
+              <p className="mt-2 text-center">
+                You don't have an account?{" "}
+                <a href="/register" className="text-[#35095E]">
+                  Signin here
+                </a>
+              </p>
 
               {/* Google Sign-In Button */}
               <div className="mt-4 flex justify-center">

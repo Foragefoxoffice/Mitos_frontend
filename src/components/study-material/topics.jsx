@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { fetchTopics, fetchQuestionByTopic } from "@/utils/api";
 import axios from "axios";
 import PremiumPopup from "../PremiumPopup"; // ✅ Imported popup
+import CommonLoader from "@/commonLoader";
 
 export default function MeterialsTopicsPage({ selectedChapter, onTopicSelect }) {
   const searchParams = useSearchParams();
@@ -97,7 +98,7 @@ export default function MeterialsTopicsPage({ selectedChapter, onTopicSelect }) 
     <div className="p-4">
       {chapterName && <h2 className="text-lg mb-4">{chapterName}</h2>}
 
-      {loading && <p className="text-gray-500">Loading...</p>}
+      {loading && <CommonLoader />}
       {error && <p className="text-center pt-10 text-red-500">{error}</p>}
 
       {!loading && !error && (
