@@ -67,7 +67,7 @@ export default function MeterialsSubject({ onSubjectSelect, onScreenSelection })
               <p className="text-sm text-gray-700 mb-2">{subject.chapterCount} Chapters</p>
               <a
                 onClick={() => handleSubjectClick(subject)}
-                className="text-blue-600  cursor-pointer "
+                className="text-blue-600 cursor-pointer "
               >
                 Learn by Chapter
               </a>
