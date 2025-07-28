@@ -185,62 +185,59 @@ export default function TestPage() {
   }, []);
 
   const handleNext = useCallback(() => {
-    if (!Array.isArray(filteredQuestions) || filteredQuestions.length === 0)
-      return;
+  if (!Array.isArray(filteredQuestions)) return;
 
-    // Regular next question navigation
-    if (currentQuestionIndex < filteredQuestions.length - 1) {
-      setCurrentQuestionIndex((prev) => prev + 1);
-      const nextQuestion = filteredQuestions[currentQuestionIndex + 1];
-      if (nextQuestion?.id) {
-        setVisitedQuestions((prev) => ({ ...prev, [nextQuestion.id]: true }));
-      }
-      return;
-    }
+  // 1. If not at last question, move to next question
+  if (currentQuestionIndex < filteredQuestions.length - 1) {
+    const nextIndex = currentQuestionIndex + 1;
+    setCurrentQuestionIndex(nextIndex);
+    setVisitedQuestions(prev => ({
+      ...prev,
+      [filteredQuestions[nextIndex].id]: true
+    }));
+    return;
+  }
 
-    // Subject change logic
-    const currentSubjectIndex =
-      getUniqueSubjects?.findIndex?.((subj) => subj.id === subjectFilter) ?? -1;
+  // 2. If at last question with subject filter
+  if (subjectFilter) {
+    const subjectOrder = ["Physics", "Chemistry", "Biology"];
+    const sortedSubjects = [...getUniqueSubjects].sort((a, b) => 
+      subjectOrder.indexOf(a.name) - subjectOrder.indexOf(b.name)
+    );
 
-    if (
-      currentSubjectIndex >= 0 &&
-      currentSubjectIndex < (getUniqueSubjects?.length ?? 0) - 1
-    ) {
-      const nextSubject = getUniqueSubjects[currentSubjectIndex + 1];
-      if (nextSubject) {
+    const currentSubjectIndex = sortedSubjects.findIndex(
+      subj => subj.id === subjectFilter
+    );
+
+    // 2a. Move to next subject in predefined order
+    if (currentSubjectIndex < sortedSubjects.length - 1) {
+      const nextSubject = sortedSubjects[currentSubjectIndex + 1];
+      const nextSubjectQuestions = questions.filter(q =>
+        nextSubject.originalIds.has(q.subjectId)
+      );
+
+      if (nextSubjectQuestions.length > 0) {
         setSubjectFilter(nextSubject.id);
-        setCurrentQuestionIndex(0);
-
-        const firstQuestionOfNewSubject = questions.find((q) =>
-          nextSubject.originalIds.has(q?.subjectId)
+        const firstQuestionIndex = questions.findIndex(
+          q => q.id === nextSubjectQuestions[0].id
         );
-
-        if (firstQuestionOfNewSubject?.id) {
-          setVisitedQuestions((prev) => ({
-            ...prev,
-            [firstQuestionOfNewSubject.id]: true,
-          }));
-        }
-      }
-    } else {
-      // No more subjects, reset to first question
-      setSubjectFilter(null);
-      setCurrentQuestionIndex(0);
-
-      if (questions[0]?.id) {
-        setVisitedQuestions((prev) => ({
+        setCurrentQuestionIndex(firstQuestionIndex);
+        setVisitedQuestions(prev => ({
           ...prev,
-          [questions[0].id]: true,
+          [nextSubjectQuestions[0].id]: true
         }));
+        return;
       }
     }
-  }, [
-    currentQuestionIndex,
-    filteredQuestions,
-    getUniqueSubjects,
-    questions,
-    subjectFilter,
-  ]);
+
+    // 2b. If no more subjects, return to all subjects view
+    setSubjectFilter(null);
+    setCurrentQuestionIndex(0);
+    if (questions[0]?.id) {
+      setVisitedQuestions(prev => ({ ...prev, [questions[0].id]: true }));
+    }
+  }
+}, [currentQuestionIndex, filteredQuestions, getUniqueSubjects, questions, subjectFilter]);
 
   const handlePrevious = useCallback(() => {
     if (currentQuestionIndex > 0) {

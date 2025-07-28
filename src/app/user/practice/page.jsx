@@ -19,6 +19,7 @@ import { MathJax, MathJaxContext } from "better-react-mathjax";
 import { FaHeart, FaRegHeart, FaFlag } from "react-icons/fa";
 import DOMPurify from "dompurify";
 import ImagePopup from "@/components/ImagePopup";
+import { motion } from "framer-motion";
 
 const HtmlWithMath = ({ html }) => {
   const cleanHtml = DOMPurify.sanitize(html);
@@ -56,20 +57,20 @@ export default function TestPage() {
     show: false,
     src: "",
   });
-const [reportModal, setReportModal] = useState({
-  show: false,
-  selectedOptions: [],
-  additionalMessage: "",
-  questionId: null,
-});
+  const [reportModal, setReportModal] = useState({
+    show: false,
+    selectedOptions: [],
+    additionalMessage: "",
+    questionId: null,
+  });
 
-const REPORT_OPTIONS = [
-  "Wrong/Unclear Question",
-  "Wrong/Unclear Option(s)",
-  "Wrong/Blurry/No Image(s)",
-  "Incorrect Answer Key",
-  "Wrong/Unclear Solution",
-];
+  const REPORT_OPTIONS = [
+    "Wrong/Unclear Question",
+    "Wrong/Unclear Option(s)",
+    "Wrong/Blurry/No Image(s)",
+    "Incorrect Answer Key",
+    "Wrong/Unclear Solution",
+  ];
 
   const router = useRouter();
   const navButtonRefs = useRef([]);
@@ -255,46 +256,45 @@ const REPORT_OPTIONS = [
     [token, userId, favoriteQuestions]
   );
 
-const handleReportQuestion = async () => {
-  try {
-    const { selectedOptions, additionalMessage, questionId } = reportModal;
+  const handleReportQuestion = async () => {
+    try {
+      const { selectedOptions, additionalMessage, questionId } = reportModal;
 
-    if (!questionId || selectedOptions.length === 0) {
+      if (!questionId || selectedOptions.length === 0) {
+        setNotification({
+          show: true,
+          message: "Please select at least one reason.",
+          type: "error",
+        });
+        return;
+      }
+
+      const finalReason = `${selectedOptions.join(", ")}${additionalMessage ? ` | Details: ${additionalMessage}` : ""
+        }`;
+
+      await reportWrongQuestion(questionId, finalReason);
+
       setNotification({
         show: true,
-        message: "Please select at least one reason.",
+        message: "Question reported successfully. Thank you!",
+        type: "success",
+      });
+
+      setReportModal({
+        show: false,
+        selectedOptions: [],
+        additionalMessage: "",
+        questionId: null,
+      });
+    } catch (error) {
+      console.error("Error reporting question:", error);
+      setNotification({
+        show: true,
+        message: "Failed to report question. Please try again.",
         type: "error",
       });
-      return;
     }
-
-    const finalReason = `${selectedOptions.join(", ")}${
-      additionalMessage ? ` | Details: ${additionalMessage}` : ""
-    }`;
-
-    await reportWrongQuestion(questionId, finalReason);
-
-    setNotification({
-      show: true,
-      message: "Question reported successfully. Thank you!",
-      type: "success",
-    });
-
-    setReportModal({
-      show: false,
-      selectedOptions: [],
-      additionalMessage: "",
-      questionId: null,
-    });
-  } catch (error) {
-    console.error("Error reporting question:", error);
-    setNotification({
-      show: true,
-      message: "Failed to report question. Please try again.",
-      type: "error",
-    });
-  }
-};
+  };
 
 
 
@@ -323,36 +323,36 @@ const handleReportQuestion = async () => {
     }
   }, [questionLimit, questions]);
 
-const generateQuestionLimits = (totalQuestions) => {
-  if (totalQuestions === 0) return [];
+  const generateQuestionLimits = (totalQuestions) => {
+    if (totalQuestions === 0) return [];
 
-  const limits = new Set();
+    const limits = new Set();
 
-  if (totalQuestions <= 10) {
-    return ["full"];
-  }
-
-  if (totalQuestions <= 180) {
-    const step = totalQuestions <= 40 ? 10 : totalQuestions <= 80 ? 20 : 30;
-    for (let i = step; i < totalQuestions; i += step) {
-      limits.add(i);
+    if (totalQuestions <= 10) {
+      return ["full"];
     }
-    limits.add("full"); // Always allow full if <= 180
-  } else {
-    const step = 30;
-    for (let i = step; i < 180; i += step) {
-      limits.add(i);
-    }
-    limits.add(180);
-    limits.add("full"); // Add full only if > 180
-  }
 
-  return Array.from(limits).sort((a, b) => {
-    if (a === "full") return 1;
-    if (b === "full") return -1;
-    return a - b;
-  });
-};
+    if (totalQuestions <= 180) {
+      const step = totalQuestions <= 40 ? 10 : totalQuestions <= 80 ? 20 : 30;
+      for (let i = step; i < totalQuestions; i += step) {
+        limits.add(i);
+      }
+      limits.add("full"); // Always allow full if <= 180
+    } else {
+      const step = 30;
+      for (let i = step; i < 180; i += step) {
+        limits.add(i);
+      }
+      limits.add(180);
+      limits.add("full"); // Add full only if > 180
+    }
+
+    return Array.from(limits).sort((a, b) => {
+      if (a === "full") return 1;
+      if (b === "full") return -1;
+      return a - b;
+    });
+  };
 
 
   const handleAnswer = (questionId, answerLabel) => {
@@ -391,45 +391,50 @@ const generateQuestionLimits = (totalQuestions) => {
     setVisitedQuestions((prev) => ({ ...prev, [questionId]: true }));
   };
 
-  const renderOptionButtons = (question) => {
-    if (!question) return null;
+ const renderOptionButtons = (question) => {
+  if (!question) return null;
 
-    return question.options.map((option, index) => {
-      const optionLabels = ["A", "B", "C", "D"];
-      const currentOptionLabel = optionLabels[index];
-      const isSelected = userAnswers[question.id] === currentOptionLabel;
-      const isCorrect = question.correctOption === currentOptionLabel;
-      const isWrong = isSelected && !isCorrect;
-      const isCorrectOption = question.correctOption === currentOptionLabel;
+  return question.options.map((option, index) => {
+    const optionLabels = ["A", "B", "C", "D"];
+    const currentOptionLabel = optionLabels[index];
+    const isSelected = userAnswers[question.id] === currentOptionLabel;
+    const isCorrect = question.correctOption === currentOptionLabel;
+    const isWrong = isSelected && !isCorrect;
+    const isCorrectOption = question.correctOption === currentOptionLabel;
 
-      let buttonClass =
-        "flex items-center gap-2 w-full text-left p-2 rounded-lg border m-0 ";
+    let buttonClass =
+      "flex items-center gap-2 w-full text-left p-2 rounded-lg border m-0 transition-colors duration-200 ";
 
-      if (isSelected) {
-        if (isCorrect) {
-          buttonClass += "bg-green-500 text-white active";
-        } else {
-          buttonClass += "bg-red-500 text-white active";
-        }
-      } else if (isCorrectOption && userAnswers[question.id]) {
-        buttonClass += "bg-green-500 text-white";
+    if (isSelected) {
+      if (isCorrect) {
+        buttonClass += "bg-green-500 text-white border-green-500";
       } else {
-        buttonClass += "bg-[#FAF5FF] border border-[#C5B5CE]";
+        buttonClass += "bg-red-500 text-white border-red-500";
       }
+    } else if (isCorrectOption && userAnswers[question.id]) {
+      buttonClass += "bg-green-500 text-white border-green-500";
+    } else {
+      buttonClass += "bg-[#FAF5FF] border border-[#C5B5CE] hover:bg-gray-100";
+    }
 
-      return (
+    return (
+      <motion.div
+        key={index}
+        whileHover={{ scale: 1.02 }}
+        transition={{ duration: 0.2 }}
+        className="w-full"
+      >
         <button
-          key={index}
           onClick={() => handleAnswer(question.id, currentOptionLabel)}
           className={buttonClass}
         >
           <span className="font-bold option_label">{currentOptionLabel}</span>
           <HtmlWithMath html={option} />
         </button>
-      );
-    });
-  };
-
+      </motion.div>
+    );
+  });
+};
   const questionLimits = generateQuestionLimits(questions.length);
 
 
@@ -477,10 +482,10 @@ const generateQuestionLimits = (totalQuestions) => {
                     className="form-radio"
                   />
                   <span className="text-gray-800">
-  {limit === "full"
-    ? `Practice Full Chapter (${questions.length})`
-    : `${limit} Questions`}
-</span>
+                    {limit === "full"
+                      ? `Practice Full Questions (${questions.length})`
+                      : `${limit} Questions`}
+                  </span>
 
                 </label>
               ))}
@@ -488,108 +493,107 @@ const generateQuestionLimits = (totalQuestions) => {
           </div>
         )}
 
-    {reportModal.show && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-[black/50] backdrop-blur-sm">
-    <div className="w-full max-w-xl rounded-2xl shadow-2xl p-6 bg-[#35095e] dark:bg-gray-900/90 border border-gray-200 dark:border-gray-700 animate-fade-in">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
-          🚨 Report Issue
-        </h2>
-        <button
-          onClick={() =>
-            setReportModal({
-              show: false,
-              selectedOptions: [],
-              additionalMessage: "",
-              questionId: null,
-            })
-          }
-          className="text-xl text-white p-2 py-0 rounded-full hover:text-red-500 transition"
-        >
-          &times;
-        </button>
-      </div>
+        {reportModal.show && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-[black/50] backdrop-blur-sm">
+            <div className="w-full max-w-xl rounded-2xl shadow-2xl p-6 bg-[#35095e] dark:bg-gray-900/90 border border-gray-200 dark:border-gray-700 animate-fade-in">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
+                  🚨 Report Issue
+                </h2>
+                <button
+                  onClick={() =>
+                    setReportModal({
+                      show: false,
+                      selectedOptions: [],
+                      additionalMessage: "",
+                      questionId: null,
+                    })
+                  }
+                  className="text-xl text-white p-2 py-0 rounded-full hover:text-red-500 transition"
+                >
+                  &times;
+                </button>
+              </div>
 
-      {/* Description */}
-      <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-        What seems to be the problem with this question? You can select multiple options.
-      </p>
+              {/* Description */}
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                What seems to be the problem with this question? You can select multiple options.
+              </p>
 
-      {/* Issue Options */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-        {REPORT_OPTIONS.map((option) => (
-          <label
-            key={option}
-            className={`flex items-center gap-3 p-4 rounded-xl border text-sm font-medium cursor-pointer transition duration-150 hover:shadow-md ${
-              reportModal.selectedOptions.includes(option)
-                ? "bg-purple-100 border-purple-500 dark:bg-purple-800/30"
-                : "bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"
-            }`}
-          >
-            <input
-              type="checkbox"
-              checked={reportModal.selectedOptions.includes(option)}
-              onChange={(e) => {
-                const updatedOptions = e.target.checked
-                  ? [...reportModal.selectedOptions, option]
-                  : reportModal.selectedOptions.filter((o) => o !== option);
-                setReportModal((prev) => ({
-                  ...prev,
-                  selectedOptions: updatedOptions,
-                }));
-              }}
-              className="h-5 w-5 text-purple-600 accent-purple-600"
-            />
-            <span className="flex-1 text-white">{option}</span>
-          </label>
-        ))}
-      </div>
+              {/* Issue Options */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+                {REPORT_OPTIONS.map((option) => (
+                  <label
+                    key={option}
+                    className={`flex items-center gap-3 p-4 rounded-xl border text-sm font-medium cursor-pointer transition duration-150 hover:shadow-md ${reportModal.selectedOptions.includes(option)
+                        ? "bg-purple-100 border-purple-500 dark:bg-purple-800/30"
+                        : "bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"
+                      }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={reportModal.selectedOptions.includes(option)}
+                      onChange={(e) => {
+                        const updatedOptions = e.target.checked
+                          ? [...reportModal.selectedOptions, option]
+                          : reportModal.selectedOptions.filter((o) => o !== option);
+                        setReportModal((prev) => ({
+                          ...prev,
+                          selectedOptions: updatedOptions,
+                        }));
+                      }}
+                      className="h-5 w-5 text-purple-600 accent-purple-600"
+                    />
+                    <span className="flex-1 text-white">{option}</span>
+                  </label>
+                ))}
+              </div>
 
-      {/* Additional Comments */}
-      <div className="mb-4">
-        <label className="block text-sm font-semibold mb-1 text-gray-700 dark:text-gray-300">
-          Additional Comments <span className="text-gray-400">(optional)</span>
-        </label>
-        <textarea
-          value={reportModal.additionalMessage}
-          onChange={(e) =>
-            setReportModal((prev) => ({
-              ...prev,
-              additionalMessage: e.target.value,
-            }))
-          }
-          placeholder="Tell us anything else you noticed..."
-          rows={3}
-          className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 text-sm dark:bg-gray-800 bg-white text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none"
-        />
-      </div>
+              {/* Additional Comments */}
+              <div className="mb-4">
+                <label className="block text-sm font-semibold mb-1 text-gray-700 dark:text-gray-300">
+                  Additional Comments <span className="text-gray-400">(optional)</span>
+                </label>
+                <textarea
+                  value={reportModal.additionalMessage}
+                  onChange={(e) =>
+                    setReportModal((prev) => ({
+                      ...prev,
+                      additionalMessage: e.target.value,
+                    }))
+                  }
+                  placeholder="Tell us anything else you noticed..."
+                  rows={3}
+                  className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 text-sm dark:bg-gray-800 bg-white text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none"
+                />
+              </div>
 
-      {/* Actions */}
-      <div className="flex justify-end gap-3 mt-6">
-        <button
-          onClick={() =>
-            setReportModal({
-              show: false,
-              selectedOptions: [],
-              additionalMessage: "",
-              questionId: null,
-            })
-          }
-          className="px-4 py-2 rounded-lg text-gray-600 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-sm font-semibold"
-        >
-          Cancel
-        </button>
-        <button
-          onClick={handleReportQuestion}
-          className="px-5 py-2 rounded-lg bg-gradient-to-r from-[#35095e] to-[#51216e] text-white hover:brightness-110 text-sm font-semibold shadow-lg"
-        >
-          Submit Report
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+              {/* Actions */}
+              <div className="flex justify-end gap-3 mt-6">
+                <button
+                  onClick={() =>
+                    setReportModal({
+                      show: false,
+                      selectedOptions: [],
+                      additionalMessage: "",
+                      questionId: null,
+                    })
+                  }
+                  className="px-4 py-2 rounded-lg text-gray-600 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-sm font-semibold"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleReportQuestion}
+                  className="px-5 py-2 rounded-lg bg-gradient-to-r from-[#35095e] to-[#51216e] text-white hover:brightness-110 text-sm font-semibold shadow-lg"
+                >
+                  Submit Report
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
 
 
@@ -647,20 +651,20 @@ const generateQuestionLimits = (totalQuestions) => {
                 </h2>
                 <div className="flex gap-2">
                   <button
-  onClick={() =>
-    setReportModal({
-      show: true,
-      selectedOptions: [],
-      additionalMessage: "",
-      questionId: filteredQuestions[currentQuestionIndex].id,
-    })
-  }
-  className="p-2 text-sm bg-red-100 text-red-600 rounded hover:bg-red-200 flex items-center gap-1"
-  title="Report this question"
->
-  <FaFlag className="w-4 h-4" />
-  <span className="hidden sm:inline">Report</span>
-</button>
+                    onClick={() =>
+                      setReportModal({
+                        show: true,
+                        selectedOptions: [],
+                        additionalMessage: "",
+                        questionId: filteredQuestions[currentQuestionIndex].id,
+                      })
+                    }
+                    className="p-2 text-sm bg-red-100 text-red-600 rounded hover:bg-red-200 flex items-center gap-1"
+                    title="Report this question"
+                  >
+                    <FaFlag className="w-4 h-4" />
+                    <span className="hidden sm:inline">Report</span>
+                  </button>
 
                   <button
                     onClick={() =>
@@ -691,7 +695,7 @@ const generateQuestionLimits = (totalQuestions) => {
                   html={filteredQuestions[currentQuestionIndex].question}
                 />
               </div>
-             
+
               {filteredQuestions[currentQuestionIndex].image && (
                 <img
                   src={`https://mitoslearning.in/${filteredQuestions[currentQuestionIndex].image}`}
@@ -711,7 +715,14 @@ const generateQuestionLimits = (totalQuestions) => {
               </div>
 
               {userAnswers[filteredQuestions[currentQuestionIndex].id] && (
-                <div className="mt-4 p-6 bg-yellow-50 rounded-lg border border-yellow-200">
+                 <div
+    className={`mt-4 p-6 rounded-lg border ${
+      userAnswers[filteredQuestions[currentQuestionIndex].id] ===
+      filteredQuestions[currentQuestionIndex].correctOption
+        ? "bg-green-100 border-green-300"
+        : "bg-red-100 border-red-300"
+    }`}
+  >
                   <p className="text-green-500 font-semibold">
                     Correct Answer:{" "}
                     {filteredQuestions[currentQuestionIndex].correctOption}

@@ -47,36 +47,33 @@ export default function MeterialsTopicsPage({ selectedChapter, onTopicSelect }) 
         setChapterName(chapterName);
 
         const topicsWithQuestions = await Promise.all(
-          data.map(async (topic) => {
-            try {
-              const questionsResponse = await fetchQuestionByTopic(topic.id);
-              let questionCount = 0;
+  data.map(async (topic) => {
+    try {
+      const questionsResponse = await fetchQuestionByTopic(topic.id);
+      let questionCount = 0;
 
-              if (Array.isArray(questionsResponse?.data)) {
-                questionCount = questionsResponse.data.length;
-              } else if (Array.isArray(questionsResponse)) {
-                questionCount = questionsResponse.length;
-              }
+      if (Array.isArray(questionsResponse?.data)) {
+        questionCount = questionsResponse.data.length;
+      } else if (Array.isArray(questionsResponse)) {
+        questionCount = questionsResponse.length;
+      }
 
-              return { ...topic, questionCount };
-            } catch (error) {
-              if (axios.isAxiosError(error) && error.response?.status === 404) {
-                return { ...topic, questionCount: 0 };
-              }
-              console.error(`Error fetching questions for topic ${topic.id}:`, error);
-              return { ...topic, questionCount: 0 };
-            }
-          })
-        );
+      return { ...topic, questionCount };
+    } catch (error) {
+      console.error(`❌ Error fetching questions for topic ID ${topic.id}:`, error);
+      // Still return the topic with 0 question count to prevent skipping
+      return { ...topic, questionCount: 0 };
+    }
+  })
+);
 
-        const validTopics = topicsWithQuestions.filter((topic) => topic.questionCount > 0);
 
-        setTopics(topicsWithQuestions);
-        setFilteredTopics(validTopics);
+       setTopics(topicsWithQuestions);
+setFilteredTopics(topicsWithQuestions); // Show all topics
 
-        if (validTopics.length === 0) {
-          setError("No topics with questions found in this chapter.");
-        }
+if (topicsWithQuestions.length === 0) {
+  setError("No topics found in this chapter.");
+}
       } catch (err) {
         console.error("Failed to fetch topics:", err);
         setError("Unable to load topics. Please try again later.");

@@ -351,6 +351,20 @@ const MonthSelector = () => {
         </h2>
         
         <div className="grid gap-7">
+
+        {/* Chapter Analysis */}
+          <div className="p-6 border border-gray-200 transition-shadow duration-300 rounded-lg bg-white hover:shadow-md">
+            <h3 className="text-xl text-[#35095e] font-bold mb-5">
+              Wrong Answer Analysis by Chapter
+            </h3>
+            <SubjectTabs 
+              monthData={selectedMonthData} 
+              section="resultsByChapter" 
+              selectedSubject={selectedSubject}
+              groupedSubjects={groupedChapterSubjects}
+            />
+          </div>
+          
           {/* Question Type Analysis */}
           <div className="p-6 border border-gray-200 transition-shadow duration-300 rounded-lg bg-white hover:shadow-md">
             <h3 className="text-xl text-[#35095e] font-bold mb-5">
@@ -364,18 +378,7 @@ const MonthSelector = () => {
             />
           </div>
           
-          {/* Chapter Analysis */}
-          <div className="p-6 border border-gray-200 transition-shadow duration-300 rounded-lg bg-white hover:shadow-md">
-            <h3 className="text-xl text-[#35095e] font-bold mb-5">
-              Wrong Answer Analysis by Chapter
-            </h3>
-            <SubjectTabs 
-              monthData={selectedMonthData} 
-              section="resultsByChapter" 
-              selectedSubject={selectedSubject}
-              groupedSubjects={groupedChapterSubjects}
-            />
-          </div>
+          
         </div>
       </div>
     </div>

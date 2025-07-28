@@ -4,6 +4,7 @@ import DOMPurify from "dompurify";
 import { FaHeart, FaRegHeart, FaFlag } from "react-icons/fa";
 import { MathJax, MathJaxContext } from "better-react-mathjax";
 import ImagePopup from "@/components/ImagePopup";
+import { motion } from "framer-motion";
 
 // Helper component to render HTML with MathJax support
 const HtmlWithMath = ({ html }) => {
@@ -65,22 +66,29 @@ export const TestQuestion = ({
         }
 
         return (
-          <button
-            key={index}
-            onClick={() =>
-              !onShowAnswers && handleAnswer(question.id, currentOptionLabel)
-            }
-            className={buttonClass}
-            disabled={onShowAnswers} // disable interaction when showing answers
-          >
-            <span className="font-bold option_label min-w-[1.5rem]">
-              {currentOptionLabel}
-            </span>
-            <div className="flex-1 question_option">
-              <HtmlWithMath html={option} />
-            </div>
-          </button>
-        );
+  <motion.div
+    key={index}
+    whileHover={{ scale: !onShowAnswers ? 1.02 : 1 }}
+    transition={{ duration: 0.2 }}
+    className="w-full"
+  >
+    <button
+      onClick={() =>
+        !onShowAnswers && handleAnswer(question.id, currentOptionLabel)
+      }
+      className={buttonClass}
+      disabled={onShowAnswers}
+    >
+      <span className="font-bold option_label min-w-[1.5rem]">
+        {currentOptionLabel}
+      </span>
+      <div className="flex-1 question_option">
+        <HtmlWithMath html={option} />
+      </div>
+    </button>
+  </motion.div>
+);
+
       });
     },
     [handleAnswer, userAnswers, onShowAnswers]
@@ -149,7 +157,13 @@ export const TestQuestion = ({
       
       </div>
       {onShowAnswers === true && (
-        <>
+        <div
+      className={`mb-4 question_option p-4 rounded-lg border ${
+        userAnswers[question.id] === question.correctOption
+          ? "bg-green-100 border-green-300"
+          : "bg-red-100 border-red-300"
+      }`}
+    >
           <div className="mb-4 question_option">
 
             <span className="font-semibold">Correct Option: </span>
@@ -173,7 +187,7 @@ export const TestQuestion = ({
               />
             )}
           </div>
-        </>
+        </div>
       )}
       {imagePopup.show && (
         <ImagePopup
