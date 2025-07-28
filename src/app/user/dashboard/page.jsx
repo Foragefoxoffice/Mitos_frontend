@@ -14,6 +14,9 @@ import TestChapter from "@/components/test/test-chapter";
 import TestTopics from "@/components/test/test-topic";
 import { FaAngleLeft } from "react-icons/fa6";
 import CommonLoader from "@/commonLoader";
+import { TbBulb } from "react-icons/tb";
+import { LuNotebookPen } from "react-icons/lu";
+import { RiBook2Line } from "react-icons/ri";
 
 // Custom Hook for Tab State with SessionStorage Persistence
 const useTabState = (tabKey, initialScreen) => {
@@ -105,6 +108,21 @@ export default function Practice() {
   const testState = useTabState("test", "full-portion");
   const studyMaterialState = useTabState("study-material", "subject");
 
+  const tabDetails = {
+    tab1: {
+      label: "Practice",
+      icon: <TbBulb className="inline md:mr-2 mr-1" />,
+    },
+    tab2: {
+      label: "Test",
+      icon: <LuNotebookPen className="inline md:mr-2 mr-1" />,
+    },
+    tab3: {
+      label: "Study Material",
+      icon: <RiBook2Line className="inline md:mr-2 mr-1" />,
+    },
+  };
+
   useEffect(() => {
     const savedTab = sessionStorage.getItem("activeTab");
     if (savedTab) setActiveTab(savedTab);
@@ -137,9 +155,9 @@ export default function Practice() {
             key={index}
             className={`tab ${
               activeTab === tab
-                ? "bg-[#EBD7FF] rounded-3xl text-[--text]"
-                : "text-gray-500"
-            } px-4 md:px-6 py-2`}
+                ? "bg-[#007ACC] text-white font-bold rounded-5xl text-[--text]"
+                : "text-[#00497A]"
+            } px-3 md:px-9 md:py-3 py-2`}
             onClick={() => handleTabClick(tab)}
             aria-label={
               tab === "tab1"
@@ -150,18 +168,34 @@ export default function Practice() {
             }
             aria-selected={activeTab === tab}
           >
-            {tab === "tab1"
-              ? "Practice"
-              : tab === "tab2"
-              ? "Test"
-              : "Study Material"}
+            {tabDetails[tab] ? (
+              <span
+                className={`flex items-center transition-all duration-300 ease-in-out ${
+                  tab === activeTab
+                    ? "text-white md:text-[18px] text-[13px]"
+                    : "text-[#00497a] md:text-[16px] text-[14px]"
+                }`}
+              >
+                {tabDetails[tab].icon}
+                <span
+                  className={`flex items-center transition-all duration-300 ease-in-out ${
+                    tab === activeTab
+                      ? "text-white md:text-[18px] text-[13px]"
+                      : "text-[#00497a] md:text-[16px] text-[14px]"
+                  }`}
+                >
+                  {tabDetails[tab].label}
+                </span>
+              </span>
+            ) : (
+              "Unknown Tab"
+            )}
           </button>
         ))}
       </div>
 
       {isLoading ? (
-          <CommonLoader />
-
+        <CommonLoader />
       ) : (
         <div className="mt-4">
           {/* Practice Tab */}

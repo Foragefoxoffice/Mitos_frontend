@@ -1,5 +1,5 @@
 .sidebar {
-  background: var(--primery);
+  background: linear-gradient(179.62deg, #007acc 23.91%, #003d66 112.47%);
 }
 @keyframes slideDown {
   from {
@@ -217,15 +217,17 @@
 
 .tabs {
   padding: 30px;
-  background: #faf5ff;
+  background: #fff;
   border-radius: 50px;
   display: flex;
 }
 .tab {
-  background-color: #faf5ff;
+  background-color: #dff4ff;
   padding: 10px 30px;
   font-size: 16px;
+  border-radius: 50px;
   font-weight: 600;
+  color: #00497a;
 }
 /*-------------------
  subject page style 
@@ -239,15 +241,31 @@
 .subject_card {
   background: #fffafa;
   width: 100%;
-  padding: 20px;
+  padding: 40px 30px;
   border-radius: var(--borderRadius);
-  display: grid;
   gap: 10px;
-  border: 1px solid #35095e61;
+}
+.subject-card-inner {
+  display: flex;
+  justify-content: space-between;
 }
 .subject_card h2 {
-  color: var(--text);
-  font-size: 22px;
+  color: #fff;
+  font-size: 26px;
+  font-weight: 600;
+}
+
+.subject-card-inner img {
+  width: 125px;
+  height: 125px;
+  object-fit: cover;
+}
+
+.inside_practice .subject_card {
+  height: 300px;
+}
+
+.subject_card p {
   font-weight: 500;
 }
 .subject_card a {
@@ -270,38 +288,21 @@
   color: #fff;
 }
 .subject_card button {
-  color: #6712b7;
-  border: 2px solid #6712b7;
   background: #fff;
   padding: 10px;
-  border-radius: 6px;
+  border-radius: 40px;
   font-weight: 600;
   text-align: center;
-  margin-top: 20px;
   transition: 0.3s ease-in-out;
   cursor: pointer;
 }
-.subject_card button:hover {
-  background: linear-gradient(
-    18deg,
-    rgba(53, 9, 94, 1) 0%,
-    rgba(111, 19, 196, 1) 55%
-  );
-  color: #fff;
-}
+
 .subject_card button:last-child {
-  background: linear-gradient(18deg, #35095e 0%, #6f13c4 55%);
-  color: #fff;
+  background: #fff;
   display: flex;
   justify-content: center;
   gap: 9px;
   align-items: anchor-center;
-}
-
-.subject_card button:last-child:hover {
-  color: #6712b7;
-  border: 2px solid #6712b7;
-  background: #fff;
 }
 
 .subject_card button:last-child:hover svg {
@@ -313,14 +314,13 @@
  --------------------*/
 .chapter_cards {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   place-items: baseline;
   gap: 20px;
-  padding: 0 150px 0 0;
+  padding: 0 0px 0 0;
 }
 .btns_group {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
   gap: 10px;
 }
 /*-------------------
@@ -778,11 +778,10 @@ input[type="checkbox"] {
 .subject_card {
   background: #fffafa;
   width: 100%;
-  padding: 20px;
-  border-radius: var(--borderRadius);
+  padding: 40px 30px;
+  border-radius: 16px;
   display: grid;
   gap: 10px;
-  border: 1px solid #35095e61;
 }
 
 .test_btn {

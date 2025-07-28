@@ -12,10 +12,8 @@ import {
   FiHelpCircle,
   FiBell,
   FiSettings,
-  FiChevronDown,
-  FiChevronRight,
   FiMenu,
-  FiX
+  FiX,
 } from "react-icons/fi";
 
 const navItems = [
@@ -26,43 +24,43 @@ const navItems = [
         title: "Home",
         icon: <FiHome size={18} />,
         href: "/user/dashboard",
-        allowedRoles: ['guest', 'user', 'admin'] // All roles can access
+        allowedRoles: ["guest", "user", "admin"], // All roles can access
       },
       {
         title: "Learning Progress",
         icon: <FiTrendingUp size={18} />,
         href: "/user/progress",
-        allowedRoles: ['user', 'admin'] // Guests cannot access
+        allowedRoles: ["user", "admin"], // Guests cannot access
       },
       {
         title: "Leader Board",
         icon: <FiAward size={18} />,
         href: "/user/leaderboard",
-        allowedRoles: ['user', 'admin']
+        allowedRoles: ["user", "admin"],
       },
       {
         title: "Favorite",
         icon: <FiHeart size={18} />,
         href: "/user/favorite",
-        allowedRoles: ['user', 'admin']
+        allowedRoles: ["user", "admin"],
       },
       {
         title: "FAQ's",
         icon: <FiHelpCircle size={18} />,
         href: "/user/faq",
-        allowedRoles: ['user', 'admin']
+        allowedRoles: ["user", "admin"],
       },
       {
         title: "News",
         icon: <FiBell size={18} />,
         href: "/user/news",
-        allowedRoles: ['user', 'admin']
+        allowedRoles: ["user", "admin"],
       },
       {
         title: "Settings",
         icon: <FiSettings size={18} />,
         href: "/user/settings",
-        allowedRoles: ['user', 'admin']
+        allowedRoles: ["user", "admin"],
       },
     ],
   },
@@ -73,7 +71,7 @@ const Menu = () => {
   const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [userRole, setUserRole] = useState('guest'); // Default to guest
+  const [userRole, setUserRole] = useState("guest"); // Default to guest
   const [showPremiumPopup, setShowPremiumPopup] = useState(false);
 
   const handlePremiumClick = (e) => {
@@ -83,7 +81,7 @@ const Menu = () => {
 
   useEffect(() => {
     // Get user role from storage
-    const role = localStorage.getItem('role') || 'guest';
+    const role = localStorage.getItem("role") || "guest";
     setUserRole(role);
 
     const handleResize = () => {
@@ -91,21 +89,22 @@ const Menu = () => {
     };
 
     handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(prev => !prev);
+    setIsMobileMenuOpen((prev) => !prev);
   };
 
-  const isActive = (href) => pathname === href || pathname.startsWith(`${href}/`);
+  const isActive = (href) =>
+    pathname === href || pathname.startsWith(`${href}/`);
 
   const handleNavigation = (href, allowedRoles) => {
     if (!allowedRoles.includes(userRole)) {
       // Redirect guests trying to access restricted pages
-      if (userRole === 'guest') {
-        router.push('/user/dashboard');
+      if (userRole === "guest") {
+        router.push("/user/dashboard");
       }
       return false;
     }
@@ -116,7 +115,11 @@ const Menu = () => {
     <>
       {/* Mobile menu button */}
       {isMobile && (
-        <div className={`md:hidden fixed left-4 z-50 ${isMobileMenuOpen ? 'top-2 left-[12rem]' : 'relative '}`}>
+        <div
+          className={`md:hidden fixed left-4 z-50 ${
+            isMobileMenuOpen ? "top-2 left-[12rem]" : "relative "
+          }`}
+        >
           <button
             onClick={toggleMobileMenu}
             className="p-2 rounded-lg bg-purple-700 text-white focus:outline-none"
@@ -129,20 +132,20 @@ const Menu = () => {
       {/* Sidebar */}
       <div
         className={`
-          ${isMobile ? 'fixed inset-y-0 left-0 z-40 transform' : 'relative'}
-          ${isMobileMenuOpen ? 'translate-x-0 w-64' : '-translate-x-full'}
+          ${isMobile ? "fixed inset-y-0 left-0 z-40 transform" : "relative"}
+          ${isMobileMenuOpen ? "translate-x-0 w-64" : "-translate-x-full"}
           md:translate-x-0 transition-transform duration-300 ease-in-out
-          bg-[#35095E] text-white h-screen
+           text-white h-screen
         `}
       >
         <div className="space-y-1 pt-16 md:pt-6 ">
           {navItems.map((navGroup) => (
             <div key={navGroup.title} className="overflow-hidden">
-              <div className="py-1 space-y-1">
+              <div className="py-1">
                 {navGroup.items.map((item) => {
                   const isAllowed = item.allowedRoles.includes(userRole);
                   const isDisabled = !isAllowed;
-                  
+
                   return isAllowed ? (
                     <Link
                       key={item.title}
@@ -150,20 +153,37 @@ const Menu = () => {
                       onClick={() => {
                         if (isMobile) setIsMobileMenuOpen(false);
                       }}
-                      className={`flex items-center gap-3 p-3 rounded-lg mx-2 transition-colors duration-200 ${
-                        isActive(item.href)
-                          ? "bg-white text-[#35095E]"
-                          : "text-white hover:bg-purple-800"
-                      }`}
+                      className={`flex items-center gap-3 pt-3 pb-3 pr-2 pl-2 rounded-lg mx-2 group
+    transition-all duration-300 ease-in-out
+    ${
+      isActive(item.href)
+        ? "bg-white text-black font-bold mb-2"
+        : "hover:bg-white mb-2"
+    }
+  `}
                     >
-                      <span className={`${
-                        isActive(item.href) ? "text-[#35095E]" : "text-white"
-                      }`}>
+                      <span
+                        className={`
+      transition-all duration-300 ease-in-out
+      ${
+        isActive(item.href)
+          ? "text-[#000] font-weight-extra-bold"
+          : "text-white group-hover:text-black group-hover:font-bold"
+      }
+    `}
+                      >
                         {item.icon}
                       </span>
-                      <span className={`${
-                        isActive(item.href) ? "font-medium text-[#35095E]" : "text-white"
-                      }`}>
+                      <span
+                        className={`
+      transition-all duration-300 ease-in-out
+      ${
+        isActive(item.href)
+          ? "text-[#000] font-weight-extra-bold"
+          : "text-white group-hover:text-black group-hover:font-bold"
+      }
+    `}
+                      >
                         {item.title}
                       </span>
                     </Link>
@@ -171,18 +191,21 @@ const Menu = () => {
                     <button
                       key={item.title}
                       onClick={handlePremiumClick}
-                      className={`flex items-center gap-3 p-3 rounded-lg mx-2 w-full text-left ${
-                        isActive(item.href)
-                          ? "bg-white text-[#35095E]"
-                          : "text-white hover:bg-purple-800"
-                      } opacity-50`}
+                      className={`w-[100%] flex items-center gap-1 pt-3 mb-3 pb-3 pr-2 pl-2 rounded-lg group
+    transition-all duration-300 ease-in-out ${
+      isActive(item.href)
+        ? "bg-white text-[#35095E]"
+        : "text-white hover:bg-purple-800"
+    } opacity-50`}
                     >
-                      <span className="text-white">
+                      <span className="text-white text-[12px]">
                         {item.icon}
                       </span>
-                      <span className="text-white">
+                      <span className="text-white text-[13px]">
                         {item.title}
-                        <span className="ml-2 text-xs text-yellow-300">(Locked)</span>
+                        <span className="text-[12px] ml-2 text-xs text-yellow-300">
+                          (Locked)
+                        </span>
                       </span>
                     </button>
                   );
@@ -200,7 +223,7 @@ const Menu = () => {
 
       {/* Overlay for mobile */}
       {isMobile && isMobileMenuOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden"
           onClick={() => setIsMobileMenuOpen(false)}
         />

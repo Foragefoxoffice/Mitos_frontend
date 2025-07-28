@@ -1,109 +1,105 @@
-@media (max-width:700px){
-    .container {
-        padding-right: 15px !important;
-        padding-left: 15px !important;
-    }
-    .tabs {
-        padding: 16px;
-    }
-    .subject_cards {
-        grid-template-columns: repeat(1, 1fr);
-    }
-    .chapter_cards {
-        grid-template-columns: repeat(1, 1fr);
-        padding: 0 0 0 0;
-    }
-    .btns_group {
-        grid-template-columns: repeat(1, 1fr);
-        gap: 0;
-    }
-    .topic_cards {
-        grid-template-columns: repeat(1, 1fr);
-    }
-    .question_popup {
-        padding: 20px;
-        width: 90%;
-    }
-    .test_containers {
-        display: flex
-        ;
-                flex-direction: column-reverse;
-    }
-    .test_container2 {
-        width: 100%;
-        padding: 20px;
-        height: auto;
-        position: relative;
-        top: 0px;
-    }
-    .test_container1 {
-        width: 100%;
-        padding:40px 20px;
-    }
-    .rounded_navs {
-        display: flex
-;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 10px;
-        place-items: center;
-    }
-    .rounded_navs button {
-        padding: 10px 21px;
-    }
-    .portion_cards {
-        grid-template-columns: repeat(1, 1fr);
-    }
-    .portion_card .btns_group {
-        display: grid
-    ;
-        gap: 0px;
-    }
-    .answer_label {
-        display: flex
-;
-        gap: 5px;
-        align-items: center;
-        justify-content: space-between;
-        padding: 10px 20px 20px;
-    }
-    .login_content {
-        padding: 0px 30px;
-        height: 100%;
-        display: grid
-    ;
-        place-content: center;
-    }
-    .custom-chap {
-        grid-template-columns: repeat(1, 1fr);
-    }
-    .test_container1 h2 {
-        padding: 20px 0 10px;
-    }
-    .above_score {
-        place-content: start;
-        display: flex
-;
-        gap: 10px;
-    }
-    .nav_btns button {
-        padding: 10px 15px;
-    }
-    .ascore_content {
-        width: 50%;
-        margin: 20px 0;
-    }
-    .below_scroe {
-        display: grid
-    ;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 20px;
-        place-content: center;
-        margin-top: 20px;
-    }
-    .ascore_content:first-child span {
-        color: #35095e;
-        font-size: 28px;
-        font-weight: 700;
-    }
-    
+@media (max-width: 700px) {
+  .container {
+    padding-right: 15px !important;
+    padding-left: 15px !important;
+  }
+  .tabs {
+    padding: 16px;
+  }
+
+  .inside_practice .subject_card {
+    height: auto;
+  }
+  .subject_cards {
+    grid-template-columns: repeat(1, 1fr);
+  }
+  .chapter_cards {
+    grid-template-columns: repeat(1, 1fr);
+    padding: 0 0 0 0;
+  }
+  .btns_group {
+    grid-template-columns: repeat(1, 1fr);
+    gap: 0;
+  }
+  .topic_cards {
+    grid-template-columns: repeat(1, 1fr);
+  }
+  .question_popup {
+    padding: 20px;
+    width: 90%;
+  }
+  .test_containers {
+    display: flex;
+    flex-direction: column-reverse;
+  }
+  .test_container2 {
+    width: 100%;
+    padding: 20px;
+    height: auto;
+    position: relative;
+    top: 0px;
+  }
+  .test_container1 {
+    width: 100%;
+    padding: 40px 20px;
+  }
+  .rounded_navs {
+    display: flex;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    place-items: center;
+  }
+  .rounded_navs button {
+    padding: 10px 21px;
+  }
+  .portion_cards {
+    grid-template-columns: repeat(1, 1fr);
+  }
+  .portion_card .btns_group {
+    display: grid;
+    gap: 0px;
+  }
+  .answer_label {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px 20px;
+  }
+  .login_content {
+    padding: 0px 30px;
+    height: 100%;
+    display: grid;
+    place-content: center;
+  }
+  .custom-chap {
+    grid-template-columns: repeat(1, 1fr);
+  }
+  .test_container1 h2 {
+    padding: 20px 0 10px;
+  }
+  .above_score {
+    place-content: start;
+    display: flex;
+    gap: 10px;
+  }
+  .nav_btns button {
+    padding: 10px 15px;
+  }
+  .ascore_content {
+    width: 50%;
+    margin: 20px 0;
+  }
+  .below_scroe {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    place-content: center;
+    margin-top: 20px;
+  }
+  .ascore_content:first-child span {
+    color: #35095e;
+    font-size: 28px;
+    font-weight: 700;
+  }
 }

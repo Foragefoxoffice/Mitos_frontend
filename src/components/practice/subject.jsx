@@ -74,6 +74,39 @@ export default function Subject({ onSubjectSelect, onScreenSelection }) {
     }, 1000);
   };
 
+  const subjectStyles = {
+    "11th Biology": {
+      image: "/images/practice/11th-biology.png",
+      bgColor: "bg-[#32CD32]",
+      buttonTextColor: "text-[#248C24]",
+    },
+    "11th Physics": {
+      image: "/images/practice/11th-physics.png",
+      bgColor: "bg-[#B57170]",
+      buttonTextColor: "text-[#8C5756]",
+    },
+    "11th Chemistry": {
+      image: "/images/practice/11th-chemistry.png",
+      bgColor: "bg-[#E1AD01]",
+      buttonTextColor: "text-[#9B8108]",
+    },
+    "12th Biology": {
+      image: "/images/practice/12th-biology.png",
+      bgColor: "bg-[#00A86B]",
+      buttonTextColor: "text-[#088356]",
+    },
+    "12th Physics": {
+      image: "/images/practice/12th-physics.png",
+      bgColor: "bg-[#967969]",
+      buttonTextColor: "text-[#7D6659]",
+    },
+    "12th Chemistry": {
+      image: "/images/practice/12th-chemistry.png",
+      bgColor: "bg-[#CDC50A]",
+      buttonTextColor: "text-[#999308]",
+    },
+  };
+
   return (
     <div className="p-4">
       {loading && <CommonLoader />}
@@ -82,23 +115,51 @@ export default function Subject({ onSubjectSelect, onScreenSelection }) {
       {!loading && !error && (
         <div className="subject_cards">
           {subjects.map((subject) => (
-            <div key={subject.id} className="subject_card">
-              <h2>{subject.name}</h2>
-              <p className="text-sm text-gray-700">
-                {subject.chapterCount} Chapters
-              </p>
+            <div
+              key={subject.id}
+              className={`subject_card ${
+                subjectStyles[subject.name]?.bgColor || "bg-gray-200"
+              }`}
+            >
+              <div className="subject-card-inner">
+                <div>
+                  <h2>{subject.name}</h2>
+                  <p className="text-sm text-white">
+                    {subject.chapterCount} Chapters
+                  </p>
+                </div>
+                <div>
+                  <img
+                    src={
+                      subjectStyles[subject.name]?.image ||
+                      "/images/practice/default.png"
+                    }
+                    alt={subject.name}
+                  />
+                </div>
+              </div>
 
               <button
                 disabled={loadingSubjectId === subject.id}
                 onClick={() => handleSubjectClick(subject)}
+                className={`mt-4 px-4 py-2 rounded-full font-semibold bg-white ${
+                  subjectStyles[subject.name]?.buttonTextColor || "text-black"
+                } transition-transform duration-100 ease-in-out hover:-translate-y-[2px]`}
               >
                 {loadingSubjectId === subject.id ? (
                   <>
                     <svg
-                      className="animate-spin h-5 w-5 text-white inline-block mr-2"
+                      className="animate-spin h-5 w-5 inline-block mr-2"
                       xmlns="http://www.w3.org/2000/svg"
                       fill="none"
                       viewBox="0 0 24 24"
+                      style={{
+                        color:
+                          subjectStyles[subject.name]?.buttonTextColor.replace(
+                            "text-",
+                            ""
+                          ) || "#000",
+                      }}
                     >
                       <circle
                         className="opacity-25"
@@ -107,12 +168,12 @@ export default function Subject({ onSubjectSelect, onScreenSelection }) {
                         r="10"
                         stroke="currentColor"
                         strokeWidth="4"
-                      ></circle>
+                      />
                       <path
                         className="opacity-75"
                         fill="currentColor"
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                      ></path>
+                      />
                     </svg>
                     Loading...
                   </>
