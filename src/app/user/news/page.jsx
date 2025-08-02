@@ -1,9 +1,9 @@
-'use client';
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { ArrowRight } from 'lucide-react';
-import CommonLoader from '@/commonLoader';
+"use client";
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { ArrowRight } from "lucide-react";
+import CommonLoader from "@/commonLoader";
 
 export default function NewsListPage() {
   const [newsList, setNewsList] = useState([]);
@@ -18,29 +18,31 @@ export default function NewsListPage() {
       try {
         setLoading(true);
         const response = await fetch(`https://mitoslearning.in/api/news`);
-        
+
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+
         const data = await response.json();
-        
+
         // Check if data exists and is an array
         if (!Array.isArray(data)) {
-          throw new Error('Expected array but received: ' + JSON.stringify(data));
+          throw new Error(
+            "Expected array but received: " + JSON.stringify(data)
+          );
         }
 
-        const normalized = data.map(news => ({
+        const normalized = data.map((news) => ({
           ...news,
           _id: news.id || Math.random().toString(36).substring(2, 9), // Use id field from API
-          createdAt: news.createdAt || new Date().toISOString()
+          createdAt: news.createdAt || new Date().toISOString(),
         }));
-  
+
         setNewsList(normalized);
         // Since your current API doesn't support pagination, we'll simulate it
         setTotalPages(Math.ceil(normalized.length / itemsPerPage));
       } catch (err) {
-        console.error('Fetch error:', err);
+        console.error("Fetch error:", err);
         setError(err.message);
         setNewsList([]);
       } finally {
@@ -59,24 +61,24 @@ export default function NewsListPage() {
 
   const formatDate = (dateString) => {
     try {
-      const options = { year: 'numeric', month: 'long', day: 'numeric' };
+      const options = { year: "numeric", month: "long", day: "numeric" };
       return new Date(dateString).toLocaleDateString(undefined, options);
     } catch {
-      return 'Unknown date';
+      return "Unknown date";
     }
   };
 
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
-      <CommonLoader />
+        <CommonLoader />
       </div>
     );
   }
@@ -87,7 +89,7 @@ export default function NewsListPage() {
         <div className="p-4 text-red-500 bg-red-50 rounded-lg">
           Error loading news: {error}
         </div>
-        <button 
+        <button
           onClick={() => {
             setError(null);
             setCurrentPage(1);
@@ -112,7 +114,7 @@ export default function NewsListPage() {
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             {paginatedNews.map((news) => (
-              <motion.div 
+              <motion.div
                 key={news._id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -121,33 +123,35 @@ export default function NewsListPage() {
               >
                 {news.image && (
                   <div className="h-48 overflow-hidden">
-                    <img 
-                      src={news.image} 
-                      alt={news.title || 'News image'}
+                    <img
+                      src={news.image}
+                      alt={news.title || "News image"}
                       className="w-full h-full object-cover object-top"
                       onError={(e) => {
-                        e.target.src = 'https://via.placeholder.com/300x200?text=No+Image';
+                        e.target.src =
+                          "https://via.placeholder.com/300x200?text=No+Image";
                       }}
                     />
                   </div>
                 )}
                 <div className="p-6">
                   <h2 className="text-xl text-[#35095E] font-bold line-clamp-2 mb-2">
-                    {news.title || 'Untitled News'}
+                    {news.title || "Untitled News"}
                   </h2>
                   <p className="text-gray-500 text-sm mb-3">
                     Published on {formatDate(news.createdAt)}
                   </p>
-                  <div 
+                  <div
                     className="prose prose-sm max-w-none mb-4 line-clamp-3"
-                    dangerouslySetInnerHTML={{ 
-                      __html: news.content 
-                        ? news.content.substring(0, 100) + (news.content.length > 100 ? '...' : '')
-                        : 'No content available' 
+                    dangerouslySetInnerHTML={{
+                      __html: news.content
+                        ? news.content.substring(0, 100) +
+                          (news.content.length > 100 ? "..." : "")
+                        : "No content available",
                     }}
                   />
-                  <Link 
-                    href={`/user/news/${news._id}`} 
+                  <Link
+                    href={`/user/news/${news._id}`}
                     className="inline-flex items-center text-[#35095E] hover:text-[#35095E] mt-2"
                   >
                     Read more <ArrowRight size={16} className="ml-1" />
@@ -168,21 +172,23 @@ export default function NewsListPage() {
                 >
                   Previous
                 </button>
-                
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                  <button
-                    key={page}
-                    onClick={() => handlePageChange(page)}
-                    className={`px-3 py-1 rounded-md border ${
-                      currentPage === page 
-                        ? 'bg-blue-500 text-white border-blue-500' 
-                        : 'border-gray-300 hover:bg-gray-100'
-                    }`}
-                  >
-                    {page}
-                  </button>
-                ))}
-                
+
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                  (page) => (
+                    <button
+                      key={page}
+                      onClick={() => handlePageChange(page)}
+                      className={`px-3 py-1 rounded-md border ${
+                        currentPage === page
+                          ? "bg-blue-500 text-white border-blue-500"
+                          : "border-gray-300 hover:bg-gray-100"
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  )
+                )}
+
                 <button
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages}

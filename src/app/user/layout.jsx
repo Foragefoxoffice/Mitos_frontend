@@ -21,6 +21,10 @@ export default function DashboardLayout({ children }) {
     return <> {children}</>;
   }
 
+  if (pathname === "/user/customize") {
+    return <>{children}</>;
+  }
+
   return (
     <div className="flex h-screen overflow-y-hidden relative bg-[#F0F8FF]">
       {/* Left Side */}

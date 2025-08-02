@@ -118,21 +118,33 @@ export default function Portion({ onPortionSelect, onScreenSelection }) {
       {error && <p className="text-red-500 text-center">{error}</p>}
 
       {!loading && !error && (
-        <div className="portion_cards">
-          <div className="portion_card">
-            <h2>Full Portion Test</h2>
-            <p className="text-sm text-gray-700">11th & 12th </p>
+        <div className="grid md:grid-cols-3 gap-6 px-4">
+          {/* Full Portion Card */}
+          <div className="bg-[#00A86B] text-white rounded-xl p-6 relative shadow-md flex flex-col justify-between">
+            <div className="portion-card-inner">
+              <div>
+                <h2 className="text-3xl font-semibold mb-1">Full Portion</h2>
+                <p className="text-md text-white mb-6">11th & 12th</p>
+              </div>
+              <div className="">
+                <img
+                  src="/images/practice/test-img1.png"
+                  alt="Full Icon"
+                  className=""
+                />
+              </div>
+            </div>
 
             <button
               onClick={handleFullPortionTestClick}
-              className={`cursor-pointer ${
+              className={`w-full hover:translate-y-[-1px] transition-all py-3 rounded-full bg-white text-green-700 font-semibold text-md ${
                 isGuestUser() ? "opacity-50 cursor-not-allowed" : ""
               }`}
               disabled={fullPortionLoading}
             >
-              {fullPortionLoading && (
+              {fullPortionLoading ? (
                 <svg
-                  className="animate-spin h-5 w-5 text-white"
+                  className="animate-spin h-5 w-5 mx-auto text-green-700"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
@@ -151,37 +163,79 @@ export default function Portion({ onPortionSelect, onScreenSelection }) {
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
                   ></path>
                 </svg>
+              ) : (
+                "Full Portion Test"
               )}
-              {fullPortionLoading ? "Loading..." : "Full Portion Test"}
             </button>
           </div>
-          {portions.map((portion) => (
-            <div key={portion.id} className="portion_card">
-              <h2>{portion.name} Portion </h2>
-              <p className="text-sm text-gray-700">
-                {portion.detailCount} Subjects
-              </p>
 
-              <div className="btns_group">
-                <button
-                  onClick={() => handleCustomPortionClick(portion)}
-                  className={
-                    isGuestUser() ? "opacity-50 cursor-not-allowed" : ""
-                  }
-                >
-                  Customize Chapter Test
-                </button>
-                <button
-                  onClick={() => handlePortionClick(portion)}
-                  className={
-                    isGuestUser() ? "opacity-50 cursor-not-allowed" : ""
-                  }
-                >
-                  Full Test
-                </button>
+          {/* Portion Cards */}
+          {portions.map((portion) => {
+            const bgColor =
+              portion.name === "11th"
+                ? "bg-[#B57170]"
+                : portion.name === "12th"
+                ? "bg-[#CDC50A]"
+                : "bg-[#CDC50A]";
+
+            const imageSrc =
+              portion.name === "11th"
+                ? "/images/practice/test-img1.png"
+                : portion.name === "12th"
+                ? "/images/practice/test-img1.png"
+                : "/images/practice/test-img1.png";
+
+            const btnText =
+              portion.name === "11th"
+                ? "text-[#B57170]"
+                : portion.name === "12th"
+                ? "text-[#CDC50A]"
+                : "text-[#CDC50A]";
+
+            return (
+              <div
+                key={portion.id}
+                className={`text-white rounded-xl  p-6 relative shadow-md ${bgColor}`}
+              >
+                <div className="portion-card-inner">
+                  <div>
+                    <h2 className="text-3xl font-semibold mb-1">
+                      {portion.name} Portion
+                    </h2>
+                    <p className="text-md text-white mb-6">
+                      {portion.detailCount} Subjects
+                    </p>
+                  </div>
+                  <div>
+                    <img
+                      src={imageSrc}
+                      alt={`${portion.name} Icon`}
+                      className=""
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <button
+                    onClick={() => handleCustomPortionClick(portion)}
+                    className={`w-full hover:translate-y-[-1px] transition-all mt-14 py-3 rounded-full bg-white ${btnText} font-semibold text-md ${
+                      isGuestUser() ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
+                  >
+                    Custom Chapter Test
+                  </button>
+                  <button
+                    onClick={() => handlePortionClick(portion)}
+                    className={`w-full py-3 hover:translate-y-[-1px] transition-all rounded-full bg-white ${btnText} font-semibold text-md ${
+                      isGuestUser() ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
+                  >
+                    Full Test
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 

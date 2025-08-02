@@ -53,23 +53,21 @@ export const TestTimer = ({
 }) => {
   // Prepare options for react-select
   console.log("onShowAnswers", showAnswer);
-const subjectOrder = ["Physics", "Chemistry", "Biology"];
+  const subjectOrder = ["Physics", "Chemistry", "Biology"];
 
-const subjectOptions = useMemo(() => {
-  const sortedSubjects = [...getUniqueSubjects].sort((a, b) => {
-    return subjectOrder.indexOf(a.name) - subjectOrder.indexOf(b.name);
-  });
+  const subjectOptions = useMemo(() => {
+    const sortedSubjects = [...getUniqueSubjects].sort((a, b) => {
+      return subjectOrder.indexOf(a.name) - subjectOrder.indexOf(b.name);
+    });
 
-  return [
-    { value: null, label: "All Subjects" },
-    ...sortedSubjects.map((subject) => ({
-      value: subject.id,
-      label: subject.name,
-    })),
-  ];
-}, [getUniqueSubjects]);
-
-
+    return [
+      { value: null, label: "All Subjects" },
+      ...sortedSubjects.map((subject) => ({
+        value: subject.id,
+        label: subject.name,
+      })),
+    ];
+  }, [getUniqueSubjects]);
 
   // Handle select change
   const handleSelectChange = (selectedOption) => {
@@ -77,9 +75,12 @@ const subjectOptions = useMemo(() => {
   };
 
   // Find the currently selected option
-const selectedOption = useMemo(() =>
-  subjectOptions.find((option) => option.value === subjectFilter) || subjectOptions[0]
-, [subjectOptions, subjectFilter]);
+  const selectedOption = useMemo(
+    () =>
+      subjectOptions.find((option) => option.value === subjectFilter) ||
+      subjectOptions[0],
+    [subjectOptions, subjectFilter]
+  );
 
   const totalTimeTaken = totalTime - timeLeft;
   return (
@@ -104,8 +105,8 @@ const selectedOption = useMemo(() =>
         {showAnswer == false && (
           <button
             onClick={showSubmitConfirmationPopup}
-            className="btn"
-            style={{ padding: "0.5rem 3rem" }}
+            className="btn hover:text-[#fff] hover:border-none"
+            style={{ padding: "0.5rem 3rem", backgroundColor: "#007ACC" }}
           >
             Submit
           </button>

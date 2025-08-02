@@ -8,7 +8,7 @@ export const TestSidebar = ({
   markedQuestions,
   handleQuestionNavigation,
   questionNavRefs,
-  onShowAnswers
+  onShowAnswers,
 }) => {
   // Navigate to first question when show answers mode is activated
   useEffect(() => {
@@ -24,14 +24,16 @@ export const TestSidebar = ({
           <>
             <li className="text-[#4CAF50] after:bg-[#4CAF50]">Correct</li>
             <li className="text-[#F44336] after:bg-[#F44336]">Wrong</li>
-            <li className="text-gray-400 after:bg-gray-400">Unanswered</li>
+            <li className="text-[#000] after:bg-[#CAE2FF]">Unanswered</li>
           </>
         ) : (
           <>
-            <li className="text-[var(--primery)] after:bg-[var(--primery)]">Answered</li>
+            <li className="text-[#35095E] after:bg-[#35095E]">Answered</li>
             <li className="text-[#e49331] after:bg-[#e49331]">Un-answered</li>
-            <li className="text-gray-400 after:bg-gray-400">Not visited</li>
-            <li className="text-[#498FE0] after:bg-[#498FE0]">Mark as Review</li>
+            <li className="text-[#000] after:bg-[#CAE2FF]">Not visited</li>
+            <li className="text-[#00558E] after:bg-[#00558E]">
+              Mark as Review
+            </li>
           </>
         )}
       </ul>
@@ -42,23 +44,27 @@ export const TestSidebar = ({
           const isMarked = markedQuestions[question.id] !== undefined;
           const isCorrect = userAnswers[question.id] === question.correctOption;
 
-          let buttonColor = "bg-[#B19CBE]"; 
-          
+          let buttonColor = "bg-[#CAE2FF]";
+          let buttonText = "text-[#fff]";
+
           if (onShowAnswers) {
             if (isAnswered) {
               buttonColor = isCorrect ? "bg-[#4CAF50]" : "bg-[#F44336]";
+              buttonText = isCorrect ? "text-white" : "text-white";
             } else {
-              buttonColor = "bg-gray-400 text-black"; 
+              buttonColor = "bg-[#CAE2FF] text-black";
+              buttonText = "text-white";
             }
           } else {
             // Original coloring logic when not showing answers
             if (isAnswered) {
-              buttonColor = "bg-[var(--primery)]";
+              buttonColor = "bg-[#35095E]";
+              buttonText = "text-[#fff]";
             } else if (isVisited) {
               buttonColor = "bg-[#e49331]";
             }
             if (isMarked) {
-              buttonColor = "bg-[#498FE0]";
+              buttonColor = "bg-[#00558E]";
             }
           }
 
@@ -67,7 +73,7 @@ export const TestSidebar = ({
               key={question.id}
               ref={(el) => (questionNavRefs.current[index] = el)}
               onClick={() => handleQuestionNavigation(index)}
-              className={`p-2 rounded-lg text-center ${buttonColor} text-white min-w-[40px]`}
+              className={`p-2 rounded-lg text-center ${buttonColor} text-black min-w-[40px]`}
             >
               {index + 1}
             </button>

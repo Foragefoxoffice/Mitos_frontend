@@ -99,15 +99,16 @@ label span {
   gap: 10px;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(to top, #35095e, #6f13c4);
-  padding: 1rem 3rem;
-  border-radius: 0.5rem;
+  background: #31ca31;
+  padding: 15px 50px;
+  border-radius: 50px;
   color: white;
   font-size: 20px;
+  font-weight: 600;
   transition: 0.3s ease-in-out;
 }
 .btn:hover {
   background: #fff;
-  border: 2px solid #35095e;
-  color: var(--primery);
+  border: 2px solid #31ca31;
+  color: #31ca31;
 }

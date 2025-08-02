@@ -164,62 +164,65 @@ export default function TopicsPage({ selectedChapter, onTopicSelect }) {
                   checked={selectAll}
                   onChange={handleSelectAll}
                 />
-                <label htmlFor="selectAll" className="cursor-pointer text-lg ml-2">
+                <label
+                  htmlFor="selectAll"
+                  className="cursor-pointer text-md ml-2"
+                >
                   Full Chapter ({filteredTopics.length} topics)
                 </label>
               </div>
             )}
 
-         {[...filteredTopics]
-    .sort((a, b) => {
-      const aLocked = isGuestUser() && a.isPremium;
-      const bLocked = isGuestUser() && b.isPremium;
-      return aLocked - bLocked;
-    })
-    .map((topic) => {
-      const isLocked = isGuestUser() && topic.isPremium;
-              return (
-                <div
-                  key={topic.id}
-                  style={{ margin: 0 }}
-                  className={`topic_card flex items-center space-x-2 ${
-                    isLocked ? "opacity-50 cursor-not-allowed " : ""
-                  }`}
-                  onClick={() => {
-                    if (isLocked) setShowPopup(true);
-                  }}
-                >
-                  <input
-                    type="checkbox"
-                    id={`topic-${topic.id}`}
-                    className="cursor-pointer"
-                    checked={selectedTopics.includes(topic.id)}
-                    disabled={isLocked}
-                    onChange={(e) => {
-                      e.stopPropagation();
-                      handleCheckboxChange(topic);
+            {[...filteredTopics]
+              .sort((a, b) => {
+                const aLocked = isGuestUser() && a.isPremium;
+                const bLocked = isGuestUser() && b.isPremium;
+                return aLocked - bLocked;
+              })
+              .map((topic) => {
+                const isLocked = isGuestUser() && topic.isPremium;
+                return (
+                  <div
+                    key={topic.id}
+                    style={{ margin: 0 }}
+                    className={`topic_card flex items-center space-x-2 ${
+                      isLocked ? "opacity-50 cursor-not-allowed " : ""
+                    }`}
+                    onClick={() => {
+                      if (isLocked) setShowPopup(true);
                     }}
-                  />
-                  <label
-                    htmlFor={`topic-${topic.id}`}
-                    className="cursor-pointer text-lg"
                   >
-                    {topic.name}
-                    {topic.isPremium && isGuestUser() && (
-                      <span className="text-red-500 ml-2">🔒 Locked</span>
-                    )}
-                  </label>
-                </div>
-              );
-            })}
+                    <input
+                      type="checkbox"
+                      id={`topic-${topic.id}`}
+                      className="cursor-pointer"
+                      checked={selectedTopics.includes(topic.id)}
+                      disabled={isLocked}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        handleCheckboxChange(topic);
+                      }}
+                    />
+                    <label
+                      htmlFor={`topic-${topic.id}`}
+                      className="cursor-pointer text-lg font-normal"
+                    >
+                      {topic.name}
+                      {topic.isPremium && isGuestUser() && (
+                        <span className="text-red-500 ml-2">🔒 Locked</span>
+                      )}
+                    </label>
+                  </div>
+                );
+              })}
           </div>
 
           {filteredTopics.length > 0 && (
             <button
-              className="mx-auto mt-6 btn bg-blue-600 text-white px-4 py-2 rounded"
+              className="mx-auto mt-14 btn bg-blue-600 text-white px-4 py-2 rounded"
               onClick={startTest}
             >
-              Start Practice
+              Lets Practice
             </button>
           )}
         </>

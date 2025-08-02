@@ -6,6 +6,7 @@ import { useSelectedQuestionTypes } from "@/contexts/SelectedQuestionTypesContex
 import PremiumPopup from "../PremiumPopup"; // Make sure this exists
 import { m } from "framer-motion";
 import CommonLoader from "@/commonLoader";
+import { HiOutlineSearch } from "react-icons/hi";
 
 export default function QuestiontypePage({ selectedChapter }) {
   const {
@@ -65,9 +66,9 @@ export default function QuestiontypePage({ selectedChapter }) {
           throw new Error("Invalid questions data format");
         }
 
-        const questionTypeIdsInChapter = [...new Set(
-          questionsData.map(q => q.questionTypeId)
-        )];
+        const questionTypeIdsInChapter = [
+          ...new Set(questionsData.map((q) => q.questionTypeId)),
+        ];
 
         const typesResponse = await fetchQuestionType();
         const allQuestionTypes = typesResponse.data;
@@ -76,12 +77,12 @@ export default function QuestiontypePage({ selectedChapter }) {
           throw new Error("Invalid question types data format");
         }
 
-        const chapterQuestionTypes = allQuestionTypes.filter(type =>
+        const chapterQuestionTypes = allQuestionTypes.filter((type) =>
           questionTypeIdsInChapter.includes(type.id)
         );
 
         // Sort question types - unlocked first for guest users
-        const sortedQuestionTypes = isGuest 
+        const sortedQuestionTypes = isGuest
           ? [...chapterQuestionTypes].sort((a, b) => {
               if (a.isPremium === b.isPremium) return 0;
               return a.isPremium ? 1 : -1;
@@ -147,7 +148,33 @@ export default function QuestiontypePage({ selectedChapter }) {
 
   return (
     <div className="p-6">
-      <h1 className="text-xl font-bold mb-4">Select Question Types</h1>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-xl font-bold text-[#017bcd] mb-4">
+          Attempt by Question Type
+        </h1>
+        <div className="relative w-[20%]">
+          <span className="absolute inset-y-0 left-3 flex items-center text-[#00497A]">
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M21 21l-4.35-4.35M10 18a8 8 0 100-16 8 8 0 000 16z"
+              />
+            </svg>
+          </span>
+          <input
+            className="w-full pl-10 placeholder:text-[#00497A] h-[10%] p-3 bg-[#DFF4FF] rounded-lg border border-[#007acc80] text-[#007acc] focus:outline-none focus:ring-2 focus:ring-[#007acc80] transition duration-200"
+            placeholder="Search"
+            type="search"
+          />
+        </div>
+      </div>
 
       {loading && <CommonLoader />}
       {error && <p className="text-center pt-10 text-red-500">{error}</p>}
@@ -158,14 +185,39 @@ export default function QuestiontypePage({ selectedChapter }) {
             <>
               <div className="topic_cards space-y-3">
                 {!isGuest && (
-                  <div className="topic_card">
+                  <div className="topic_card attemtpt-checkbox">
                     <input
+                      className={`
+    appearance-none 
+    rounded-full 
+    border border-blue-600 
+    checked:bg-blue-600 
+    checked:border-blue-600 
+    flex items-center justify-center 
+    relative 
+    cursor-pointer 
+    disabled:opacity-50
+    after:content-['✓'] 
+    after:text-white 
+    after:text-xl
+    after:font-bold 
+    after:absolute 
+    after:top-1/2 
+    after:left-1/2 
+    after:-translate-x-1/2 
+    after:-translate-y-[57%]
+    after:hidden 
+    checked:after:block
+  `}
                       type="checkbox"
                       id="selectAll"
                       checked={selectAll}
                       onChange={handleSelectAll}
                     />
-                    <label htmlFor="selectAll" className="cursor-pointer text-lg ml-2">
+                    <label
+                      htmlFor="selectAll"
+                      className="cursor-pointer text-lg ml-2"
+                    >
                       Select All ({availableQuestionTypes.length} Types)
                     </label>
                   </div>
@@ -184,17 +236,44 @@ export default function QuestiontypePage({ selectedChapter }) {
                         if (isLocked) setShowPopup(true);
                       }}
                     >
-                      <input
-                        type="checkbox"
-                        id={`questionType-${type.id}`}
-                        className="cursor-pointer"
-                        checked={selectedQuestionTypes.includes(type.id)}
-                        disabled={isLocked}
-                        onChange={(e) => {
-                          e.stopPropagation();
-                          handleCheckboxChange(type);
-                        }}
-                      />
+                      <label
+                        style={{ width: 30 }}
+                        className="inline-flex items-center cursor-pointer attemtpt-checkbox"
+                      >
+                        <input
+                          type="checkbox"
+                          id={`questionType-${type.id}`}
+                          checked={selectedQuestionTypes.includes(type.id)}
+                          disabled={isLocked}
+                          onChange={(e) => {
+                            e.stopPropagation();
+                            handleCheckboxChange(type);
+                          }}
+                          className={`
+    appearance-none 
+    rounded-full 
+    border border-blue-600 
+    checked:bg-blue-600 
+    checked:border-blue-600 
+    flex items-center justify-center 
+    relative 
+    cursor-pointer 
+    disabled:opacity-50
+    after:content-['✓'] 
+    after:text-white 
+    after:text-xl
+    after:font-bold 
+    after:absolute 
+    after:top-1/2 
+    after:left-1/2 
+    after:-translate-x-1/2 
+    after:-translate-y-[57%]
+    after:hidden 
+    checked:after:block
+  `}
+                        />
+                      </label>
+
                       <label
                         htmlFor={`questionType-${type.id}`}
                         className="cursor-pointer text-lg"
@@ -209,10 +288,10 @@ export default function QuestiontypePage({ selectedChapter }) {
                 })}
               </div>
               <button
-                className="mx-auto mt-6 btn bg-blue-600 text-white px-4 py-2 rounded"
+                className="mx-auto mt-14 btn bg-blue-600 text-white px-4 py-2 rounded"
                 onClick={startTest}
               >
-                Start Practice
+                Lets Practice
               </button>
             </>
           ) : (

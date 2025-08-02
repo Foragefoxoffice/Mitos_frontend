@@ -123,7 +123,7 @@ export default function TestSubject({ selectedPortion }) {
 
   return (
     <div className="py-6 relative">
-      {loading &&  <CommonLoader />}
+      {loading && <CommonLoader />}
       {error && <p className="text-red-500 text-center">{error}</p>}
 
       {/* Display selected chapters */}
@@ -261,55 +261,93 @@ export default function TestSubject({ selectedPortion }) {
       <div className="mt-6 text-center">
         <button
           onClick={handleStartClick}
-          className="test_btn px-6 py-3 bg-[#35095e] text-white rounded-md hover:bg-[#4a0d7a] transition-colors"
+          className="test_btn px-6 py-3 text-white transition-colors"
         >
-          Start Your Test
+          Take Your Test
         </button>
       </div>
 
       {/* Question Limit Popup */}
       {showLimitPopup && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md relative">
-            <button
-              onClick={() => setShowLimitPopup(false)}
-              className="absolute text-white  top-4 right-4 rounded-full p-1 hover:text-gray-700"
-            >
-              <FaXmark /> {/* Changed from FaTimes to FaXmark */}
-            </button>
-
-            <h3 className="text-xl font-semibold text-[#35095e] mb-4">
-              Select Number of Questions
-            </h3>
-
-            <div className="grid grid-cols-2 gap-3 mb-6">
-              {[30, 60, 90, 120, 150, 180].map((limit) => (
-                <button
-                  key={limit}
-                  onClick={() => setQuestionLimit(limit)}
-                  className={`py-3 px-4 rounded-md border-2 transition-all ${
-                    questionLimit === limit
-                      ? "bg-[#35095e] text-white border-[#35095e]"
-                      : "bg-white text-[#35095e] border-gray-300 hover:bg-gray-50 hover:border-[#35095e]"
-                  }`}
-                >
-                  {limit} Questions
-                </button>
-              ))}
+          <div className="bg-white rounded-xl w-full max-w-lg shadow-lg overflow-hidden relative">
+            {/* Header */}
+            <div className="bg-[#007ACC] text-white text-center text-md md:text-2xl font-semibold py-4">
+              Select Number Of Questions
             </div>
 
-            <div className="flex justify-end gap-3">
+            {/* Question Options */}
+            <div className="px-6 py-4 space-y-4">
+              {[50, 100, "Full Test"].map((option) => {
+                const isSelected =
+                  (typeof option === "number" && questionLimit === option) ||
+                  (option === "Full Test" && questionLimit === "Full");
+
+                return (
+                  <div
+                    key={option}
+                    onClick={() =>
+                      setQuestionLimit(option === "Full Test" ? "Full" : option)
+                    }
+                    className={`flex bg-[#F0F8FF] items-center px-6 py-6 rounded-lg cursor-pointer border transition-all ${
+                      isSelected
+                        ? "border-[#007ACC] text-[#000] bg-blue-50 shadow-sm"
+                        : "border-gray-200 text-gray-700 hover:bg-gray-50"
+                    }`}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div
+                        className={`w-5 h-5 flex items-center justify-center rounded border ${
+                          isSelected
+                            ? "bg-blue-600 border-blue-600"
+                            : "border-gray-300"
+                        }`}
+                      >
+                        {isSelected && (
+                          <svg
+                            className="w-3 h-3 text-white"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="3"
+                            viewBox="0 0 24 24"
+                          >
+                            <path d="M5 13l4 4L19 7" />
+                          </svg>
+                        )}
+                      </div>
+                      <span className="text-base font-medium">
+                        {typeof option === "number"
+                          ? `${option} Questions`
+                          : option}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Footer Buttons */}
+            <div className="px-6 py-4 flex justify-between">
               <button
                 onClick={() => setShowLimitPopup(false)}
-                className="px-4 py-2 bg-white text-[#35095e] border border-gray-300 rounded-md hover:bg-gray-50"
+                className="px-12 py-2 bg-[#CDEFE3] text-[#068457] rounded-full font-medium"
               >
-                Cancel
+                Back
               </button>
               <button
+                style={{
+                  boxShadow: `
+      0px 4px 8px 0px #00000040,
+      -1px 15px 15px 0px #00000036,
+      -3px 34px 20px 0px #00000021,
+      -5px 60px 24px 0px #0000000A,
+      -7px 94px 26px 0px #00000000
+    `,
+                }}
                 onClick={confirmStartTest}
-                className="px-4 py-2 bg-[#35095e] text-white rounded-md hover:bg-[#4a0d7a]"
+                className="px-4 py-2 bg-[#31CA31] text-white rounded-full font-medium shadow hover:bg-green-600"
               >
-                Start Test ({questionLimit} Questions)
+                Take your Test
               </button>
             </div>
           </div>

@@ -5,13 +5,18 @@ import { TestContext } from "@/contexts/TestContext";
 import { useRouter } from "next/navigation";
 import CommonLoader from "@/commonLoader";
 
-export default function TestChapter({selectedPortion, selectedSubject, onChapterSelect, onScreenSelection }) {
+export default function TestChapter({
+  selectedPortion,
+  selectedSubject,
+  onChapterSelect,
+  onScreenSelection,
+}) {
   const [chapters, setChapters] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { setTestData } = useContext(TestContext);
   const router = useRouter();
-  console.log("subjectId",selectedPortion)
+  console.log("subjectId", selectedPortion);
   useEffect(() => {
     const loadChapters = async () => {
       try {
@@ -24,7 +29,10 @@ export default function TestChapter({selectedPortion, selectedSubject, onChapter
           chaptersData.map(async (chapter) => {
             try {
               const details = await fetchChapterTopics(chapter.id);
-              return { ...chapter, detailCount: Array.isArray(details) ? details.length : 0 };
+              return {
+                ...chapter,
+                detailCount: Array.isArray(details) ? details.length : 0,
+              };
             } catch {
               return { ...chapter, detailCount: 0 }; // Use 0 instead of "No" for consistency
             }
@@ -63,7 +71,7 @@ export default function TestChapter({selectedPortion, selectedSubject, onChapter
 
   return (
     <div className="py-6">
-      {loading &&  <CommonLoader />}
+      {loading && <CommonLoader />}
       {error && <p className="text-red-500 text-center">{error}</p>}
 
       {!loading && !error && (
@@ -71,7 +79,9 @@ export default function TestChapter({selectedPortion, selectedSubject, onChapter
           {chapters.map((chapter) => (
             <div key={chapter.id} className="portion_card">
               <h2>{chapter.name} Portion </h2>
-              <p className="text-sm text-gray-700">{chapter.detailCount} Topics</p>
+              <p className="text-sm text-gray-700">
+                {chapter.detailCount} Topics
+              </p>
 
               <div className="btns_group">
                 <button onClick={() => handleCustomTopicsClick(chapter)}>

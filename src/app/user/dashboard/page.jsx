@@ -17,6 +17,7 @@ import CommonLoader from "@/commonLoader";
 import { TbBulb } from "react-icons/tb";
 import { LuNotebookPen } from "react-icons/lu";
 import { RiBook2Line } from "react-icons/ri";
+import { HiArrowSmallLeft } from "react-icons/hi2";
 
 // Custom Hook for Tab State with SessionStorage Persistence
 const useTabState = (tabKey, initialScreen) => {
@@ -206,10 +207,10 @@ export default function Practice() {
               ) && (
                 <button
                   onClick={practiceState.goBack}
-                  className="flex items-center p-2 rounded-md ml-4"
+                  className="flex items-center p-2 rounded-md ml-4 bg-[transparent] transition-colors duration-200"
                 >
-                  <FaAngleLeft className="text-xl text-white" />
-                  <span className="text-white">Back</span>
+                  <HiArrowSmallLeft className="text-xl text-[#007acc]" />
+                  <span className="text-[#007acc] ml-1">Back</span>
                 </button>
               )}
               {practiceState.currentScreen === "subject" && (
@@ -253,10 +254,10 @@ export default function Practice() {
               ].includes(testState.currentScreen) && (
                 <button
                   onClick={testState.goBack}
-                  className="flex items-center p-2 rounded-md ml-4"
+                  className="flex items-center bg-[transparent] p-2 rounded-md ml-4"
                 >
-                  <FaAngleLeft className="text-xl text-white" />
-                  <span className="text-white">Back</span>
+                  <HiArrowSmallLeft className="text-xl text-[#007acc]" />
+                  <span className="text-[#007acc] ml-1">Back</span>
                 </button>
               )}
               {testState.currentScreen === "full-portion" && (
@@ -305,14 +306,14 @@ export default function Practice() {
               {["chapter", "topic"].includes(
                 studyMaterialState.currentScreen
               ) && (
-                <div className="flex items-center">
+                <div className="flex items-center mb-6">
                   <button
                     onClick={studyMaterialState.goBack}
-                    className="flex items-center p-2 rounded-md ml-4"
+                    className="flex bg-[transparent] items-center p-2 rounded-md ml-4"
                   >
-                    <FaAngleLeft className="text-xl text-white" />
+                    <HiArrowSmallLeft className="text-xl text-[#007acc]" />
                   </button>
-                  <h2 className="pl-2 text-2xl font-semibold capitalize text-[#35095E]">
+                  <h2 className="text-2xl font-semibold capitalize text-[#007acc]">
                     {studyMaterialState.currentScreen === "chapter"
                       ? "Learn by Chapter"
                       : "Learn By Topic"}
