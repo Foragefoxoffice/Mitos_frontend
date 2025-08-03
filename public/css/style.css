@@ -276,6 +276,10 @@
   height: 300px;
 }
 
+.chapter_cards_card {
+  height: 250px !important;
+}
+
 .subject_card p {
   font-weight: 500;
 }
@@ -457,12 +461,12 @@ input[type="checkbox"] {
 
 .test_container1 h2 {
   color: var(--primery);
-  font-size: 30px;
+  font-size: 24px;
   font-weight: 500;
 }
 .test_container1 p,
 .test_container1 div {
-  color: var(--text);
+  /* color: var(--text); */
   font-size: 20px !important;
   font-weight: 500;
 }
@@ -500,32 +504,32 @@ input[type="checkbox"] {
   gap: 20px;
 }
 .nav_btns button:last-child {
-  background: #31ca31;
+  background: #34c534;
   color: #fff;
+  padding: 6px 80px;
   box-shadow: 0px 4px 8px 0px #00000040, -1px 15px 15px 0px #00000036,
     -3px 34px 20px 0px #00000021, -5px 60px 24px 0px #0000000a,
     -7px 94px 26px 0px #00000000;
 }
 
 .nav_btns button {
-  color: #31ca31;
-  border: 2px solid #31ca31;
+  color: #34c534;
+  border: 2px solid #34c534;
   background: #fff;
-  padding: 6px 30px;
+  padding: 6px 20px;
   border-radius: 30px;
-  font-weight: 600;
+  font-weight: 500;
   text-align: center;
   margin-top: 20px;
   transition: all 0.3s ease-in-out;
 }
 .nav_btns button:hover {
-  background: #31ca31;
+  background: #34c534;
   color: #fff;
 }
 .nav_btns button:last-child:hover {
-  color: #31ca31;
-  border: 2px solid #31ca31;
-  background: #fff;
+  background-color: rgb(22 163 74 / var(--tw-bg-opacity, 1));
+  border: rgb(22 163 74) solid;
 }
 
 /* Test_container2 styles */
@@ -568,7 +572,7 @@ input[type="checkbox"] {
   gap: 10px;
   align-items: center;
   justify-content: space-between;
-  padding: 0px 30px 20px;
+  padding: 0px 30px 15px;
 }
 .answer_label li {
   font-family: 20px;
@@ -794,6 +798,7 @@ input[type="checkbox"] {
   border-radius: 16px;
   display: grid;
   gap: 10px;
+  align-items: center;
 }
 
 .test_btn {
@@ -927,4 +932,8 @@ tr {
   border-radius: var(--borderRadius);
   border: 1px solid #d3cbfb6a;
   box-shadow: 0 2px 8px #590f9d4a;
+}
+
+.notvisited-label {
+  color: black !important;
 }

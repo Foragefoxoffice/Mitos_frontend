@@ -51,7 +51,6 @@ export const TestTimer = ({
   onShowAnswers,
   showAnswer,
 }) => {
-  // Prepare options for react-select
   console.log("onShowAnswers", showAnswer);
   const subjectOrder = ["Physics", "Chemistry", "Biology"];
 
@@ -68,6 +67,19 @@ export const TestTimer = ({
       })),
     ];
   }, [getUniqueSubjects]);
+
+  const customStyles = {
+    option: (provided, state) => ({
+      ...provided,
+      backgroundColor: state.isFocused
+        ? "#f0f0f0"
+        : state.isSelected
+        ? "#017bcd"
+        : "#fff",
+      color: state.isFocused ? "#000" : state.isSelected ? "#fff" : "#000",
+      cursor: "pointer",
+    }),
+  };
 
   // Handle select change
   const handleSelectChange = (selectedOption) => {
@@ -100,13 +112,14 @@ export const TestTimer = ({
             onChange={handleSelectChange}
             styles={customStyles}
             isSearchable={false}
+            className="p-2"
           />
         )}
         {showAnswer == false && (
           <button
             onClick={showSubmitConfirmationPopup}
-            className="btn hover:text-[#fff] hover:border-none"
-            style={{ padding: "0.5rem 3rem", backgroundColor: "#007ACC" }}
+            className="btn hover:text-[#fff] hover:border-none text-md"
+            style={{ padding: "6px 40px", backgroundColor: "#007ACC" }}
           >
             Submit
           </button>
@@ -116,7 +129,7 @@ export const TestTimer = ({
             onClick={() => {
               onShowAnswers?.(false); // Call parent function if defined
             }}
-            className="btn"
+            className="btn whitespace-nowrap"
             style={{ padding: "0.5rem 3rem" }}
           >
             View Results

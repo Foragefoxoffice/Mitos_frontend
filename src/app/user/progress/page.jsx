@@ -16,8 +16,18 @@ const NextArrow = ({ onClick }) => (
     className="absolute right-[-15px] top-1/2 z-10 transform -translate-y-1/2 cursor-pointer"
     onClick={onClick}
   >
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-6 h-6 text-[#35095e]">
-      <path d="M9 18l6-6-6-6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      className="w-6 h-6 text-[#35095e]"
+    >
+      <path
+        d="M9 18l6-6-6-6"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   </div>
 );
@@ -27,8 +37,18 @@ const PrevArrow = ({ onClick }) => (
     className="absolute left-[-15px] top-1/2 z-10 transform -translate-y-1/2 cursor-pointer"
     onClick={onClick}
   >
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-6 h-6 text-[#35095e]">
-      <path d="M15 18l-6-6 6-6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      className="w-6 h-6 text-[#35095e]"
+    >
+      <path
+        d="M15 18l-6-6 6-6"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   </div>
 );
@@ -69,7 +89,8 @@ export default function ResultPage() {
   };
 
   useEffect(() => {
-    const storedUserId = typeof window !== "undefined" ? localStorage.getItem("userId") : null;
+    const storedUserId =
+      typeof window !== "undefined" ? localStorage.getItem("userId") : null;
     if (storedUserId) {
       setUserId(parseInt(storedUserId, 10));
     } else {
@@ -100,37 +121,43 @@ export default function ResultPage() {
     fetchResults();
   }, [userId]);
 
-  if (loading) return <div className="container pt-6"><CommonLoader /></div>;
-  
-if (weeklyResults.length === 0) {
-  return (
-    <div className="relative w-full h-[400px] overflow-hidden">
-
-      <img
-        src="/images/progress.png"
-        alt="No Results"
-        className="absolute inset-0 w-full h-full object-cover filter blur-sm opacity-70"
-      />
-
-      <div className="relative z-10 flex flex-col items-center justify-center h-full text-center">
-        <h2 className="text-2xl font-bold text-gray-800">No results available</h2>
-        <p className="text-md text-gray-600 mt-2">Please take the test to see your results.</p>
-           <a
-          href="/user/dashboard"
-          className="mt-6 px-6 py-2 bg-[#35095e] text-white font-medium rounded-lg hover:bg-[#35095e]/80 transition"
-        >
-          Take the Test
-        </a>
+  if (loading)
+    return (
+      <div className="container pt-6">
+        <CommonLoader />
       </div>
-    </div>
-  );
-}
+    );
 
+  if (weeklyResults.length === 0) {
+    return (
+      <div className="relative w-full h-[400px] overflow-hidden">
+        <img
+          src="/images/progress.png"
+          alt="No Results"
+          className="absolute inset-0 w-full h-full object-cover filter blur-sm opacity-70"
+        />
 
+        <div className="relative z-10 flex flex-col items-center justify-center h-full text-center">
+          <h2 className="text-2xl font-bold text-gray-800">
+            No results available
+          </h2>
+          <p className="text-md text-gray-600 mt-2">
+            Please take the test to see your results.
+          </p>
+          <a
+            href="/user/dashboard"
+            className="mt-6 px-6 py-2 bg-[#35095e] text-white font-medium rounded-lg hover:bg-[#35095e]/80 transition"
+          >
+            Take the Test
+          </a>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container px-2 mx-auto">
-      <div className="mt-12">
+      <div className="mt-2 md:mt-12">
         <ChartResultsByWeek results={results} />
       </div>
 
@@ -138,19 +165,41 @@ if (weeklyResults.length === 0) {
         <Slider {...sliderSettings}>
           {weeklyResults.map((week, index) => (
             <div key={index} className="px-2 outline-none">
-              <div className="bg-white p-6 rounded-lg border border-gray-200 shadow transition duration-300">
-                <h2 className="text-2xl font-extrabold mb-4 text-[#35095e]">{week.weekLabel}</h2>
+              <div className="bg-white p-4 rounded-3xl border border-[#007ACC40] transition duration-300">
+                <div className="bg-[#F7941D] py-3 mb-4 rounded-xl text-center">
+                  <h2 className="text-xl font-extrabold text-[#fff]">
+                    {week.weekLabel}
+                  </h2>
+                </div>
+
                 <div className="grid gap-3 text-sm">
-                  <StatRow label="Answered" value={`${week.totalAnswered} Qus`} />
-                  <StatRow label="Correct" value={`${week.totalCorrect} Ans`} icon="/images/menuicon/up.png" />
-                  <StatRow label="Wrong" value={`${week.totalWrong} Ans`} icon="/images/menuicon/down.png" />
-                  <StatRow label="Unanswered" value={`${week.totalUnanswered} Ans`} />
+                  <StatRow
+                    label="Answered"
+                    value={`${week.totalAnswered} Qus`}
+                  />
+                  <StatRow
+                    label="Correct"
+                    value={`${week.totalCorrect} Ans`}
+                    icon="/images/menuicon/up.png"
+                  />
+                  <StatRow
+                    label="Wrong"
+                    value={`${week.totalWrong} Ans`}
+                    icon="/images/menuicon/down.png"
+                  />
+                  <StatRow
+                    label="Unanswered"
+                    value={`${week.totalUnanswered} Ans`}
+                  />
                   <StatRow label="Total Score" value={week.totalScore} />
                   <StatRow
                     label="Accuracy"
                     value={
                       week.totalAnswered > 0
-                        ? `${((week.totalCorrect / week.totalAnswered) * 100).toFixed(2)}%`
+                        ? `${(
+                            (week.totalCorrect / week.totalAnswered) *
+                            100
+                          ).toFixed(2)}%`
                         : "0%"
                     }
                   />
@@ -172,7 +221,9 @@ const StatRow = ({ label, value, icon }) => (
   <div className="flex justify-between items-center">
     <p className="font-semibold w-[60%]">{label}</p>
     <p className="text-lg w-[40%] flex items-center gap-2">
-      {icon && <img className="w-5 h-5 ml-[-20px]" src={icon} alt={`${label} icon`} />}
+      {icon && (
+        <img className="w-5 h-5 ml-[-20px]" src={icon} alt={`${label} icon`} />
+      )}
       {value}
     </p>
   </div>
@@ -187,7 +238,10 @@ const groupResultsByWeek = (results) => {
     const testDate = new Date(test.createdAt);
     const weekStart = startOfWeek(testDate, { weekStartsOn: 1 });
     const weekEnd = endOfWeek(testDate, { weekStartsOn: 1 });
-    const weekLabel = `${format(weekStart, "MMM d")} - ${format(weekEnd, "MMM d")}`;
+    const weekLabel = `${format(weekStart, "MMM d")} - ${format(
+      weekEnd,
+      "MMM d"
+    )}`;
 
     if (!weeksMap.has(weekLabel)) {
       weeksMap.set(weekLabel, {
@@ -211,5 +265,9 @@ const groupResultsByWeek = (results) => {
 
   return Array.from(weeksMap.entries())
     .map(([weekLabel, data]) => ({ weekLabel, ...data }))
-    .sort((a, b) => new Date(b.weekLabel.split(" - ")[0]) - new Date(a.weekLabel.split(" - ")[0]));
+    .sort(
+      (a, b) =>
+        new Date(b.weekLabel.split(" - ")[0]) -
+        new Date(a.weekLabel.split(" - ")[0])
+    );
 };

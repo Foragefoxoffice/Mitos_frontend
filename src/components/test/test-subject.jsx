@@ -4,8 +4,9 @@ import React, { useState, useEffect, useContext } from "react";
 import { fetchSubjectsByPortions, fetchChaptersBySubject } from "@/utils/api";
 import { TestContext } from "@/contexts/TestContext";
 import { useRouter } from "next/navigation";
-import { FaAngleDown, FaCircleCheck, FaXmark, FaMinus } from "react-icons/fa6";
+import { FaAngleDown, FaMinus, FaXmark } from "react-icons/fa6";
 import CommonLoader from "@/commonLoader";
+
 export default function TestSubject({ selectedPortion }) {
   const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -23,101 +24,72 @@ export default function TestSubject({ selectedPortion }) {
 
       try {
         const subjectsData = await fetchSubjectsByPortions(selectedPortion.id);
-        if (!Array.isArray(subjectsData)) {
-          throw new Error("Invalid data format received");
-        }
-
         const subjectsWithDetails = await Promise.all(
           subjectsData.map(async (subject) => {
-            try {
-              const details = await fetchChaptersBySubject(subject.id);
-              return {
-                ...subject,
-                chapters: Array.isArray(details) ? details : [],
-              };
-            } catch {
-              return { ...subject, chapters: [] };
-            }
+            const details = await fetchChaptersBySubject(subject.id);
+            return {
+              ...subject,
+              chapters: Array.isArray(details) ? details : [],
+            };
           })
         );
-
-        // Sort subjects by chapter count in descending order
-        const sortedSubjects = [...subjectsWithDetails].sort(
+        const sorted = subjectsWithDetails.sort(
           (a, b) => b.chapters.length - a.chapters.length
         );
-
-        setSubjects(sortedSubjects);
-
-        // Set the first subject with chapters as expanded by default
-        const firstSubjectWithChapters = sortedSubjects.find(
-          (subject) => subject.chapters.length > 0
-        );
-        if (firstSubjectWithChapters) {
-          setExpandedSubjectId(firstSubjectWithChapters.id);
-        }
+        setSubjects(sorted);
+        const defaultExpanded = sorted.find((s) => s.chapters.length > 0);
+        if (defaultExpanded) setExpandedSubjectId(defaultExpanded.id);
       } catch (err) {
-        console.error("Failed to fetch subjects:", err);
         setError("Unable to load subjects. Please try again later.");
       } finally {
         setLoading(false);
       }
     };
-
     loadSubjects();
   }, [selectedPortion]);
 
-  const handleSubjectClick = (subjectId) => {
-    setExpandedSubjectId((prev) => (prev === subjectId ? null : subjectId));
+  const toggleSubject = (id) => {
+    setExpandedSubjectId((prev) => (prev === id ? null : id));
   };
 
-  const handleChapterSelect = (subjectId, chapterId, chapterName) => {
+  const toggleChapter = (subjectId, chapterId, chapterName) => {
     setSelectedChapters((prev) => {
       const subjectChapters = prev[subjectId] || {};
-      const updatedChapters = subjectChapters[chapterId]
+      const updated = subjectChapters[chapterId]
         ? { ...subjectChapters, [chapterId]: undefined }
         : { ...subjectChapters, [chapterId]: chapterName };
-
-      return { ...prev, [subjectId]: updatedChapters };
+      return { ...prev, [subjectId]: updated };
     });
   };
 
-  const handleSelectAll = (subjectId, chapters) => {
+  const toggleSelectAll = (subjectId, chapters) => {
     setSelectedChapters((prev) => {
-      const allSelected = chapters.every((ch) => prev[subjectId]?.[ch.id]);
-      const updatedChapters = allSelected
-        ? {} // Unselect all
-        : Object.fromEntries(chapters.map((ch) => [ch.id, ch.name])); // Select all
-
-      return { ...prev, [subjectId]: updatedChapters };
+      const allSelected = chapters.every((c) => prev[subjectId]?.[c.id]);
+      const updated = allSelected
+        ? {}
+        : Object.fromEntries(chapters.map((c) => [c.id, c.name]));
+      return { ...prev, [subjectId]: updated };
     });
   };
 
-  const handleStartClick = () => {
-    const selectedChapterIds = Object.values(selectedChapters).flatMap(
-      (chapters) => Object.keys(chapters).filter((id) => chapters[id])
+  const handleStart = () => {
+    const selectedIds = Object.values(selectedChapters).flatMap((chapters) =>
+      Object.keys(chapters).filter((id) => chapters[id])
     );
-
-    if (selectedChapterIds.length === 0) {
-      alert("Please select at least one chapter to start the test.");
-      return;
-    }
-
+    if (!selectedIds.length) return alert("Select at least one chapter");
     setShowLimitPopup(true);
   };
 
   const confirmStartTest = () => {
-    const selectedChapterIds = Object.values(selectedChapters).flatMap(
-      (chapters) => Object.keys(chapters).filter((id) => chapters[id])
+    const selectedIds = Object.values(selectedChapters).flatMap((chapters) =>
+      Object.keys(chapters).filter((id) => chapters[id])
     );
-
-    const testData = {
+    setTestData({
       testname: "custom-test",
       portionId: selectedPortion.id,
-      chapterIds: selectedChapterIds,
-      questionLimit: questionLimit,
-    };
-
-    setTestData(testData);
+      chapterIds: selectedIds,
+      questionLimit,
+    });
     router.push("/user/test");
   };
 
@@ -126,159 +98,142 @@ export default function TestSubject({ selectedPortion }) {
       {loading && <CommonLoader />}
       {error && <p className="text-red-500 text-center">{error}</p>}
 
-      {/* Display selected chapters */}
-      {Object.keys(selectedChapters).some(
-        (subjectId) => Object.keys(selectedChapters[subjectId]).length > 0
-      ) && (
-        <div className="mb-6 p-5 bg-[#fffafa] rounded-md">
-          <h3 className="text-xl text-[#35095e] font-semibold pb-5">
-            Selected Chapters:
-          </h3>
-          <ul className="pl-0 text-gray-700 slected_list">
-            {Object.entries(selectedChapters).flatMap(([subjectId, chapters]) =>
-              Object.entries(chapters)
-                .filter(([, name]) => name)
-                .map(([chapterId, name]) => (
-                  <li
-                    className="group flex items-start gap-2 pb-3 transition-all"
-                    key={`${subjectId}-${chapterId}`}
-                  >
-                    <button
-                      onClick={() =>
-                        handleChapterSelect(subjectId, chapterId, name)
-                      }
-                      className="w-5 h-5 rounded-full p-1 bg-[#35095e] flex items-center justify-center transition-all duration-200"
-                      title="Remove"
-                    >
-                      {/* Default icon */}
-                      <FaMinus className="text-white transition-opacity duration-200 opacity-100 scale-100 group-hover:opacity-0 group-hover:scale-75" />
+      <div className="space-y-3">
+        {subjects.map((subject) => {
+          const allSelected = subject.chapters.every(
+            (ch) => selectedChapters[subject.id]?.[ch.id]
+          );
+          const isExpanded = expandedSubjectId === subject.id;
+          const bgColors = {
+            Biology: "bg-[#32CD32]",
+            Physics: "bg-[#B57170]",
+            Chemistry: "bg-[#E1AD01]",
+          };
 
-                      {/* Hover icon */}
-                      <FaXmark className="text-white absolute transition-opacity duration-200 opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100" />
-                    </button>
-
-                    <span className="flex items-center gap-2">{name}</span>
-                  </li>
-                ))
-            )}
-          </ul>
-        </div>
-      )}
-
-      {!loading && !error && (
-        <div className="space-y-4">
-          {subjects.map((subject) => {
-            const allSelected =
-              subject.chapters.length > 0 &&
-              subject.chapters.every(
-                (ch) => selectedChapters[subject.id]?.[ch.id]
-              );
-
-            return (
+          return (
+            <div key={subject.id} className="rounded-lg overflow-hidden">
               <div
-                key={subject.id}
-                className="bg-white rounded-lg shadow-md overflow-hidden"
+                className={`flex justify-between items-center px-4 py-6 text-white cursor-pointer ${
+                  bgColors[subject.name.split(" ")[1]] || "bg-gray-400"
+                }`}
+                onClick={() => toggleSubject(subject.id)}
               >
+                <h3 className="font-bold text-lg">
+                  {subject.name} | {subject.chapters.length} Chapters
+                </h3>
                 <div
-                  className={`p-5 cursor-pointer bg-[#fffafa] rounded-lg flex justify-between items-center 
-                    ${
-                      subject.chapters.length > 0
-                        ? "hover:bg-white"
-                        : "opacity-50 cursor-not-allowed"
-                    }`}
-                  onClick={() =>
-                    subject.chapters.length > 0 &&
-                    handleSubjectClick(subject.id)
-                  }
+                  className={`transition-transform duration-300 w-7 h-7 rounded-full flex items-center justify-center ${
+                    isExpanded ? "rotate-180" : ""
+                  }`}
+                  style={{
+                    backgroundColor:
+                      bgColors[subject.name.split(" ")[1]]?.replace(
+                        "bg-",
+                        "#"
+                      ) || "#888",
+                  }}
                 >
-                  <h2 className="text-lg font-semibold text-[#35095e]">
-                    {subject.name} |{" "}
-                    <span>{subject.chapters.length} Chapters</span>
-                  </h2>
-
-                  <span className="text-sm text-gray-600 flex items-center">
-                    {subject.chapters.length > 0 && (
-                      <FaAngleDown
-                        className={`ml-2 transition-transform ${
-                          expandedSubjectId === subject.id ? "rotate-180" : ""
-                        }`}
-                      />
-                    )}
-                  </span>
+                  <FaAngleDown className="text-white text-sm" />
                 </div>
-
-                {expandedSubjectId === subject.id && (
-                  <div className="p-5 transition-all duration-300 ease-in-out">
-                    <div className="flex items-center mb-4">
-                      <input
-                        type="checkbox"
-                        checked={allSelected}
-                        onChange={() =>
-                          handleSelectAll(subject.id, subject.chapters)
-                        }
-                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                      />
-                      <label className="ml-2 text-md font-semibold text-gray-800">
-                        Select All
-                      </label>
-                    </div>
-
-                    <div className="custom-chap">
-                      {subject.chapters.map((chapter) => (
-                        <label
-                          key={chapter.id}
-                          className="flex items-center cursor-pointer"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={
-                              !!selectedChapters[subject.id]?.[chapter.id]
-                            }
-                            onChange={() =>
-                              handleChapterSelect(
-                                subject.id,
-                                chapter.id,
-                                chapter.name
-                              )
-                            }
-                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                          />
-                          <span className="ml-2 text-base text-gray-700">
-                            {chapter.name}
-                          </span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </div>
-            );
-          })}
-        </div>
-      )}
 
-      {/* Start Test Button */}
-      <div className="mt-6 text-center">
+              {isExpanded && (
+                <div className="bg-white p-6">
+                  {/* Selected Tags */}
+                  {Object.entries(selectedChapters).some(
+                    ([, chaps]) => Object.keys(chaps).length > 0
+                  ) && (
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {Object.entries(selectedChapters).flatMap(
+                        ([subjectId, chaps]) =>
+                          Object.entries(chaps).map(
+                            ([chapterId, chapterName]) =>
+                              chapterName && (
+                                <div
+                                  key={chapterId}
+                                  className="flex items-center bg-[#DFF4FF] text-[#007ACC] px-3 py-1 rounded-full text-sm font-medium shadow-sm"
+                                >
+                                  {chapterName}
+                                  <button
+                                    onClick={() =>
+                                      toggleChapter(
+                                        subjectId,
+                                        chapterId,
+                                        chapterName
+                                      )
+                                    }
+                                    className="ml-2 h-5 w-5 bg-[#007ACC] rounded-full text-[#fff]"
+                                  >
+                                    &times;
+                                  </button>
+                                </div>
+                              )
+                          )
+                      )}
+                    </div>
+                  )}
+                  <div className="flex w-40 items-center mb-4 bg-[#DFF4FF] rounded-full px-4 py-2">
+                    <input
+                      type="checkbox"
+                      checked={allSelected}
+                      onChange={() =>
+                        toggleSelectAll(subject.id, subject.chapters)
+                      }
+                      className="w-4 h-4 border-2 border-blue-500"
+                    />
+
+                    <label className="ml-2 font-medium text-[#004C7F]">
+                      Select All
+                    </label>
+                  </div>
+
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6 mt-6">
+                    {subject.chapters.map((chapter) => (
+                      <label
+                        key={chapter.id}
+                        className="flex items-center text-gray-700"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={!!selectedChapters[subject.id]?.[chapter.id]}
+                          onChange={() =>
+                            toggleChapter(subject.id, chapter.id, chapter.name)
+                          }
+                          className="w-4 h-4"
+                        />
+                        <span className="ml-2 text-md text-black">
+                          {chapter.name}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="mt-10 text-center">
         <button
-          onClick={handleStartClick}
-          className="test_btn px-6 py-3 text-white transition-colors"
+          onClick={handleStart}
+          className="px-8 py-3 bg-[#31CA31] text-white rounded-full font-medium shadow hover:bg-green-600"
         >
           Take Your Test
         </button>
       </div>
 
-      {/* Question Limit Popup */}
       {showLimitPopup && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl w-full max-w-lg shadow-lg overflow-hidden relative">
             {/* Header */}
-            <div className="bg-[#007ACC] text-white text-center text-md md:text-2xl font-semibold py-4">
+            <div className="bg-[#007ACC] text-white text-center text-md md:text-3xl font-semibold py-6">
               Select Number Of Questions
             </div>
 
             {/* Question Options */}
             <div className="px-6 py-4 space-y-4">
-              {[50, 100, "Full Test"].map((option) => {
+              {[50, 100, 180, "Full Test"].map((option) => {
                 const isSelected =
                   (typeof option === "number" && questionLimit === option) ||
                   (option === "Full Test" && questionLimit === "Full");

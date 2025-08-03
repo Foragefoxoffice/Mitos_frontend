@@ -30,7 +30,6 @@ const HtmlWithMath = ({ html }) => {
   );
 };
 
-
 export default function TestPage() {
   const { selectedTopics } = useSelectedTopics();
   const { selectedQuestionTypes, chapterId, subjectId } =
@@ -269,8 +268,9 @@ export default function TestPage() {
         return;
       }
 
-      const finalReason = `${selectedOptions.join(", ")}${additionalMessage ? ` | Details: ${additionalMessage}` : ""
-        }`;
+      const finalReason = `${selectedOptions.join(", ")}${
+        additionalMessage ? ` | Details: ${additionalMessage}` : ""
+      }`;
 
       await reportWrongQuestion(questionId, finalReason);
 
@@ -295,8 +295,6 @@ export default function TestPage() {
       });
     }
   };
-
-
 
   useEffect(() => {
     if (hasCheckedQuestions && !loading) {
@@ -354,7 +352,6 @@ export default function TestPage() {
     });
   };
 
-
   const handleAnswer = (questionId, answerLabel) => {
     setUserAnswers((prev) => ({ ...prev, [questionId]: answerLabel }));
     setVisitedQuestions((prev) => ({ ...prev, [questionId]: true }));
@@ -391,53 +388,51 @@ export default function TestPage() {
     setVisitedQuestions((prev) => ({ ...prev, [questionId]: true }));
   };
 
- const renderOptionButtons = (question) => {
-  if (!question) return null;
+  const renderOptionButtons = (question) => {
+    if (!question) return null;
 
-  return question.options.map((option, index) => {
-    const optionLabels = ["A", "B", "C", "D"];
-    const currentOptionLabel = optionLabels[index];
-    const isSelected = userAnswers[question.id] === currentOptionLabel;
-    const isCorrect = question.correctOption === currentOptionLabel;
-    const isWrong = isSelected && !isCorrect;
-    const isCorrectOption = question.correctOption === currentOptionLabel;
+    return question.options.map((option, index) => {
+      const optionLabels = ["A", "B", "C", "D"];
+      const currentOptionLabel = optionLabels[index];
+      const isSelected = userAnswers[question.id] === currentOptionLabel;
+      const isCorrect = question.correctOption === currentOptionLabel;
+      const isWrong = isSelected && !isCorrect;
+      const isCorrectOption = question.correctOption === currentOptionLabel;
 
-    let buttonClass =
-      "flex items-center gap-2 w-full text-left p-2 rounded-lg border m-0 transition-colors duration-200 ";
+      let buttonClass =
+        "flex items-center gap-2 w-full text-left p-2 rounded-lg border m-0 transition-colors duration-200 ";
 
-    if (isSelected) {
-      if (isCorrect) {
+      if (isSelected) {
+        if (isCorrect) {
+          buttonClass += "bg-green-500 text-white border-green-500";
+        } else {
+          buttonClass += "bg-red-500 text-white border-red-500";
+        }
+      } else if (isCorrectOption && userAnswers[question.id]) {
         buttonClass += "bg-green-500 text-white border-green-500";
       } else {
-        buttonClass += "bg-red-500 text-white border-red-500";
+        buttonClass += "bg-[#F0F8FF] border border-[#C5B5CE] hover:bg-gray-100";
       }
-    } else if (isCorrectOption && userAnswers[question.id]) {
-      buttonClass += "bg-green-500 text-white border-green-500";
-    } else {
-      buttonClass += "bg-[#FAF5FF] border border-[#C5B5CE] hover:bg-gray-100";
-    }
 
-    return (
-      <motion.div
-        key={index}
-        whileHover={{ scale: 1.02 }}
-        transition={{ duration: 0.2 }}
-        className="w-full"
-      >
-        <button
-          onClick={() => handleAnswer(question.id, currentOptionLabel)}
-          className={buttonClass}
+      return (
+        <motion.div
+          key={index}
+          whileHover={{ scale: 1.02 }}
+          transition={{ duration: 0.2 }}
+          className="w-full"
         >
-          <span className="font-bold option_label">{currentOptionLabel}</span>
-          <HtmlWithMath html={option} />
-        </button>
-      </motion.div>
-    );
-  });
-};
+          <button
+            onClick={() => handleAnswer(question.id, currentOptionLabel)}
+            className={buttonClass}
+          >
+            <span className="font-bold option_label">{currentOptionLabel}</span>
+            <HtmlWithMath html={option} />
+          </button>
+        </motion.div>
+      );
+    });
+  };
   const questionLimits = generateQuestionLimits(questions.length);
-
-
 
   return (
     <MathJaxContext
@@ -469,26 +464,73 @@ export default function TestPage() {
         )}
 
         {showQuantityPopup && questions.length > 0 && !showNoQuestionsPopup && (
-          <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-75 z-50">
-            <div className="question_popup">
-              <h2>Select Number Of Questions</h2>
-              {questionLimits.map((limit, index) => (
-                <label key={index} className="flex items-center gap-2 p-2">
-                  <input
-                    type="radio"
-                    name="questionLimit"
-                    value={limit}
-                    onChange={() => handleLimitSelection(limit)}
-                    className="form-radio"
-                  />
-                  <span className="text-gray-800">
-                    {limit === "full"
-                      ? `Practice Full Questions (${questions.length})`
-                      : `${limit} Questions`}
-                  </span>
+          <div className="fixed inset-0 flex items-center justify-center bg-black/60 z-50">
+            <div className="bg-white w-[90%] max-w-md rounded-2xl overflow-hidden shadow-2xl">
+              {/* Header */}
+              <div className="bg-[#007acc] text-white text-center py-6 px-6">
+                <h2 className="text-2xl font-bold">
+                  Select Number Of Questions
+                </h2>
+              </div>
 
-                </label>
-              ))}
+              {/* Options */}
+              <div className="px-6 py-6 space-y-4">
+                {questionLimits.map((limit, index) => {
+                  const isSelected = questionLimit === limit;
+                  return (
+                    <label
+                      key={index}
+                      className={`flex items-center justify-left p-4 rounded-xl border-2 transition-all duration-150 cursor-pointer ${
+                        isSelected
+                          ? "bg-[#E5F3FF] border-[#007acc] shadow-[0px_2px_2px_0px_#00000040,-1px_2px_6px_0px_#00000036,-3px_14px_20px_0px_#00000021,-5px_60px_24px_0px_#0000000A,-7px_94px_26px_0px_#00000000]"
+                          : "bg-[#F7F9FB] border-[#C7D3DD]"
+                      }`}
+                      onClick={() => setQuestionLimit(limit)} // <-- Only selection here
+                    >
+                      <input
+                        type="radio"
+                        name="questionLimit"
+                        checked={isSelected}
+                        readOnly
+                        className="w-5 h-5 text-[#007acc] border-gray-300 pointer-events-none"
+                      />
+                      <span className="text-md font-medium text-gray-800 ml-3">
+                        {limit === "full"
+                          ? `Practice Full Questions (${questions.length})`
+                          : `${limit} Questions`}
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+
+              {/* Buttons */}
+              <div className="flex justify-between items-center px-6 py-6">
+                <button
+                  onClick={() => router.back()}
+                  className="bg-[#DFF1E5] text-[#3D9970] font-semibold px-6 py-2 rounded-full shadow"
+                >
+                  Back
+                </button>
+                <button
+                  style={{
+                    boxShadow: `
+                0px 4px 8px 0px #00000040,
+                -1px 15px 15px 0px #00000036,
+                -3px 34px 20px 0px #00000021,
+                -5px 60px 24px 0px #0000000A,
+                -7px 94px 26px 0px #00000000
+              `,
+                  }}
+                  onClick={() => {
+                    if (questionLimit !== null) setShowQuantityPopup(false); // <-- Only here it starts
+                  }}
+                  className="bg-[#0FBD4D] hover:bg-[#0da742] text-white font-semibold px-6 py-2 rounded-full shadow disabled:opacity-50"
+                  disabled={questionLimit === null}
+                >
+                  Take your Test
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -518,7 +560,8 @@ export default function TestPage() {
 
               {/* Description */}
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                What seems to be the problem with this question? You can select multiple options.
+                What seems to be the problem with this question? You can select
+                multiple options.
               </p>
 
               {/* Issue Options */}
@@ -526,10 +569,11 @@ export default function TestPage() {
                 {REPORT_OPTIONS.map((option) => (
                   <label
                     key={option}
-                    className={`flex items-center gap-3 p-4 rounded-xl border text-sm font-medium cursor-pointer transition duration-150 hover:shadow-md ${reportModal.selectedOptions.includes(option)
+                    className={`flex items-center gap-3 p-4 rounded-xl border text-sm font-medium cursor-pointer transition duration-150 hover:shadow-md ${
+                      reportModal.selectedOptions.includes(option)
                         ? "bg-purple-100 border-purple-500 dark:bg-purple-800/30"
                         : "bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600"
-                      }`}
+                    }`}
                   >
                     <input
                       type="checkbox"
@@ -537,7 +581,9 @@ export default function TestPage() {
                       onChange={(e) => {
                         const updatedOptions = e.target.checked
                           ? [...reportModal.selectedOptions, option]
-                          : reportModal.selectedOptions.filter((o) => o !== option);
+                          : reportModal.selectedOptions.filter(
+                              (o) => o !== option
+                            );
                         setReportModal((prev) => ({
                           ...prev,
                           selectedOptions: updatedOptions,
@@ -553,7 +599,8 @@ export default function TestPage() {
               {/* Additional Comments */}
               <div className="mb-4">
                 <label className="block text-sm font-semibold mb-1 text-gray-700 dark:text-gray-300">
-                  Additional Comments <span className="text-gray-400">(optional)</span>
+                  Additional Comments{" "}
+                  <span className="text-gray-400">(optional)</span>
                 </label>
                 <textarea
                   value={reportModal.additionalMessage}
@@ -595,8 +642,6 @@ export default function TestPage() {
           </div>
         )}
 
-
-
         <div className="test_nav">
           <PracticeNavbar />
         </div>
@@ -621,11 +666,11 @@ export default function TestPage() {
                   } else if (isAnswered) {
                     buttonClass += isCorrect
                       ? " bg-green-500 text-white"
-                      : " bg-red-500 text-white";
+                      : " bg-red-500 text-black";
                   } else if (isVisited) {
                     buttonClass += " bg-[#e49331]";
                   } else {
-                    buttonClass += " bg-[#B19CBE]";
+                    buttonClass += " bg-[#CAE2FF]";
                   }
 
                   return (
@@ -715,14 +760,14 @@ export default function TestPage() {
               </div>
 
               {userAnswers[filteredQuestions[currentQuestionIndex].id] && (
-                 <div
-    className={`mt-4 p-6 rounded-lg border ${
-      userAnswers[filteredQuestions[currentQuestionIndex].id] ===
-      filteredQuestions[currentQuestionIndex].correctOption
-        ? "bg-green-100 border-green-300"
-        : "bg-red-100 border-red-300"
-    }`}
-  >
+                <div
+                  className={`mt-4 p-6 rounded-lg border ${
+                    userAnswers[filteredQuestions[currentQuestionIndex].id] ===
+                    filteredQuestions[currentQuestionIndex].correctOption
+                      ? "bg-green-100 border-green-300"
+                      : "bg-red-100 border-red-300"
+                  }`}
+                >
                   <p className="text-green-500 font-semibold">
                     Correct Answer:{" "}
                     {filteredQuestions[currentQuestionIndex].correctOption}

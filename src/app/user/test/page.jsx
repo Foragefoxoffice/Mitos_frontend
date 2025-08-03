@@ -185,59 +185,65 @@ export default function TestPage() {
   }, []);
 
   const handleNext = useCallback(() => {
-  if (!Array.isArray(filteredQuestions)) return;
+    if (!Array.isArray(filteredQuestions)) return;
 
-  // 1. If not at last question, move to next question
-  if (currentQuestionIndex < filteredQuestions.length - 1) {
-    const nextIndex = currentQuestionIndex + 1;
-    setCurrentQuestionIndex(nextIndex);
-    setVisitedQuestions(prev => ({
-      ...prev,
-      [filteredQuestions[nextIndex].id]: true
-    }));
-    return;
-  }
+    // 1. If not at last question, move to next question
+    if (currentQuestionIndex < filteredQuestions.length - 1) {
+      const nextIndex = currentQuestionIndex + 1;
+      setCurrentQuestionIndex(nextIndex);
+      setVisitedQuestions((prev) => ({
+        ...prev,
+        [filteredQuestions[nextIndex].id]: true,
+      }));
+      return;
+    }
 
-  // 2. If at last question with subject filter
-  if (subjectFilter) {
-    const subjectOrder = ["Physics", "Chemistry", "Biology"];
-    const sortedSubjects = [...getUniqueSubjects].sort((a, b) => 
-      subjectOrder.indexOf(a.name) - subjectOrder.indexOf(b.name)
-    );
-
-    const currentSubjectIndex = sortedSubjects.findIndex(
-      subj => subj.id === subjectFilter
-    );
-
-    // 2a. Move to next subject in predefined order
-    if (currentSubjectIndex < sortedSubjects.length - 1) {
-      const nextSubject = sortedSubjects[currentSubjectIndex + 1];
-      const nextSubjectQuestions = questions.filter(q =>
-        nextSubject.originalIds.has(q.subjectId)
+    // 2. If at last question with subject filter
+    if (subjectFilter) {
+      const subjectOrder = ["Physics", "Chemistry", "Biology"];
+      const sortedSubjects = [...getUniqueSubjects].sort(
+        (a, b) => subjectOrder.indexOf(a.name) - subjectOrder.indexOf(b.name)
       );
 
-      if (nextSubjectQuestions.length > 0) {
-        setSubjectFilter(nextSubject.id);
-        const firstQuestionIndex = questions.findIndex(
-          q => q.id === nextSubjectQuestions[0].id
+      const currentSubjectIndex = sortedSubjects.findIndex(
+        (subj) => subj.id === subjectFilter
+      );
+
+      // 2a. Move to next subject in predefined order
+      if (currentSubjectIndex < sortedSubjects.length - 1) {
+        const nextSubject = sortedSubjects[currentSubjectIndex + 1];
+        const nextSubjectQuestions = questions.filter((q) =>
+          nextSubject.originalIds.has(q.subjectId)
         );
-        setCurrentQuestionIndex(firstQuestionIndex);
-        setVisitedQuestions(prev => ({
-          ...prev,
-          [nextSubjectQuestions[0].id]: true
-        }));
-        return;
+
+        if (nextSubjectQuestions.length > 0) {
+          setSubjectFilter(nextSubject.id);
+          const firstQuestionIndex = questions.findIndex(
+            (q) => q.id === nextSubjectQuestions[0].id
+          );
+          setCurrentQuestionIndex(firstQuestionIndex);
+          setVisitedQuestions((prev) => ({
+            ...prev,
+            [nextSubjectQuestions[0].id]: true,
+          }));
+          return;
+        }
+      }
+
+      // 2b. If no more subjects, return to all subjects view
+      setSubjectFilter(null);
+      setCurrentQuestionIndex(0);
+      if (questions[0]?.id) {
+        setVisitedQuestions((prev) => ({ ...prev, [questions[0].id]: true }));
       }
     }
-
-    // 2b. If no more subjects, return to all subjects view
-    setSubjectFilter(null);
-    setCurrentQuestionIndex(0);
-    if (questions[0]?.id) {
-      setVisitedQuestions(prev => ({ ...prev, [questions[0].id]: true }));
-    }
-  }
-}, [currentQuestionIndex, filteredQuestions, getUniqueSubjects, questions, subjectFilter]);
+  }, [
+    currentQuestionIndex,
+    filteredQuestions,
+    getUniqueSubjects,
+    questions,
+    subjectFilter,
+  ]);
 
   const handlePrevious = useCallback(() => {
     if (currentQuestionIndex > 0) {
@@ -865,7 +871,7 @@ export default function TestPage() {
       {showSubmitConfirmation && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg max-w-md w-full">
-            <h3 className="text-xl text-[#35095E] font-bold mb-4">
+            <h3 className="text-xl text-[#017bcd] font-bold mb-4">
               Confirm Submission
             </h3>
             <p className="mb-6">
@@ -875,13 +881,13 @@ export default function TestPage() {
             <div className="flex justify-end gap-4">
               <button
                 onClick={() => setShowSubmitConfirmation(false)}
-                className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100"
+                className="px-4 py-2 hover:text-[red] bg-[red] border border-gray-300 rounded hover:bg-gray-100"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSubmit}
-                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                className="px-4 py-2 bg-[#34c534] text-white rounded hover:bg-[#34c534]"
               >
                 Submit Test
               </button>

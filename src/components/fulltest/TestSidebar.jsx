@@ -24,13 +24,13 @@ export const TestSidebar = ({
           <>
             <li className="text-[#4CAF50] after:bg-[#4CAF50]">Correct</li>
             <li className="text-[#F44336] after:bg-[#F44336]">Wrong</li>
-            <li className="text-[#000] after:bg-[#CAE2FF]">Unanswered</li>
+            <li className="unanswered-label after:bg-[#e49331]">Un-answered</li>
           </>
         ) : (
           <>
             <li className="text-[#35095E] after:bg-[#35095E]">Answered</li>
-            <li className="text-[#e49331] after:bg-[#e49331]">Un-answered</li>
-            <li className="text-[#000] after:bg-[#CAE2FF]">Not visited</li>
+            <li className="text-[#000] after:bg-[#e49331]">Un-answered</li>
+            <li className="notvisited-label after:bg-[#CAE2FF]">Not visited</li>
             <li className="text-[#00558E] after:bg-[#00558E]">
               Mark as Review
             </li>
@@ -50,9 +50,9 @@ export const TestSidebar = ({
           if (onShowAnswers) {
             if (isAnswered) {
               buttonColor = isCorrect ? "bg-[#4CAF50]" : "bg-[#F44336]";
-              buttonText = isCorrect ? "text-white" : "text-white";
+              buttonText = "text-white";
             } else {
-              buttonColor = "bg-[#CAE2FF] text-black";
+              buttonColor = "bg-[#CAE2FF] text-white";
               buttonText = "text-white";
             }
           } else {
@@ -73,7 +73,7 @@ export const TestSidebar = ({
               key={question.id}
               ref={(el) => (questionNavRefs.current[index] = el)}
               onClick={() => handleQuestionNavigation(index)}
-              className={`p-2 rounded-lg text-center ${buttonColor} text-black min-w-[40px]`}
+              className={`p-2 rounded-lg text-center ${buttonColor} ${buttonText} min-w-[40px]`}
             >
               {index + 1}
             </button>

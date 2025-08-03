@@ -45,7 +45,7 @@ export const TestQuestion = ({
         const isCorrect = question.correctOption === currentOptionLabel;
 
         let buttonClass =
-          "flex items-center gap-2 w-full text-left px-4 py-3 rounded-lg border transition-all duration-150 ";
+          "flex items-center gap-2 w-full text-left px-4 py-3 rounded-lg transition-all duration-150 ";
 
         if (onShowAnswers) {
           if (isCorrect) {
@@ -53,42 +53,39 @@ export const TestQuestion = ({
           } else if (isSelected && !isCorrect) {
             buttonClass += "bg-red-500 text-white border-red-500 selected"; // wrong answer selected by user
           } else {
-            buttonClass +=
-              "bg-[#FAF5FF] text-[#282C35] border border-[#C5B5CE] opacity-60";
+            buttonClass += "bg-[#F0F8FF] text-[#282C35] opacity-60";
           }
         } else {
           if (isSelected) {
-            buttonClass += "text-white bg-[#6712B7] border-[#6712B7] selected";
+            buttonClass += "bg-[#017bcd] text-white border-[#017bcd] selected";
           } else {
-            buttonClass +=
-              "bg-[#FAF5FF] text-[#282C35] border border-[#C5B5CE]";
+            buttonClass += "bg-[#F0F8FF] text-[#282C35]";
           }
         }
 
         return (
-  <motion.div
-    key={index}
-    whileHover={{ scale: !onShowAnswers ? 1.02 : 1 }}
-    transition={{ duration: 0.2 }}
-    className="w-full"
-  >
-    <button
-      onClick={() =>
-        !onShowAnswers && handleAnswer(question.id, currentOptionLabel)
-      }
-      className={buttonClass}
-      disabled={onShowAnswers}
-    >
-      <span className="font-bold option_label min-w-[1.5rem]">
-        {currentOptionLabel}
-      </span>
-      <div className="flex-1 question_option">
-        <HtmlWithMath html={option} />
-      </div>
-    </button>
-  </motion.div>
-);
-
+          <motion.div
+            key={index}
+            whileHover={{ scale: !onShowAnswers ? 1.02 : 1 }}
+            transition={{ duration: 0.2 }}
+            className="w-full"
+          >
+            <button
+              onClick={() =>
+                !onShowAnswers && handleAnswer(question.id, currentOptionLabel)
+              }
+              className={buttonClass}
+              disabled={onShowAnswers}
+            >
+              <span className="font-bold option_label min-w-[1.5rem]">
+                {currentOptionLabel}
+              </span>
+              <div className="flex-1 question_option">
+                <HtmlWithMath html={option} />
+              </div>
+            </button>
+          </motion.div>
+        );
       });
     },
     [handleAnswer, userAnswers, onShowAnswers]
@@ -125,18 +122,17 @@ export const TestQuestion = ({
             <FaRegHeart className="text-black w-6 h-6" />
           )}
         </button>
-        <button
+        {/* <button
           onClick={onReportQuestion}
           className="p-2 text-sm bg-red-100 text-red-600 rounded hover:bg-red-200 flex items-center gap-1"
           title="Report this question"
         >
           <FaFlag className="w-4 h-4" />
           <span>Report</span>
-        </button>
+        </button> */}
       </div>
 
       <div className="mb-4 question_option">
-        
         <HtmlWithMath html={question.question} />
       </div>
       {question.image && (
@@ -152,20 +148,18 @@ export const TestQuestion = ({
           }
         />
       )}
-      <div className="option_btns flex flex-col gap-3">
+      <div className="option_btns flex flex-col gap-6">
         {renderOptionButtons(question)}
-      
       </div>
       {onShowAnswers === true && (
         <div
-      className={`mb-4 question_option p-4 rounded-lg border ${
-        userAnswers[question.id] === question.correctOption
-          ? "bg-green-100 border-green-300"
-          : "bg-red-100 border-red-300"
-      }`}
-    >
+          className={`mb-4 question_option p-4 rounded-lg border ${
+            userAnswers[question.id] === question.correctOption
+              ? "bg-green-100 border-green-300"
+              : "bg-red-100 border-red-300"
+          }`}
+        >
           <div className="mb-4 question_option">
-
             <span className="font-semibold">Correct Option: </span>
             <HtmlWithMath html={question.correctOption} />
           </div>

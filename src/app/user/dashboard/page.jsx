@@ -306,11 +306,11 @@ export default function Practice() {
               {["chapter", "topic"].includes(
                 studyMaterialState.currentScreen
               ) && (
-                <div className="flex items-center mb-6">
-                  <button
-                    onClick={studyMaterialState.goBack}
-                    className="flex bg-[transparent] items-center p-2 rounded-md ml-4"
-                  >
+                <div
+                  onClick={studyMaterialState.goBack}
+                  className="flex items-center mb-6 cursor-pointer"
+                >
+                  <button className="flex bg-[transparent] items-center p-2 rounded-md ml-4">
                     <HiArrowSmallLeft className="text-xl text-[#007acc]" />
                   </button>
                   <h2 className="text-2xl font-semibold capitalize text-[#007acc]">

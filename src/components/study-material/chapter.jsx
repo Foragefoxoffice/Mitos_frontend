@@ -145,16 +145,15 @@ export default function MeterialsChapter({
           {chapters.map((chapter) => (
             <div
               key={chapter.id}
-              className="subject_card"
+              className="subject_card align-middle chapter_cards_card"
               style={{ backgroundColor: chapter.randomBgColor }}
             >
               <h2>{chapter.name}</h2>
               <div className="text-sm flex gap-2 text-white">
                 <span className="text-white">{chapter.topicCount} Topics</span>{" "}
-                &{" "}
-                <span className="text-white">
+                {/* <span className="text-white">
                   {chapter.questionCount} Questions
-                </span>
+                </span> */}
               </div>
               <div className="btns_group">
                 <button
@@ -163,13 +162,6 @@ export default function MeterialsChapter({
                   style={{ color: chapter.randomBgColor }}
                 >
                   Attempt by Topic
-                </button>
-                <button
-                  onClick={() => handleQuestionTypeClick(chapter)}
-                  className="px-4 py-2 mt-3 md:mt-1 rounded-full font-semibold bg-white transition-transform duration-100 ease-in-out hover:-translate-y-[1px]"
-                  style={{ color: chapter.randomBgColor }}
-                >
-                  Attempt by Question Type
                 </button>
               </div>
             </div>

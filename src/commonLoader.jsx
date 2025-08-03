@@ -1,10 +1,9 @@
-// src/commonLoader.jsx
+import { RingLoader } from "react-spinners";
+
 export default function CommonLoader() {
   return (
-    <div className="flex justify-center relative align-baseline items-center h-screen">
-      <div style={{
-        top: "80px"
-      }} className="loader animate-spin absolute rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+    <div className="flex items-center h-[400px] mb-6 justify-center">
+      <RingLoader size={60} color="#017bcd" />
     </div>
   );
 }

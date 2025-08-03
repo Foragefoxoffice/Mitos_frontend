@@ -1,6 +1,7 @@
 "use client";
 import { ArrowLeft } from "lucide-react";
 import React from "react";
+import { FaCheckCircle } from "react-icons/fa";
 
 export const TestNavigation = ({
   currentQuestionIndex,
@@ -46,29 +47,30 @@ export const TestNavigation = ({
     (isLastQuestion && !hasNextSubject && !subjectFilter);
 
   return (
-    <div className="nav_btns">
+    <div className="nav_btns flex justify-around items-center mb-4">
       <button
         onClick={handlePrevious}
-        className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+        className=" bg-gray-300 rounded hover:bg-gray-400 grid md:flex items-center"
         disabled={currentQuestionIndex === 0}
       >
-        <ArrowLeft size={16} className="mr-1" /> Previous
+        <ArrowLeft size={20} className="mr-2" /> Previous Questions
       </button>
 
       {onShowAnswers === false && (
         <button
           onClick={() => toggleMarkAsReview(question?.id)}
-          className={`px-4 py-2 ${
+          className={`flex items-center ${
             markedQuestions[question?.id] ? "bg-yellow-500" : "bg-gray-300"
           } rounded hover:bg-yellow-600`}
         >
+          <FaCheckCircle size={20} className="mr-3" />{" "}
           {markedQuestions[question?.id] ? "Unmark Review" : "Mark as Review"}
         </button>
       )}
 
       <button
         onClick={nextAction}
-        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        className=" bg-blue-500 text-white rounded hover:bg-blue-600"
         disabled={disableNextButton}
       >
         {nextButtonText}

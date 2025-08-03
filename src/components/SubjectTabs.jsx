@@ -127,10 +127,10 @@ const SubjectTabs = ({ monthData, section }) => {
         {[...subjects].map((subject) => (
           <button
             key={subject}
-            className={`px-4 py-2 rounded ${
+            className={`px-8 py-3 rounded text-xl font-semibold ${
               activeSubject === subject
-                ? "bg-[#35095e] text-white"
-                : "bg-white text-[#35095e] border border-gray-200 hover:bg-[#35095e] hover:text-white duration-300"
+                ? "bg-[#31CA31] text-white"
+                : "bg-white text-[#35095e] border border-gray-200 hover:bg-[] hover:text-white duration-300"
             }`}
             onClick={() => setActiveSubject(subject)}
           >
@@ -139,19 +139,31 @@ const SubjectTabs = ({ monthData, section }) => {
         ))}
       </div>
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="bg-white rounded-lg overflow-hidden">
         <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-[#35095e]">
+          <thead className="bg-[#017ACC]">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+              <th className="px-6 py-2 md:py-6 text-left text-md font-medium text-white uppercase tracking-wider">
                 {section === "resultsByChapter" ? "Chapter" : "Type"}
               </th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">Attempted</th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">Correct</th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">Wrong</th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">Correct %</th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">Wrong %</th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">Action</th>
+              <th className="px-6 py-3 text-center text-md font-medium text-white uppercase tracking-wider">
+                Attempted
+              </th>
+              <th className="px-6 py-3 text-center text-md font-medium text-white uppercase tracking-wider">
+                Correct
+              </th>
+              <th className="px-6 py-3 text-center text-md font-medium text-white uppercase tracking-wider">
+                Wrong
+              </th>
+              <th className="px-6 py-3 text-center text-md font-medium text-white uppercase tracking-wider">
+                Correct %
+              </th>
+              <th className="px-6 py-3 text-center text-md font-medium text-white uppercase tracking-wider">
+                Wrong %
+              </th>
+              <th className="px-6 py-3 text-center text-md font-medium text-white uppercase tracking-wider">
+                Action
+              </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -160,8 +172,10 @@ const SubjectTabs = ({ monthData, section }) => {
               .sort(([, a], [, b]) => {
                 const aData = a.subjects[activeSubject];
                 const bData = b.subjects[activeSubject];
-                const aWrongPct = aData.attempted > 0 ? (aData.wrong / aData.attempted) : 0;
-                const bWrongPct = bData.attempted > 0 ? (bData.wrong / bData.attempted) : 0;
+                const aWrongPct =
+                  aData.attempted > 0 ? aData.wrong / aData.attempted : 0;
+                const bWrongPct =
+                  bData.attempted > 0 ? bData.wrong / bData.attempted : 0;
                 return bWrongPct - aWrongPct;
               })
               .map(([chapter, metrics]) => {
@@ -181,13 +195,21 @@ const SubjectTabs = ({ monthData, section }) => {
                     </td>
                     <td className="px-6 py-4 text-center">{attempted}</td>
                     <td className="px-6 py-4 text-center">{correct}</td>
-                    <td className="px-6 py-4 text-center text-red-500">{wrong}</td>
-                    <td className="px-6 py-4 text-center text-blue-600">{correctAccuracy}%</td>
-                    <td className="px-6 py-4 text-center text-red-600">{wrongAccuracy}%</td>
+                    <td className="px-6 py-4 text-center text-red-500">
+                      {wrong}
+                    </td>
+                    <td className="px-6 py-4 text-center text-blue-600">
+                      {correctAccuracy}%
+                    </td>
+                    <td className="px-6 py-4 text-center text-red-600">
+                      {wrongAccuracy}%
+                    </td>
                     <td className="px-6 py-4 text-center">
                       <button
-                        onClick={() => handlePracticeNavigation(chapter, metrics)}
-                        className="px-3 py-1 bg-[#35095e] text-white rounded hover:bg-[#4a0d7a] transition-colors"
+                        onClick={() =>
+                          handlePracticeNavigation(chapter, metrics)
+                        }
+                        className="px-3 py-1 bg-[#31CA31] text-white rounded-full hover:bg-[#16a34a] transition-colors"
                       >
                         Practice
                       </button>

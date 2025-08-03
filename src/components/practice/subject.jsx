@@ -142,7 +142,7 @@ export default function Subject({ onSubjectSelect, onScreenSelection }) {
               <button
                 disabled={loadingSubjectId === subject.id}
                 onClick={() => handleSubjectClick(subject)}
-                className={`mt-4 px-4 py-2 rounded-full font-semibold bg-white ${
+                className={`mt-4 px-4 py-4 rounded-full font-semibold bg-white ${
                   subjectStyles[subject.name]?.buttonTextColor || "text-black"
                 } transition-transform duration-100 ease-in-out hover:-translate-y-[2px]`}
               >
