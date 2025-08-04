@@ -110,3 +110,24 @@ label span {
 .btn:hover {
   background-color: rgb(22 163 74 / var(--tw-bg-opacity, 1));
 }
+
+/* Custom thin scrollbar */
+.scrollbar-thin-custom {
+  scrollbar-width: thin; /* For Firefox */
+  scrollbar-color: #007acc #f0f0f0; /* thumb color track color */
+}
+
+/* For Chrome, Edge, and Safari */
+.scrollbar-thin-custom::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollbar-thin-custom::-webkit-scrollbar-track {
+  background: #fff;
+  border-radius: 8px;
+}
+
+.scrollbar-thin-custom::-webkit-scrollbar-thumb {
+  background-color: #007acc;
+  border-radius: 8px;
+}

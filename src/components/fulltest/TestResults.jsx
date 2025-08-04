@@ -181,7 +181,7 @@ export const TestResults = ({
             </div>
 
             {/* Body */}
-            <div className="p-4 md:p-6 space-y-6">
+            <div className="p-4 md:p-6 space-y-6 overflow-auto max-h-[600px] scrollbar-thin-custom">
               {Object.entries(resultsByType).map(([typeId, typeData]) => (
                 <div
                   key={typeId}
