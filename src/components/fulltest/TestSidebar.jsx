@@ -31,7 +31,7 @@ export const TestSidebar = ({
             <li className="text-[#35095E] after:bg-[#35095E]">Answered</li>
             <li className="text-[#000] after:bg-[#e49331]">Un-answered</li>
             <li className="notvisited-label after:bg-[#CAE2FF]">Not visited</li>
-            <li className="text-[#00558E] after:bg-[#00558E]">
+            <li className="text-[#8e0068] after:bg-[#80008e]">
               Mark as Review
             </li>
           </>
@@ -64,7 +64,7 @@ export const TestSidebar = ({
               buttonColor = "bg-[#e49331]";
             }
             if (isMarked) {
-              buttonColor = "bg-[#00558E]";
+              buttonColor = "bg-[#8e0068]";
             }
           }
 

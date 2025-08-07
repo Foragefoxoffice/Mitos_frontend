@@ -48,7 +48,7 @@ export default function DashboardLayout({ children }) {
       {/* Right Side */}
 
       <div className="w-[100%] md:w-[90%] lg:w-[84%] xl:w-[84%]  overflow-y-scroll no-scrollbar ">
-        <div className="p-4 md:p-10 mb-10">
+        <div className="p-0 md:p-10 mb-10">
           <div className="flex items-center justify-between md:justify-end ">
             <div className="flex md:hidden items-center ">
               <Image

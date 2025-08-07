@@ -86,14 +86,12 @@ export default function Portion({ onPortionSelect, onScreenSelection }) {
   };
 
   const handleFullPortionTestClick = () => {
-    setFullPortionLoading(true);
+    if (isGuestUser()) {
+      setShowPremiumPopup(true);
+      return;
+    }
 
-    setTimeout(() => {
-      if (isGuestUser()) {
-        setShowPremiumPopup(true);
-        return;
-      }
-    }, 2000);
+    setFullPortionLoading(true);
 
     const fullPortionTestData = {
       testname: "full-portion",

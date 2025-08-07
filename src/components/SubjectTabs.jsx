@@ -140,85 +140,92 @@ const SubjectTabs = ({ monthData, section }) => {
       </div>
 
       <div className="bg-white rounded-lg overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-[#017ACC]">
-            <tr>
-              <th className="px-6 py-2 md:py-6 text-left text-md font-medium text-white uppercase tracking-wider">
-                {section === "resultsByChapter" ? "Chapter" : "Type"}
-              </th>
-              <th className="px-6 py-3 text-center text-md font-medium text-white uppercase tracking-wider">
-                Attempted
-              </th>
-              <th className="px-6 py-3 text-center text-md font-medium text-white uppercase tracking-wider">
-                Correct
-              </th>
-              <th className="px-6 py-3 text-center text-md font-medium text-white uppercase tracking-wider">
-                Wrong
-              </th>
-              <th className="px-6 py-3 text-center text-md font-medium text-white uppercase tracking-wider">
-                Correct %
-              </th>
-              <th className="px-6 py-3 text-center text-md font-medium text-white uppercase tracking-wider">
-                Wrong %
-              </th>
-              <th className="px-6 py-3 text-center text-md font-medium text-white uppercase tracking-wider">
-                Action
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {Object.entries(mergedChapterData)
-              .filter(([_, metrics]) => metrics.subjects[activeSubject])
-              .sort(([, a], [, b]) => {
-                const aData = a.subjects[activeSubject];
-                const bData = b.subjects[activeSubject];
-                const aWrongPct =
-                  aData.attempted > 0 ? aData.wrong / aData.attempted : 0;
-                const bWrongPct =
-                  bData.attempted > 0 ? bData.wrong / bData.attempted : 0;
-                return bWrongPct - aWrongPct;
-              })
-              .map(([chapter, metrics]) => {
-                const subjectData = metrics.subjects[activeSubject];
-                const { attempted, correct, wrong } = subjectData;
-                const accuracy = calculateAccuracy(correct, attempted);
-                const correctAccuracy = calculateAccuracy(correct, attempted);
-                const wrongAccuracy = calculateAccuracy(wrong, attempted);
+        <div className="table-scroll-container overflow-x-auto relative">
+          {/* Scroll Indicator Arrow */}
+          <div className="scroll-indicator">
+            <span className="move-arrow">→</span>
+          </div>
 
-                return (
-                  <tr key={chapter}>
-                    <td className="flex gap-3 item-center px-6 py-4 whitespace-nowrap font-medium text-gray-900">
-                      <div className="flex justify-center">
-                        <CircularProgress percentage={parseFloat(accuracy)} />
-                      </div>
-                      <p className="flex items-center">{chapter}</p>
-                    </td>
-                    <td className="px-6 py-4 text-center">{attempted}</td>
-                    <td className="px-6 py-4 text-center">{correct}</td>
-                    <td className="px-6 py-4 text-center text-red-500">
-                      {wrong}
-                    </td>
-                    <td className="px-6 py-4 text-center text-blue-600">
-                      {correctAccuracy}%
-                    </td>
-                    <td className="px-6 py-4 text-center text-red-600">
-                      {wrongAccuracy}%
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <button
-                        onClick={() =>
-                          handlePracticeNavigation(chapter, metrics)
-                        }
-                        className="px-3 py-1 bg-[#31CA31] text-white rounded-full hover:bg-[#16a34a] transition-colors"
-                      >
-                        Practice
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-          </tbody>
-        </table>
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-[#017ACC]">
+              <tr>
+                <th className="px-6 py-1 md:py-6 text-left text-md font-medium text-white uppercase tracking-wider">
+                  {section === "resultsByChapter" ? "Chapter" : "Type"}
+                </th>
+                <th className="px-6 py-3 text-center text-md font-medium text-white uppercase tracking-wider">
+                  Attempted
+                </th>
+                <th className="px-6 py-3 text-center text-md font-medium text-white uppercase tracking-wider">
+                  Correct
+                </th>
+                <th className="px-6 py-3 text-center text-md font-medium text-white uppercase tracking-wider">
+                  Wrong
+                </th>
+                <th className="px-6 py-3 text-center text-md font-medium text-white uppercase tracking-wider">
+                  Correct %
+                </th>
+                <th className="px-6 py-3 text-center text-md font-medium text-white uppercase tracking-wider">
+                  Wrong %
+                </th>
+                <th className="px-6 py-3 text-center text-md font-medium text-white uppercase tracking-wider">
+                  Action
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {Object.entries(mergedChapterData)
+                .filter(([_, metrics]) => metrics.subjects[activeSubject])
+                .sort(([, a], [, b]) => {
+                  const aData = a.subjects[activeSubject];
+                  const bData = b.subjects[activeSubject];
+                  const aWrongPct =
+                    aData.attempted > 0 ? aData.wrong / aData.attempted : 0;
+                  const bWrongPct =
+                    bData.attempted > 0 ? bData.wrong / bData.attempted : 0;
+                  return bWrongPct - aWrongPct;
+                })
+                .map(([chapter, metrics]) => {
+                  const subjectData = metrics.subjects[activeSubject];
+                  const { attempted, correct, wrong } = subjectData;
+                  const accuracy = calculateAccuracy(correct, attempted);
+                  const correctAccuracy = calculateAccuracy(correct, attempted);
+                  const wrongAccuracy = calculateAccuracy(wrong, attempted);
+
+                  return (
+                    <tr key={chapter}>
+                      <td className="flex gap-3 item-center px-6 py-4 whitespace-nowrap font-medium text-gray-900">
+                        <div className="flex justify-center">
+                          <CircularProgress percentage={parseFloat(accuracy)} />
+                        </div>
+                        <p className="flex items-center">{chapter}</p>
+                      </td>
+                      <td className="px-6 py-4 text-center">{attempted}</td>
+                      <td className="px-6 py-4 text-center">{correct}</td>
+                      <td className="px-6 py-4 text-center text-red-500">
+                        {wrong}
+                      </td>
+                      <td className="px-6 py-4 text-center text-blue-600">
+                        {correctAccuracy}%
+                      </td>
+                      <td className="px-6 py-4 text-center text-red-600">
+                        {wrongAccuracy}%
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <button
+                          onClick={() =>
+                            handlePracticeNavigation(chapter, metrics)
+                          }
+                          className="px-3 py-1 bg-[#31CA31] text-white rounded-full hover:bg-[#16a34a] transition-colors"
+                        >
+                          Practice
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

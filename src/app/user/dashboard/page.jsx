@@ -18,6 +18,7 @@ import { TbBulb } from "react-icons/tb";
 import { LuNotebookPen } from "react-icons/lu";
 import { RiBook2Line } from "react-icons/ri";
 import { HiArrowSmallLeft } from "react-icons/hi2";
+import PremiumPopup from "@/components/PremiumPopup";
 
 // Custom Hook for Tab State with SessionStorage Persistence
 const useTabState = (tabKey, initialScreen) => {
@@ -108,6 +109,18 @@ export default function Practice() {
   const practiceState = useTabState("practice", "subject");
   const testState = useTabState("test", "full-portion");
   const studyMaterialState = useTabState("study-material", "subject");
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [showPremiumPopup, setShowPremiumPopup] = useState(false);
+
+  useEffect(() => {
+    const savedTab = sessionStorage.getItem("activeTab");
+    if (savedTab) setActiveTab(savedTab);
+
+    // Check if user is logged in
+    const userId =
+      typeof window !== "undefined" && localStorage.getItem("userId");
+    setIsLoggedIn(!!userId);
+  }, []);
 
   const tabDetails = {
     tab1: {
@@ -130,13 +143,17 @@ export default function Practice() {
   }, []);
 
   const handleTabClick = (tab) => {
+    if (tab === "tab3" && !isLoggedIn) {
+      setShowPremiumPopup(true);
+      return;
+    }
+
     setIsLoading(true);
     setTimeout(() => {
       setActiveTab(tab);
       sessionStorage.setItem("activeTab", tab);
       setIsLoading(false);
 
-      // Reset state to first screen on tab change
       if (tab === "tab1") {
         practiceState.navigateTo("subject");
       } else if (tab === "tab2") {
@@ -150,7 +167,7 @@ export default function Practice() {
   return (
     <div className="pt-6">
       {/* Tab Buttons */}
-      <div className="tabs flex space-x-4">
+      <div className="tabs flex space-x-3 md:space-x-4">
         {["tab1", "tab2", "tab3"].map((tab, index) => (
           <button
             key={index}
@@ -158,7 +175,7 @@ export default function Practice() {
               activeTab === tab
                 ? "bg-[#007ACC] text-white font-bold rounded-5xl text-[--text]"
                 : "text-[#00497A]"
-            } px-3 md:px-9 md:py-3 py-2`}
+            } px-2 md:px-9 md:py-3 py-2`}
             onClick={() => handleTabClick(tab)}
             aria-label={
               tab === "tab1"
@@ -342,6 +359,9 @@ export default function Practice() {
             </div>
           )}
         </div>
+      )}
+      {showPremiumPopup && (
+        <PremiumPopup onClose={() => setShowPremiumPopup(false)} />
       )}
     </div>
   );

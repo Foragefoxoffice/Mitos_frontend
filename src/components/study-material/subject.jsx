@@ -73,12 +73,12 @@ export default function MeterialsSubject({
 
   const subjectStyles = {
     "11th Biology": {
-      image: "/images/practice/study1.png",
+      image: "/images/practice/study4.png",
       bgColor: "bg-[#32CD32]",
       buttonTextColor: "text-[#248C24]",
     },
     "11th Physics": {
-      image: "/images/practice/study2.png",
+      image: "/images/practice/study5.png",
       bgColor: "bg-[#B57170]",
       buttonTextColor: "text-[#8C5756]",
     },
@@ -88,12 +88,12 @@ export default function MeterialsSubject({
       buttonTextColor: "text-[#9B8108]",
     },
     "12th Biology": {
-      image: "/images/practice/study4.png",
+      image: "/images/practice/study1.png",
       bgColor: "bg-[#00A86B]",
       buttonTextColor: "text-[#088356]",
     },
     "12th Physics": {
-      image: "/images/practice/study5.png",
+      image: "/images/practice/study2.png",
       bgColor: "bg-[#967969]",
       buttonTextColor: "text-[#7D6659]",
     },

@@ -2,7 +2,17 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { MathJax, MathJaxContext } from "better-react-mathjax";
-import { FaHeart, FaArrowLeft, FaLightbulb, FaCheck, FaTimes, FaAngleLeft, FaAngleRight, FaAngleDoubleLeft, FaAngleDoubleRight } from "react-icons/fa";
+import {
+  FaHeart,
+  FaArrowLeft,
+  FaLightbulb,
+  FaCheck,
+  FaTimes,
+  FaAngleLeft,
+  FaAngleRight,
+  FaAngleDoubleLeft,
+  FaAngleDoubleRight,
+} from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 import DOMPurify from "dompurify";
 import CommonLoader from "@/commonLoader";
@@ -16,12 +26,12 @@ const HtmlWithMath = ({ html }) => {
   );
 };
 
-const FavoriteQuestionCard = ({ 
-  question, 
+const FavoriteQuestionCard = ({
+  question,
   onRemove,
   index,
   expandedId,
-  setExpandedId 
+  setExpandedId,
 }) => {
   const isExpanded = expandedId === question.questionId;
   const [isRemoving, setIsRemoving] = useState(false);
@@ -39,10 +49,10 @@ const FavoriteQuestionCard = ({
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
-      animate={{ 
-        opacity: isRemoving ? 0 : 1, 
+      animate={{
+        opacity: isRemoving ? 0 : 1,
         y: isRemoving ? -20 : 0,
-        scale: isRemoving ? 0.9 : 1
+        scale: isRemoving ? 0.9 : 1,
       }}
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ duration: 0.3 }}
@@ -72,16 +82,13 @@ const FavoriteQuestionCard = ({
           </button>
         </div>
 
-        <div 
-          className="mt-4 cursor-pointer" 
-          onClick={toggleExpand}
-        >
+        <div className="mt-4 cursor-pointer" onClick={toggleExpand}>
           <HtmlWithMath html={question.question.question} />
         </div>
 
         {question.question.image && (
           <div className="mt-4 rounded-lg overflow-hidden">
-            <img 
+            <img
               src={`https://mitoslearning.in/${question.question.image}`}
               alt="Question illustration"
               className="w-full h-auto max-h-60 object-contain mx-auto"
@@ -93,28 +100,30 @@ const FavoriteQuestionCard = ({
           {isExpanded && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
+              animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.3 }}
               className="mt-6"
             >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {['A', 'B', 'C', 'D'].map((option) => (
+                {["A", "B", "C", "D"].map((option) => (
                   <motion.div
                     key={option}
                     whileHover={{ scale: 1.02 }}
                     className={`p-4 rounded-lg border transition-colors ${
                       question.question.correctOption === option
-                        ? 'bg-green-50 border-green-200'
-                        : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
+                        ? "bg-green-50 border-green-200"
+                        : "bg-gray-50 border-gray-200 hover:bg-gray-100"
                     }`}
                   >
                     <div className="flex items-start">
-                      <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full mr-3 flex-shrink-0 ${
-                        question.question.correctOption === option
-                          ? 'bg-green-500 text-white'
-                          : 'bg-gray-200 text-gray-700'
-                      }`}>
+                      <span
+                        className={`inline-flex items-center justify-center w-6 h-6 rounded-full mr-3 flex-shrink-0 ${
+                          question.question.correctOption === option
+                            ? "bg-green-500 text-white"
+                            : "bg-gray-200 text-gray-700"
+                        }`}
+                      >
                         {question.question.correctOption === option ? (
                           <FaCheck className="w-3 h-3" />
                         ) : (
@@ -125,7 +134,9 @@ const FavoriteQuestionCard = ({
                         <div className="font-semibold text-gray-700 mb-1">
                           Option {option}:
                         </div>
-                        <HtmlWithMath html={question.question[`option${option}`]} />
+                        <HtmlWithMath
+                          html={question.question[`option${option}`]}
+                        />
                       </div>
                     </div>
                   </motion.div>
@@ -133,7 +144,7 @@ const FavoriteQuestionCard = ({
               </div>
 
               {(question.question.hint || question.question.hintImage) && (
-                <motion.div 
+                <motion.div
                   className="mt-6 p-4 bg-yellow-50 rounded-lg border border-yellow-200"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -141,7 +152,7 @@ const FavoriteQuestionCard = ({
                 >
                   <div className="flex items-center text-yellow-800 mb-2">
                     <FaLightbulb className="mr-2" />
-                    <h4 className="font-semibold">Hint</h4>
+                    <h4 className="font-semibold">Solution</h4>
                   </div>
                   {question.question.hint && (
                     <div className="prose prose-yellow max-w-none">
@@ -150,7 +161,7 @@ const FavoriteQuestionCard = ({
                   )}
                   {question.question.hintImage && (
                     <div className="mt-3 rounded-lg overflow-hidden">
-                      <img 
+                      <img
                         src={`https://mitoslearning.in/${question.question.hintImage}`}
                         alt="Hint illustration"
                         className="w-full h-auto max-h-60 object-contain mx-auto"
@@ -171,22 +182,46 @@ const FavoriteQuestionCard = ({
             {isExpanded ? (
               <>
                 <span>Show less</span>
-                <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                <svg
+                  className="w-4 h-4 ml-1"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 15l7-7 7 7"
+                  />
                 </svg>
               </>
             ) : (
               <>
                 <span>Show options</span>
-                <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                <svg
+                  className="w-4 h-4 ml-1"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
                 </svg>
               </>
             )}
           </button>
-          <span className={`px-2 py-1 rounded text-xs font-medium ${
-            question.question.correctOption ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-          }`}>
+          <span
+            className={`px-2 py-1 rounded text-xs font-medium ${
+              question.question.correctOption
+                ? "bg-green-100 text-green-800"
+                : "bg-gray-100 text-gray-800"
+            }`}
+          >
             Correct: {question.question.correctOption}
           </span>
         </div>
@@ -205,7 +240,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
   } else {
     const maxVisibleBeforeCurrent = Math.floor(maxVisiblePages / 2);
     const maxVisibleAfterCurrent = Math.ceil(maxVisiblePages / 2) - 1;
-    
+
     if (currentPage <= maxVisibleBeforeCurrent) {
       startPage = 1;
       endPage = maxVisiblePages;
@@ -218,11 +253,17 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
     }
   }
 
-  const pages = Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i);
+  const pages = Array.from(
+    { length: endPage - startPage + 1 },
+    (_, i) => startPage + i
+  );
 
   return (
     <div className="flex items-center justify-center mt-8">
-      <nav className="inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+      <nav
+        className="inline-flex rounded-md shadow-sm -space-x-px"
+        aria-label="Pagination"
+      >
         <button
           onClick={() => onPageChange(1)}
           disabled={currentPage === 1}
@@ -252,8 +293,8 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
             onClick={() => onPageChange(page)}
             className={`px-4 py-2 border border-gray-300 text-sm font-medium ${
               currentPage === page
-                ? 'bg-[#35095E] text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-50'
+                ? "bg-[#35095E] text-white"
+                : "bg-white text-gray-700 hover:bg-gray-50"
             }`}
           >
             {page}
@@ -298,8 +339,10 @@ export default function FavoriteQuestionsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [questionsPerPage] = useState(5);
 
-  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-  const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  const userId =
+    typeof window !== "undefined" ? localStorage.getItem("userId") : null;
 
   useEffect(() => {
     const fetchFavoriteQuestions = async () => {
@@ -347,7 +390,7 @@ export default function FavoriteQuestionsPage() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ userId, questionId })
+          body: JSON.stringify({ userId, questionId }),
         }
       );
 
@@ -355,8 +398,8 @@ export default function FavoriteQuestionsPage() {
         throw new Error("Failed to remove from favorites");
       }
 
-      setFavoriteQuestions(prev => 
-        prev.filter(q => q.questionId !== questionId)
+      setFavoriteQuestions((prev) =>
+        prev.filter((q) => q.questionId !== questionId)
       );
       // Close if removing the currently expanded question
       if (expandedId === questionId) {
@@ -371,7 +414,10 @@ export default function FavoriteQuestionsPage() {
   // Get current questions
   const indexOfLastQuestion = currentPage * questionsPerPage;
   const indexOfFirstQuestion = indexOfLastQuestion - questionsPerPage;
-  const currentQuestions = favoriteQuestions.slice(indexOfFirstQuestion, indexOfLastQuestion);
+  const currentQuestions = favoriteQuestions.slice(
+    indexOfFirstQuestion,
+    indexOfLastQuestion
+  );
   const totalPages = Math.ceil(favoriteQuestions.length / questionsPerPage);
 
   // Change page
@@ -381,14 +427,20 @@ export default function FavoriteQuestionsPage() {
   };
 
   return (
-    <MathJaxContext 
-      config={{ 
+    <MathJaxContext
+      config={{
         loader: { load: ["input/tex", "output/chtml"] },
         tex: {
-          packages: {'[+]': ['color', 'mhchem']},
-          inlineMath: [['$', '$'], ['\\(', '\\)']],
-          displayMath: [['$$', '$$'], ['\\[', '\\]']],
-        }
+          packages: { "[+]": ["color", "mhchem"] },
+          inlineMath: [
+            ["$", "$"],
+            ["\\(", "\\)"],
+          ],
+          displayMath: [
+            ["$$", "$$"],
+            ["\\[", "\\]"],
+          ],
+        },
       }}
     >
       <div className="py-8 px-4 sm:px-6 lg:px-8">
@@ -404,7 +456,7 @@ export default function FavoriteQuestionsPage() {
 
           {loading && (
             <div className="flex justify-center items-center py-12">
-             <CommonLoader />
+              <CommonLoader />
             </div>
           )}
 
@@ -416,8 +468,16 @@ export default function FavoriteQuestionsPage() {
             >
               <div className="flex">
                 <div className="flex-shrink-0">
-                  <svg className="h-5 w-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  <svg
+                    className="h-5 w-5 text-red-500"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                      clipRule="evenodd"
+                    />
                   </svg>
                 </div>
                 <div className="ml-3">
@@ -446,13 +506,15 @@ export default function FavoriteQuestionsPage() {
                   d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
                 />
               </svg>
-              <h3 className="mt-2 text-lg font-medium text-gray-900">No favorites yet</h3>
+              <h3 className="mt-2 text-lg font-medium text-gray-900">
+                No favorites yet
+              </h3>
               <p className="mt-1 text-gray-500">
                 Start marking questions as favorites to see them here.
               </p>
               <div className="mt-6">
                 <button
-                  onClick={() => router.push('/practice')}
+                  onClick={() => router.push("/practice")}
                   className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#35095E]"
                 >
                   Go to Practice

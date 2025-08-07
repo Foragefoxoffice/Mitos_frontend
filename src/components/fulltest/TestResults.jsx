@@ -36,7 +36,7 @@ export const TestResults = ({
   });
 
   return (
-    <div className="fixed inset-0 z-50 bg-black bg-opacity-70 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 bg-black bg-opacity-70 h-[auto] md:h-[auto] overflow-auto flex items-center justify-center">
       <div className="relative bg-[#F0F8FF] rounded-2xl shadow-2xl w-[95%] max-w-[700px] p-6 pt-10 text-center">
         {/* Trophy */}
         <div className="absolute -top-[244px] left-1/2 transform -translate-x-1/2">
@@ -51,7 +51,7 @@ export const TestResults = ({
 
         <h2 className="text-4xl font-bold text-[#000] mb-6 mt-7">Your Score</h2>
 
-        <div className="grid grid-cols-2 gap-4 mb-6 text-sm md:px-20 px-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 text-sm md:px-20 px-4">
           <div className="border border-[#D3CBFB] flex flex-col gap-2 rounded-3xl py-4 px-2 bg-white shadow-inner justify-center">
             <p className="text-black text-2xl font-semibold">
               Over All Score :
@@ -72,7 +72,7 @@ export const TestResults = ({
         </div>
 
         {/* Subject Score Cards */}
-        <div className="grid px-6 grid-cols-3 gap-3 mb-6">
+        <div className="grid px-6 grid-cols-1 md:grid-cols-3 gap-3 mb-6">
           {processedSubjects.map(({ name, marks }) => (
             <div
               key={name}
@@ -85,7 +85,7 @@ export const TestResults = ({
         </div>
 
         {/* Stats Badges */}
-        <div className="grid grid-cols-4 gap-2 text-xs mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs mb-6">
           <div className="bg-[#9BCD1326] border border-[#5A7B0040] text-[#759E05] px-2 py-2 rounded-xl font-medium">
             <p className="text-lg font-bold text-[#759E05]">Correct Answer</p>
             <p className="text-xl font-bold text-[#759E05]">
@@ -113,7 +113,7 @@ export const TestResults = ({
         </div>
 
         {/* Buttons */}
-        <div className="flex gap-3 justify-between mt-4 bg-white p-4 rounded-full border border-[#007ACC40]">
+        <div className="grid md:flex gap-3 md:justify-between justify-center mt-4 bg-white md:rounded-full p-4 rounded-md border border-[#007ACC40]">
           <button
             style={{
               boxShadow: `

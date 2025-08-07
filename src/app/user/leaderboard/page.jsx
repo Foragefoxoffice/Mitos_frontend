@@ -15,6 +15,8 @@ const Leaderboard = () => {
   const [error, setError] = useState(null);
   const [currentUserId, setCurrentUserId] = useState(null);
   const currentUserRef = useRef(null);
+  const initialCount = 10;
+  const [visibleCount, setVisibleCount] = useState(initialCount);
 
   useEffect(() => {
     const userId =
@@ -106,7 +108,7 @@ const Leaderboard = () => {
                     {parseFloat(user.accuracy).toFixed(0)}%
                   </span>
                   <div
-                    className={`w-[90px] md:w-[180px] mt-3 ${heights[index]} ${rankColor[index]} rounded-t-3xl flex items-center justify-center text-white text-xl font-bold`}
+                    className={`w-[90px] md:w-[150px] mt-3 ${heights[index]} ${rankColor[index]} rounded-t-3xl flex items-center justify-center text-white text-xl font-bold`}
                   >
                     {index + 1}
                     <sup className="text-2xl ml-1">st</sup>
@@ -147,51 +149,64 @@ const Leaderboard = () => {
       </div>
 
       {/* Leaderboard Table */}
-      <div className="bg-white rounded-xl shadow-md overflow-hidden p-6">
-        <div className="grid grid-cols-12 px-6 py-3 mb-2 bg-[#fff] text-sm font-semibold text-gray-600">
-          <div className="col-span-2 text-lg">Place</div>
-          <div className="col-span-6 text-lg">Name</div>
-          <div className="col-span-3 text-lg">Percentage</div>
-          <div className="col-span-1 text-center">⋮</div>
-        </div>
-        {leaderboard.map((user, index) => {
-          const isCurrentUser = user.userId === currentUserId;
-          const rankChange = index === 0 ? "up" : index === 1 ? "down" : null;
-          return (
-            <div
-              key={user.userId}
-              ref={isCurrentUser ? currentUserRef : null}
-              className={`grid grid-cols-12 mb-5 items-center px-6 py-4 text-sm ${
-                isCurrentUser ? "bg-[#F2FAFF]" : "bg-[#F2FAFF]"
-              } border border[#007ACC40] rounded-xl`}
-            >
-              <div className="col-span-2 flex items-center text-black text-lg font-semibold">
-                {getRankIcon(index + 1, rankChange)}
-                {index + 1}
-                <sup className="ml-0.5">th</sup>
-              </div>
-              <div className="col-span-6 flex items-center gap-3">
-                <Image
-                  src={getProfileImageUrl(
-                    user.profile || "/images/user/default.png"
-                  )}
-                  width={30}
-                  height={30}
-                  alt="Profile"
-                  className="rounded-full"
-                />
-                <span className="font-medium">{user.name}</span>
-              </div>
-              <div className="col-span-3 font-semibold text-green-600">
-                {parseFloat(user.accuracy).toFixed(0)}%
-              </div>
-              <div className="col-span-1 text-center text-gray-400">
-                <FaEllipsisV />
-              </div>
+      {leaderboard.slice(0, visibleCount).map((user, index) => {
+        const isCurrentUser = user.userId === currentUserId;
+        const rankChange = index === 0 ? "up" : index === 1 ? "down" : null;
+
+        return (
+          <div
+            key={user.userId}
+            ref={isCurrentUser ? currentUserRef : null}
+            className={`grid grid-cols-12 mb-5 items-center px-6 py-4 text-sm ${
+              isCurrentUser ? "bg-[#F2FAFF]" : "bg-[#F2FAFF]"
+            } border border-[#007ACC40] rounded-xl`}
+          >
+            <div className="col-span-2 flex items-center text-black text-lg font-semibold">
+              {getRankIcon(index + 1, rankChange)}
+              {index + 1}
+              <sup className="ml-0.5">th</sup>
             </div>
-          );
-        })}
-      </div>
+            <div className="col-span-6 flex items-center gap-3">
+              <Image
+                src={getProfileImageUrl(
+                  user.profile || "/images/user/default.png"
+                )}
+                width={30}
+                height={30}
+                alt="Profile"
+                className="rounded-full"
+              />
+              <span className="font-medium">{user.name}</span>
+            </div>
+            <div className="col-span-3 font-semibold text-green-600">
+              {parseFloat(user.accuracy).toFixed(0)}%
+            </div>
+            <div className="col-span-1 text-center text-gray-400">
+              <FaEllipsisV />
+            </div>
+          </div>
+        );
+      })}
+
+      {leaderboard.length > initialCount && (
+        <div className="text-center mt-4">
+          {visibleCount < leaderboard.length ? (
+            <button
+              onClick={() => setVisibleCount(leaderboard.length)}
+              className="px-6 py-2 bg-[#017bcd] text-white rounded-full hover:bg-[#005fa3] transition"
+            >
+              Show More
+            </button>
+          ) : (
+            <button
+              onClick={() => setVisibleCount(initialCount)}
+              className="px-6 py-2 bg-gray-300 text-gray-800 rounded-full hover:bg-gray-400 transition"
+            >
+              Show Less
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 };

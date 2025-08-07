@@ -5,7 +5,11 @@ import { fetchTopics } from "@/utils/api";
 import { TestContext } from "@/contexts/TestContext";
 import CommonLoader from "@/commonLoader";
 
-export default function TestTopics({ selectedChapter, selectedSubject, selectedPortion }) {
+export default function TestTopics({
+  selectedChapter,
+  selectedSubject,
+  selectedPortion,
+}) {
   const searchParams = useSearchParams();
   const chapterId = selectedChapter?.id || searchParams.get("chapterId");
   const [topics, setTopics] = useState([]);
@@ -15,7 +19,11 @@ export default function TestTopics({ selectedChapter, selectedSubject, selectedP
   const [showQuantityPopup, setShowQuantityPopup] = useState(false);
   const router = useRouter();
 
-  const { setTestData, selectedTopics = [], setSelectedTopics } = useContext(TestContext);
+  const {
+    setTestData,
+    selectedTopics = [],
+    setSelectedTopics,
+  } = useContext(TestContext);
 
   const questionLimits = [40, 80, 120, 180];
 
@@ -66,7 +74,6 @@ export default function TestTopics({ selectedChapter, selectedSubject, selectedP
   };
 
   const handleLimitSelection = (limit) => {
-
     const fullTestData = {
       testname: "topics-custom-test",
       portionId: selectedPortion?.id,
@@ -85,7 +92,7 @@ export default function TestTopics({ selectedChapter, selectedSubject, selectedP
     <div className="p-6">
       <h1 className="text-xl font-bold mb-4">Attempt by Topic</h1>
 
-      {loading &&  <CommonLoader />}
+      {loading && <CommonLoader />}
       {error && <p className="text-red-500">{error}</p>}
 
       {!loading && !error && (

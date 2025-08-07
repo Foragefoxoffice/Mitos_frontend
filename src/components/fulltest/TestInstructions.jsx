@@ -6,8 +6,8 @@ import Image from "next/image";
 export const TestInstructions = ({ setShowInstructionPopup }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-      <div className="bg-[#f5faff] w-full max-w-4xl rounded-xl overflow-hidden shadow-lg flex flex-col md:flex-row">
-        <div className="w-full border-[1px] border-[#007ACC40] md:w-1/2 bg-white p-4 m-6 grid rounded-lg justify-items-center text-center">
+      <div className="bg-[#f5faff] w-full max-w-4xl rounded-xl overflow-auto md:overflow-hidden h-[500px] md:h-[auto] shadow-lg flex flex-col md:flex-row">
+        <div className="w-[85%] border-[1px] border-[#007ACC40] md:w-1/2 bg-white p-4 m-6 grid rounded-lg justify-items-center text-center">
           <img
             src="/images/practice/Instructions-logo.png"
             alt="Instructions Banner"
@@ -73,7 +73,7 @@ export const TestInstructions = ({ setShowInstructionPopup }) => {
               className="bg-[#31CA31] hover:bg-green-600 text-white px-5 py-2 font-medium shadow rounded-full"
               onClick={() => setShowInstructionPopup(false)}
             >
-              Take your Test
+              Start Test
             </button>
           </div>
         </div>

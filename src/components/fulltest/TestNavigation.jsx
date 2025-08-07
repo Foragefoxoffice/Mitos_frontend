@@ -47,10 +47,10 @@ export const TestNavigation = ({
     (isLastQuestion && !hasNextSubject && !subjectFilter);
 
   return (
-    <div className="nav_btns flex justify-around items-center mb-4">
+    <div className="nav_btns grid md:flex gap-0 justify-around items-center mb-4">
       <button
         onClick={handlePrevious}
-        className=" bg-gray-300 rounded hover:bg-gray-400 grid md:flex items-center"
+        className=" bg-gray-300 rounded hover:bg-gray-400 flex md:flex items-center"
         disabled={currentQuestionIndex === 0}
       >
         <ArrowLeft size={20} className="mr-2" /> Previous Questions

@@ -528,7 +528,7 @@ export default function TestPage() {
                   className="bg-[#0FBD4D] hover:bg-[#0da742] text-white font-semibold px-6 py-2 rounded-full shadow disabled:opacity-50"
                   disabled={questionLimit === null}
                 >
-                  Take your Test
+                  Start Practice
                 </button>
               </div>
             </div>
@@ -775,7 +775,7 @@ export default function TestPage() {
 
                   {filteredQuestions[currentQuestionIndex].hint && (
                     <div className="mt-2">
-                      <p className="text-red-500 font-semibold">Hint:</p>
+                      <p className="text-red-500 font-bold">Solution:</p>
                       {filteredQuestions[currentQuestionIndex].hintImage && (
                         <img
                           src={`https://mitoslearning.in/${filteredQuestions[currentQuestionIndex].hintImage}`}

@@ -161,6 +161,10 @@ export default function ResultPage() {
         <ChartResultsByWeek results={results} />
       </div>
 
+      <div className="mt-12">
+        <ResultsByMonth results={results} />
+      </div>
+
       <div className="relative my-12">
         <Slider {...sliderSettings}>
           {weeklyResults.map((week, index) => (
@@ -208,10 +212,6 @@ export default function ResultPage() {
             </div>
           ))}
         </Slider>
-      </div>
-
-      <div className="mt-12">
-        <ResultsByMonth results={results} />
       </div>
     </div>
   );

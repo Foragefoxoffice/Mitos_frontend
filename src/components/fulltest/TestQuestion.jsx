@@ -122,14 +122,14 @@ export const TestQuestion = ({
             <FaRegHeart className="text-black w-6 h-6" />
           )}
         </button>
-        {/* <button
+        <button
           onClick={onReportQuestion}
           className="p-2 text-sm bg-red-100 text-red-600 rounded hover:bg-red-200 flex items-center gap-1"
           title="Report this question"
         >
           <FaFlag className="w-4 h-4" />
           <span>Report</span>
-        </button> */}
+        </button>
       </div>
 
       <div className="mb-4 question_option">
@@ -160,12 +160,24 @@ export const TestQuestion = ({
           }`}
         >
           <div className="mb-4 question_option">
-            <span className="font-semibold">Correct Option: </span>
-            <HtmlWithMath html={question.correctOption} />
+            <span
+              style={{ color: "green", fontWeight: 800 }}
+              className="font-bold"
+            >
+              Correct Option:{" "}
+            </span>
+            <b>
+              <HtmlWithMath html={question.correctOption} />
+            </b>
           </div>
 
           <div className="mb-4 question_option">
-            <span className="font-semibold">Hint: </span>
+            <span
+              style={{ color: "green", fontWeight: 800 }}
+              className="font-semibold"
+            >
+              Solution:{" "}
+            </span>
             <HtmlWithMath html={question.hint} />
             {question.hintImage && (
               <img

@@ -3,38 +3,92 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { motion } from "framer-motion";
+import { navigate } from "next/navigation";
 
 export default function PremiumPopup({ onClose }) {
+  const [isBouncing, setIsBouncing] = useState(false);
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
-        <h3 className="text-xl font-bold text-purple-800 mb-4">Premium Feature</h3>
-        <p className="mb-6 text-gray-700">
-          This feature is only available for registered users. Please login or register to access all premium features.
-        </p>
-        <div className="flex flex-col space-y-3">
-          <Link
-            href="/login"
-            className="bg-purple-700 text-white py-2 px-4 rounded-lg text-center hover:bg-purple-800 transition"
+      <motion.div
+        className="bg-gradient-to-br from-blue-400 to-purple-500 p-6 rounded-3xl max-w-md w-full mx-4 border-4 border-yellow-300 shadow-xl"
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: "spring", bounce: 0.6 }}
+      >
+        <div className="flex justify-between items-start mb-4">
+          <h3 className="text-3xl font-bold text-white font-comic drop-shadow-md">
+            <span className="text-yellow-300">Let's</span> Unlock Feature!
+          </h3>
+
+          <motion.button
             onClick={onClose}
+            style={{ background: "none", border: "none" }}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            className="text-white text-2xl"
           >
-            Login
-          </Link>
+            ✕
+          </motion.button>
+        </div>
+
+        <div className="bg-white bg-opacity-90 rounded-2xl p-4 mb-6 relative">
+          <div className="absolute -top-4 -left-4 w-10 h-10 bg-yellow-400 rounded-full flex items-center justify-center">
+            <span className="text-xl">🔒</span>
+          </div>
+          <p className="text-lg text-gray-800 font-medium pl-6">
+            You're just one step away from leveling up your learning! Unlock
+            these awesome student features:
+          </p>
+          <ul className="mt-3 space-y-2 pl-6">
+            <li className="flex items-start">
+              <span className="text-green-500 mr-2">✓</span>
+              <span>Unlimited Practice Questions by Topic & Chapter</span>
+            </li>
+            <li className="flex items-start">
+              <span className="text-green-500 mr-2">✓</span>
+              <span>Mock Tests & Time-Based Challenges</span>
+            </li>
+            <li className="flex items-start">
+              <span className="text-green-500 mr-2">✓</span>
+              <span>Instant Results, Accuracy Reports & Leaderboards</span>
+            </li>
+            <li className="flex items-start">
+              <span className="text-green-500 mr-2">✓</span>
+              <span>Track Progress, Master Mistakes & Improve</span>
+            </li>
+          </ul>
+        </div>
+
+        <div className="flex flex-col space-y-4">
+          <motion.div>
+            <Link
+              href="/login"
+              className="block bg-yellow-400 hover:bg-yellow-300 text-purple-800 font-bold py-3 px-6 rounded-xl text-center text-lg shadow-md transform transition-all hover:scale-105"
+              onClick={() => navigate("/login")}
+            >
+              🚀 Start Practicing Now
+            </Link>
+          </motion.div>
+
           <Link
             href="/register"
-            className="border border-purple-700 text-purple-700 py-2 px-4 rounded-lg text-center hover:bg-purple-50 transition"
-            onClick={onClose}
+            className="block bg-pink-500 hover:bg-pink-400 text-white font-bold py-3 px-6 rounded-xl text-center text-lg shadow-md transform transition-all hover:scale-105"
+            onClick={() => navigate("/register")}
           >
-            Register
+            🎓 Create My Free Student Account
           </Link>
+
           <button
             onClick={onClose}
-            className="text-gray-500 bg-transparent hover:text-gray-700 mt-2"
+            style={{ background: "none", border: "none" }}
+            className="text-white font-medium underline mt-2"
           >
-            Maybe later
+            I'll explore more first
           </button>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

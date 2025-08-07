@@ -233,16 +233,16 @@ export default function TestSubject({ selectedPortion }) {
 
             {/* Question Options */}
             <div className="px-6 py-4 space-y-4">
-              {[50, 100, 180, "Full Test"].map((option) => {
+              {[30 + "(Mini test)", 50, 100, 180].map((option) => {
                 const isSelected =
                   (typeof option === "number" && questionLimit === option) ||
-                  (option === "Full Test" && questionLimit === "Full");
+                  (option === 180 && questionLimit === "Full");
 
                 return (
                   <div
                     key={option}
                     onClick={() =>
-                      setQuestionLimit(option === "Full Test" ? "Full" : option)
+                      setQuestionLimit(option === 180 ? "Full" : option)
                     }
                     className={`flex bg-[#F0F8FF] items-center px-6 py-6 rounded-lg cursor-pointer border transition-all ${
                       isSelected
@@ -302,7 +302,7 @@ export default function TestSubject({ selectedPortion }) {
                 onClick={confirmStartTest}
                 className="px-4 py-2 bg-[#31CA31] text-white rounded-full font-medium shadow hover:bg-green-600"
               >
-                Take your Test
+                Start Test
               </button>
             </div>
           </div>
