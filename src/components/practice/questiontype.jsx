@@ -1,14 +1,15 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { fetchQuestionType, fetchQuestionBychapter } from "@/utils/api";
 import { useSelectedQuestionTypes } from "@/contexts/SelectedQuestionTypesContext";
-import PremiumPopup from "../PremiumPopup"; // Make sure this exists
-import { m } from "framer-motion";
+import PremiumPopup from "../PremiumPopup";
 import CommonLoader from "@/commonLoader";
-import { HiOutlineSearch } from "react-icons/hi";
 
-export default function QuestiontypePage({ selectedChapter }) {
+export default function QuestiontypePage({
+  selectedChapter,
+  searchTerm = "", // ⬅️ from nav.js
+}) {
   const {
     selectedQuestionTypes,
     setSelectedQuestionTypes,
@@ -16,7 +17,7 @@ export default function QuestiontypePage({ selectedChapter }) {
     setChapterId,
   } = useSelectedQuestionTypes();
 
-  const [availableQuestionTypes, setAvailableQuestionTypes] = useState([]);
+  const [availableQuestionTypes, setAvailableQuestionTypes] = useState([]); // raw (for chapter)
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectAll, setSelectAll] = useState(false);
@@ -41,18 +42,17 @@ export default function QuestiontypePage({ selectedChapter }) {
     setIsGuest(isGuestUser());
   }, []);
 
+  // clear selections on unmount
   useEffect(() => {
-    return () => {
-      setSelectedQuestionTypes([]);
-    };
+    return () => setSelectedQuestionTypes([]);
   }, [setSelectedQuestionTypes]);
 
+  // update chapter id from selectedChapter
   useEffect(() => {
-    if (selectedChapter) {
-      setChapterId(selectedChapter.id);
-    }
+    if (selectedChapter) setChapterId(selectedChapter.id);
   }, [selectedChapter, setChapterId]);
 
+  // load data for chapter
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -61,7 +61,6 @@ export default function QuestiontypePage({ selectedChapter }) {
 
         const questionsResponse = await fetchQuestionBychapter(chapterId);
         const questionsData = questionsResponse.data;
-
         if (!Array.isArray(questionsData)) {
           throw new Error("Invalid questions data format");
         }
@@ -72,7 +71,6 @@ export default function QuestiontypePage({ selectedChapter }) {
 
         const typesResponse = await fetchQuestionType();
         const allQuestionTypes = typesResponse.data;
-
         if (!Array.isArray(allQuestionTypes)) {
           throw new Error("Invalid question types data format");
         }
@@ -81,15 +79,14 @@ export default function QuestiontypePage({ selectedChapter }) {
           questionTypeIdsInChapter.includes(type.id)
         );
 
-        // Sort question types - unlocked first for guest users
-        const sortedQuestionTypes = isGuest
+        const sorted = isGuest
           ? [...chapterQuestionTypes].sort((a, b) => {
               if (a.isPremium === b.isPremium) return 0;
-              return a.isPremium ? 1 : -1;
+              return a.isPremium ? 1 : -1; // unlocked first
             })
           : chapterQuestionTypes;
 
-        setAvailableQuestionTypes(sortedQuestionTypes);
+        setAvailableQuestionTypes(sorted);
       } catch (err) {
         console.error("Failed to fetch data:", err);
         setError("Unable to load question types. Please try again later.");
@@ -98,10 +95,25 @@ export default function QuestiontypePage({ selectedChapter }) {
       }
     };
 
-    if (chapterId) {
-      loadData();
-    }
+    if (chapterId) loadData();
   }, [chapterId, isGuest]);
+
+  // 🔎 derive filtered list by search term (name only, case-insensitive)
+  const filteredQuestionTypes = useMemo(() => {
+    const term = searchTerm.trim().toLowerCase();
+    if (!term) return availableQuestionTypes;
+    return availableQuestionTypes.filter((t) =>
+      String(t.name || "")
+        .toLowerCase()
+        .includes(term)
+    );
+  }, [availableQuestionTypes, searchTerm]);
+
+  // reset selection whenever the filtered list changes
+  useEffect(() => {
+    setSelectedQuestionTypes([]);
+    setSelectAll(false);
+  }, [filteredQuestionTypes, setSelectedQuestionTypes]);
 
   const handleCheckboxChange = (questionType) => {
     const isLocked = isGuest && questionType.isPremium;
@@ -117,12 +129,11 @@ export default function QuestiontypePage({ selectedChapter }) {
     } else {
       const updated = [...selectedQuestionTypes, id];
       setSelectedQuestionTypes(updated);
-      const allowedCount = availableQuestionTypes.filter(
+
+      const allowedCount = filteredQuestionTypes.filter(
         (t) => !isGuest || !t.isPremium
       ).length;
-      if (updated.length === allowedCount) {
-        setSelectAll(true);
-      }
+      if (updated.length === allowedCount) setSelectAll(true);
     }
   };
 
@@ -130,7 +141,7 @@ export default function QuestiontypePage({ selectedChapter }) {
     if (selectAll) {
       setSelectedQuestionTypes([]);
     } else {
-      const allowed = availableQuestionTypes.filter(
+      const allowed = filteredQuestionTypes.filter(
         (type) => !isGuest || !type.isPremium
       );
       setSelectedQuestionTypes(allowed.map((type) => type.id));
@@ -146,34 +157,18 @@ export default function QuestiontypePage({ selectedChapter }) {
     }
   };
 
+  const noMatches =
+    !loading &&
+    !error &&
+    filteredQuestionTypes.length === 0 &&
+    searchTerm.trim();
+
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-xl font-bold text-[#017bcd] mb-4">
           Attempt by Question Type
         </h1>
-        <div className="relative w-[20%]">
-          <span className="absolute inset-y-0 left-3 flex items-center text-[#00497A]">
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M21 21l-4.35-4.35M10 18a8 8 0 100-16 8 8 0 000 16z"
-              />
-            </svg>
-          </span>
-          <input
-            className="w-full pl-10 placeholder:text-[#00497A] h-[10%] p-3 bg-[#DFF4FF] rounded-lg border border-[#007acc80] text-[#007acc] focus:outline-none focus:ring-2 focus:ring-[#007acc80] transition duration-200"
-            placeholder="Search"
-            type="search"
-          />
-        </div>
       </div>
 
       {loading && <CommonLoader />}
@@ -181,34 +176,24 @@ export default function QuestiontypePage({ selectedChapter }) {
 
       {!loading && !error && (
         <>
-          {availableQuestionTypes.length > 0 ? (
+          {noMatches ? (
+            <p className="text-center pt-10">No types match your search.</p>
+          ) : filteredQuestionTypes.length > 0 ? (
             <>
               <div className="topic_cards space-y-3">
                 {!isGuest && (
                   <div className="topic_card attemtpt-checkbox">
                     <input
-                      className={`
-    appearance-none 
-    rounded-full 
-    border border-blue-600 
-    checked:bg-blue-600 
-    checked:border-blue-600 
-    flex items-center justify-center 
-    relative 
-    cursor-pointer 
-    disabled:opacity-50
-    after:content-['✓'] 
-    after:text-white 
-    after:text-xl
-    after:font-bold 
-    after:absolute 
-    after:top-1/2 
-    after:left-1/2 
-    after:-translate-x-1/2 
-    after:-translate-y-[57%]
-    after:hidden 
-    checked:after:block
-  `}
+                      className="
+                        appearance-none rounded-full border border-blue-600
+                        checked:bg-blue-600 checked:border-blue-600
+                        flex items-center justify-center relative cursor-pointer
+                        disabled:opacity-50
+                        after:content-['✓'] after:text-white after:text-xl after:font-bold
+                        after:absolute after:top-1/2 after:left-1/2
+                        after:-translate-x-1/2 after:-translate-y-[57%]
+                        after:hidden checked:after:block
+                      "
                       type="checkbox"
                       id="selectAll"
                       checked={selectAll}
@@ -218,12 +203,12 @@ export default function QuestiontypePage({ selectedChapter }) {
                       htmlFor="selectAll"
                       className="cursor-pointer text-lg ml-2"
                     >
-                      Select All ({availableQuestionTypes.length} Types)
+                      Select All ({filteredQuestionTypes.length} Types)
                     </label>
                   </div>
                 )}
 
-                {availableQuestionTypes.map((type) => {
+                {filteredQuestionTypes.map((type) => {
                   const isLocked = isGuest && type.isPremium;
                   return (
                     <div
@@ -249,28 +234,16 @@ export default function QuestiontypePage({ selectedChapter }) {
                             e.stopPropagation();
                             handleCheckboxChange(type);
                           }}
-                          className={`
-    appearance-none 
-    rounded-full 
-    border border-blue-600 
-    checked:bg-blue-600 
-    checked:border-blue-600 
-    flex items-center justify-center 
-    relative 
-    cursor-pointer 
-    disabled:opacity-50
-    after:content-['✓'] 
-    after:text-white 
-    after:text-xl
-    after:font-bold 
-    after:absolute 
-    after:top-1/2 
-    after:left-1/2 
-    after:-translate-x-1/2 
-    after:-translate-y-[57%]
-    after:hidden 
-    checked:after:block
-  `}
+                          className="
+                            appearance-none rounded-full border border-blue-600
+                            checked:bg-blue-600 checked:border-blue-600
+                            flex items-center justify-center relative cursor-pointer
+                            disabled:opacity-50
+                            after:content-['✓'] after:text-white after:text-xl after:font-bold
+                            after:absolute after:top-1/2 after:left-1/2
+                            after:-translate-x-1/2 after:-translate-y-[57%]
+                            after:hidden checked:after:block
+                          "
                         />
                       </label>
 
@@ -287,6 +260,7 @@ export default function QuestiontypePage({ selectedChapter }) {
                   );
                 })}
               </div>
+
               <button
                 className="mx-auto mt-14 btn bg-blue-600 text-white px-4 py-2 rounded"
                 onClick={startTest}

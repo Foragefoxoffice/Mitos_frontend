@@ -76,31 +76,37 @@ export default function MeterialsSubject({
       image: "/images/practice/study4.png",
       bgColor: "bg-[#32CD32]",
       buttonTextColor: "text-[#248C24]",
+      spinnerColor: "#248C24",
     },
     "11th Physics": {
       image: "/images/practice/study5.png",
       bgColor: "bg-[#B57170]",
       buttonTextColor: "text-[#8C5756]",
+      spinnerColor: "#8C5756",
     },
     "11th Chemistry": {
       image: "/images/practice/study3.png",
       bgColor: "bg-[#E1AD01]",
       buttonTextColor: "text-[#9B8108]",
+      spinnerColor: "#9B8108",
     },
     "12th Biology": {
       image: "/images/practice/study1.png",
       bgColor: "bg-[#00A86B]",
       buttonTextColor: "text-[#088356]",
+      spinnerColor: "#088356",
     },
     "12th Physics": {
       image: "/images/practice/study2.png",
       bgColor: "bg-[#967969]",
       buttonTextColor: "text-[#7D6659]",
+      spinnerColor: "#7D6659",
     },
     "12th Chemistry": {
       image: "/images/practice/study6.png",
       bgColor: "bg-[#CDC50A]",
       buttonTextColor: "text-[#999308]",
+      spinnerColor: "#999308",
     },
   };
 
@@ -150,25 +156,22 @@ export default function MeterialsSubject({
                       xmlns="http://www.w3.org/2000/svg"
                       fill="none"
                       viewBox="0 0 24 24"
-                      style={{
-                        color:
-                          subjectStyles[subject.name]?.buttonTextColor.replace(
-                            "text-",
-                            ""
-                          ) || "#000",
-                      }}
                     >
                       <circle
                         className="opacity-25"
                         cx="12"
                         cy="12"
                         r="10"
-                        stroke="currentColor"
+                        stroke={
+                          subjectStyles[subject.name]?.spinnerColor || "#000"
+                        }
                         strokeWidth="4"
                       />
                       <path
                         className="opacity-75"
-                        fill="currentColor"
+                        fill={
+                          subjectStyles[subject.name]?.spinnerColor || "#000"
+                        }
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
                       />
                     </svg>

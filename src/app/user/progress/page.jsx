@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { fetchResultByUser } from "@/utils/api";
-import { format, startOfWeek, endOfWeek } from "date-fns";
+import { format } from "date-fns";
 import ResultsByMonth from "@/components/ResultsByMonth";
 import ChartResultsByWeek from "@/components/ChartByMonth";
 import Slider from "react-slick";
@@ -55,11 +55,12 @@ const PrevArrow = ({ onClick }) => (
 
 export default function ResultPage() {
   const [weeklyResults, setWeeklyResults] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const router = useRouter();
   const [results, setResults] = useState([]);
   const [userId, setUserId] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [hasFetched, setHasFetched] = useState(false);
+
+  const router = useRouter();
 
   const sliderSettings = {
     dots: false,
@@ -88,46 +89,49 @@ export default function ResultPage() {
     ],
   };
 
+  // Get userId
   useEffect(() => {
     const storedUserId =
       typeof window !== "undefined" ? localStorage.getItem("userId") : null;
     if (storedUserId) {
       setUserId(parseInt(storedUserId, 10));
     } else {
-      setError("User ID not found. Please log in again.");
+      setHasFetched(true);
       setLoading(false);
     }
   }, []);
 
+  // Fetch results
   useEffect(() => {
     const fetchResults = async () => {
+      if (!userId) return;
+      setLoading(true);
       try {
-        if (!userId) return;
-
         const response = await fetchResultByUser(userId);
-        if (!response || !response.data) throw new Error("No data received");
-
-        const groupedResults = groupResultsByWeek(response.data);
-        setWeeklyResults(groupedResults);
-        setResults(response.data);
+        const data = response?.data || [];
+        setResults(data);
+        setWeeklyResults(groupResultsByWeek(data));
       } catch (err) {
-        console.error("Failed to fetch results:", err);
-        setError("You have not attempted any test yet.");
+        setResults([]);
+        setWeeklyResults([]);
       } finally {
+        setHasFetched(true);
         setLoading(false);
       }
     };
-
     fetchResults();
   }, [userId]);
 
-  if (loading)
+  // Show loader until fetch finishes
+  if (loading || !hasFetched) {
     return (
       <div className="container pt-6">
         <CommonLoader />
       </div>
     );
+  }
 
+  // Show empty state only after fetch is done
   if (weeklyResults.length === 0) {
     return (
       <div className="relative w-full h-[400px] overflow-hidden">
@@ -136,7 +140,6 @@ export default function ResultPage() {
           alt="No Results"
           className="absolute inset-0 w-full h-full object-cover filter blur-sm opacity-70"
         />
-
         <div className="relative z-10 flex flex-col items-center justify-center h-full text-center">
           <h2 className="text-2xl font-bold text-gray-800">
             No results available
@@ -155,6 +158,7 @@ export default function ResultPage() {
     );
   }
 
+  // Main UI
   return (
     <div className="container px-2 mx-auto">
       <div className="mt-2 md:mt-12">
@@ -231,26 +235,55 @@ const StatRow = ({ label, value, icon }) => (
 
 const groupResultsByWeek = (results) => {
   const weeksMap = new Map();
+  const today = new Date();
+  const currentDay = today.getDate();
+  const currentMonth = format(today, "MMM");
+  const currentYear = today.getFullYear();
+
+  let currentWeekLabel = "";
+  if (currentDay >= 1 && currentDay <= 7)
+    currentWeekLabel = `${currentMonth} 1 - 7`;
+  else if (currentDay >= 8 && currentDay <= 14)
+    currentWeekLabel = `${currentMonth} 8 - 14`;
+  else if (currentDay >= 15 && currentDay <= 21)
+    currentWeekLabel = `${currentMonth} 15 - 21`;
+  else if (currentDay >= 22 && currentDay <= 28)
+    currentWeekLabel = `${currentMonth} 22 - 28`;
+  else {
+    const lastDay = new Date(currentYear, today.getMonth() + 1, 0).getDate();
+    currentWeekLabel = `${currentMonth} 29 - ${lastDay}`;
+  }
 
   results.forEach((test) => {
     if (!test.createdAt) return;
-
     const testDate = new Date(test.createdAt);
-    const weekStart = startOfWeek(testDate, { weekStartsOn: 1 });
-    const weekEnd = endOfWeek(testDate, { weekStartsOn: 1 });
-    const weekLabel = `${format(weekStart, "MMM d")} - ${format(
-      weekEnd,
-      "MMM d"
-    )}`;
+    const dayOfMonth = testDate.getDate();
+    const month = format(testDate, "MMM");
+    const year = testDate.getFullYear();
+
+    let weekLabel = "";
+    if (dayOfMonth >= 1 && dayOfMonth <= 7) weekLabel = `${month} 1 - 7`;
+    else if (dayOfMonth >= 8 && dayOfMonth <= 14) weekLabel = `${month} 8 - 14`;
+    else if (dayOfMonth >= 15 && dayOfMonth <= 21)
+      weekLabel = `${month} 15 - 21`;
+    else if (dayOfMonth >= 22 && dayOfMonth <= 28)
+      weekLabel = `${month} 22 - 28`;
+    else {
+      const lastDay = new Date(year, testDate.getMonth() + 1, 0).getDate();
+      weekLabel = `${month} 29 - ${lastDay}`;
+    }
 
     if (!weeksMap.has(weekLabel)) {
       weeksMap.set(weekLabel, {
+        weekLabel,
         totalScore: 0,
         totalMarks: 0,
         totalAnswered: 0,
         totalCorrect: 0,
         totalWrong: 0,
         totalUnanswered: 0,
+        sortOrder: weekLabel === currentWeekLabel ? -1 : null,
+        refDate: new Date(year, testDate.getMonth(), 1),
       });
     }
 
@@ -263,11 +296,9 @@ const groupResultsByWeek = (results) => {
     data.totalUnanswered += test.unanswered;
   });
 
-  return Array.from(weeksMap.entries())
-    .map(([weekLabel, data]) => ({ weekLabel, ...data }))
-    .sort(
-      (a, b) =>
-        new Date(b.weekLabel.split(" - ")[0]) -
-        new Date(a.weekLabel.split(" - ")[0])
-    );
+  return Array.from(weeksMap.values()).sort((a, b) => {
+    if (a.sortOrder === -1) return -1;
+    if (b.sortOrder === -1) return 1;
+    return b.refDate - a.refDate;
+  });
 };

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import {
   fetchChapter,
   fetchChapterTopics,
@@ -12,10 +12,14 @@ export default function MeterialsChapter({
   selectedSubject,
   onChapterSelect,
   onScreenSelection,
+  searchTerm = "", // ⬅️ from nav.js
 }) {
   const [chapters, setChapters] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // keep colors stable across filter/search
+  const colorCacheRef = useRef({}); // { [chapterId]: { randomBgColor, buttonTextColor } }
 
   useEffect(() => {
     if (!selectedSubject?.id) return;
@@ -78,26 +82,31 @@ export default function MeterialsChapter({
               }
             }
 
-            const darkColor = getRandomDarkColor();
-            const contrastColor = getContrastColor(
-              darkColor.r,
-              darkColor.g,
-              darkColor.b
-            );
+            // assign stable color once per chapter
+            if (!colorCacheRef.current[chapter.id]) {
+              const darkColor = getRandomDarkColor();
+              const contrastColor = getContrastColor(
+                darkColor.r,
+                darkColor.g,
+                darkColor.b
+              );
+              colorCacheRef.current[chapter.id] = {
+                randomBgColor: darkColor.rgb,
+                buttonTextColor: contrastColor,
+              };
+            }
 
             return {
               ...chapter,
               topicCount,
               questionCount,
-              randomBgColor: darkColor.rgb,
-              buttonTextColor: contrastColor,
+              ...colorCacheRef.current[chapter.id],
             };
           })
         );
 
         const chaptersWithQuestions = allChapters.filter(
-          (chapter) =>
-            chapter.questionCount > 0 && chapter.questionCount !== "N/A"
+          (c) => c.questionCount > 0 && c.questionCount !== "N/A"
         );
 
         setChapters(chaptersWithQuestions);
@@ -118,6 +127,17 @@ export default function MeterialsChapter({
     loadChapters();
   }, [selectedSubject]);
 
+  // 🔎 apply search filter by chapter name
+  const filteredChapters = useMemo(() => {
+    const term = searchTerm.trim().toLowerCase();
+    if (!term) return chapters;
+    return chapters.filter((c) =>
+      String(c.name || "")
+        .toLowerCase()
+        .includes(term)
+    );
+  }, [chapters, searchTerm]);
+
   const handleTopicClick = (chapter) => {
     onChapterSelect(chapter);
     onScreenSelection("topic");
@@ -135,38 +155,50 @@ export default function MeterialsChapter({
     return luminance > 128 ? "#000000" : "#FFFFFF";
   };
 
+  const noMatches =
+    !loading &&
+    !error &&
+    filteredChapters.length === 0 &&
+    searchTerm.trim().length > 0;
+
   return (
     <div className="p-4 inside_practice">
       {loading && <CommonLoader />}
       {error && <p className="text-center pt-10">{error}</p>}
 
       {!loading && !error && (
-        <div className="chapter_cards">
-          {chapters.map((chapter) => (
-            <div
-              key={chapter.id}
-              className="subject_card align-middle chapter_cards_card"
-              style={{ backgroundColor: chapter.randomBgColor }}
-            >
-              <h2>{chapter.name}</h2>
-              <div className="text-sm flex gap-2 text-white">
-                <span className="text-white">{chapter.topicCount} Topics</span>{" "}
-                {/* <span className="text-white">
-                  {chapter.questionCount} Questions
-                </span> */}
-              </div>
-              <div className="btns_group">
-                <button
-                  onClick={() => handleTopicClick(chapter)}
-                  className="mt-4 px-4 py-2 rounded-full font-semibold bg-white transition-transform duration-100 ease-in-out hover:-translate-y-[1px]"
-                  style={{ color: chapter.randomBgColor }}
+        <>
+          {noMatches ? (
+            <p className="text-center pt-10">No chapters match your search.</p>
+          ) : (
+            <div className="chapter_cards">
+              {filteredChapters.map((chapter) => (
+                <div
+                  key={chapter.id}
+                  className="subject_card align-middle chapter_cards_card"
+                  style={{ backgroundColor: chapter.randomBgColor }}
                 >
-                  Attempt by Topic
-                </button>
-              </div>
+                  <h2>{chapter.name}</h2>
+                  <div className="text-sm flex gap-2 text-white">
+                    <span className="text-white">
+                      {chapter.topicCount} Topics
+                    </span>
+                    {/* <span className="text-white">{chapter.questionCount} Questions</span> */}
+                  </div>
+                  <div className="btns_group">
+                    <button
+                      onClick={() => handleTopicClick(chapter)}
+                      className="mt-4 px-4 py-2 rounded-full font-semibold bg-white transition-transform duration-100 ease-in-out hover:-translate-y-[1px]"
+                      style={{ color: chapter.randomBgColor }}
+                    >
+                      Attempt by Topic
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          )}
+        </>
       )}
     </div>
   );

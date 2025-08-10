@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 import useAuth from "@/contexts/useAuth";
+import { setUserRole } from "@/utils/auth";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -11,12 +12,14 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  useAuth();
 
-  // Handle form submission
+  useAuth(); // Handles auto token refresh
+
+  // Handle form-based login
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setIsLoading(true);
 
     try {
       const response = await fetch("https://mitoslearning.in/api/auth/login", {
@@ -28,27 +31,27 @@ export default function LoginPage() {
       const data = await response.json();
 
       if (response.ok) {
-        // Check if the user is an admin
         if (data.role !== "user") {
           setError("Access restricted to student users only.");
+          setIsLoading(false);
           return;
         }
 
-        // Save token and role to local storage
+        // ✅ Store tokens and user data in localStorage
         localStorage.setItem("token", data.accessToken);
         localStorage.setItem("refreshToken", data.refreshToken);
-        localStorage.setItem("role", data.role);
         localStorage.setItem("userId", data.user.id);
-        setIsLoading(true);
-        // Navigate to admin dashboard
+        setUserRole(data.role); // localStorage + cookie
+
         router.push("/user/dashboard");
       } else {
-        // Set error message from server response
         setError(data.message || "Login failed. Please try again.");
       }
     } catch (err) {
-      console.error("Login Error:", err); // Debugging log
+      console.error("Login Error:", err);
       setError("Something went wrong. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -67,30 +70,26 @@ export default function LoginPage() {
       const data = await response.json();
 
       if (response.ok) {
-        // Check if the user is an admin
         if (data.role !== "user") {
-          setError("Access restricted to admin users only.");
+          setError("Access restricted to student users only.");
           return;
         }
 
-        // Save token and role to local storage
         localStorage.setItem("token", data.accessToken);
         localStorage.setItem("refreshToken", data.refreshToken);
-        localStorage.setItem("role", data.role);
         localStorage.setItem("userId", data.user.id);
+        setUserRole(data.role);
 
-        // Navigate to admin dashboard
         router.push("/user/dashboard");
       } else {
         setError(data.message || "Google authentication failed.");
       }
     } catch (err) {
-      console.error("Google Login Error:", err); // Debugging log
+      console.error("Google Login Error:", err);
       setError("Something went wrong. Please try again.");
     }
   };
 
-  // Handle Google Sign-In failure
   const handleGoogleError = () => {
     setError("Google Sign-In failed. Please try again.");
   };
@@ -102,23 +101,31 @@ export default function LoginPage() {
           <div className="w-[40%] hidden md:flex">
             <div className="login">
               <div className="login_img">
-                <img src="/images/login/login_img.png" alt="" />
+                <img
+                  src="/images/login/login_img.png"
+                  alt="Login Illustration"
+                />
               </div>
               <div className="flying_logo">
-                <img src="/images/login/pop1.png" alt="" />
-                <img src="/images/login/pop2.png" alt="" />
+                <img src="/images/login/pop1.png" alt="pop1" />
+                <img src="/images/login/pop2.png" alt="pop2" />
               </div>
             </div>
           </div>
-          <div className="w-[100%] md:w-[60%] ">
+
+          <div className="w-full md:w-[60%]">
             <div className="login_content">
-              <div className="logo">
-                <img src="/images/logo/logo.png" alt="" />
+              <div className="logo text-center">
+                <img
+                  src="/images/logo/logo.png"
+                  alt="Logo"
+                  className="mx-auto"
+                />
               </div>
 
-              <h1 className="font-bold text-center pt-6">Admin Login!</h1>
+              <h1 className="font-bold text-center pt-6">Student Login</h1>
+
               <form onSubmit={handleSubmit} className="mt-6">
-                {/* Email Input */}
                 <div className="mb-4">
                   <label htmlFor="email">
                     Email address<span>*</span>
@@ -132,7 +139,7 @@ export default function LoginPage() {
                     required
                   />
                 </div>
-                {/* Password Input */}
+
                 <div className="mb-4">
                   <label htmlFor="password">
                     Password<span>*</span>
@@ -147,12 +154,12 @@ export default function LoginPage() {
                   />
                 </div>
 
-                {/* Error Message */}
                 {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
-                {/* Submit Button */}
-                <div className="forgot">
+
+                <div className="forgot mb-2">
                   <a href="/auth/register">Forgot your password?</a>
                 </div>
+
                 <button
                   type="submit"
                   className="login_btn flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
@@ -172,12 +179,12 @@ export default function LoginPage() {
                         r="10"
                         stroke="currentColor"
                         strokeWidth="4"
-                      ></circle>
+                      />
                       <path
                         className="opacity-75"
                         fill="currentColor"
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                      ></path>
+                      />
                     </svg>
                   )}
                   {isLoading ? "Logging in..." : "Login"}
@@ -186,17 +193,16 @@ export default function LoginPage() {
 
               <p className="mt-2 text-center">
                 You don't have an account?{" "}
-                <a href="/register" className="text-[#35095E]">
-                  Signin here
+                <a href="/register" className="text-[#35095E] font-medium">
+                  Sign up here
                 </a>
               </p>
 
-              {/* Google Sign-In Button */}
               <div className="mt-4 flex justify-center">
                 <GoogleLogin
                   onSuccess={handleGoogleSuccess}
                   onError={handleGoogleError}
-                  useOneTap // Enable one-tap sign-in
+                  useOneTap
                 />
               </div>
             </div>

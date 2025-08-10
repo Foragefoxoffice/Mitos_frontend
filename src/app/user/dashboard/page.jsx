@@ -1,3 +1,4 @@
+// nav.js
 "use client";
 
 import { useState, useEffect } from "react";
@@ -12,15 +13,40 @@ import Portion from "@/components/test/test-postion";
 import TestSubject from "@/components/test/test-subject";
 import TestChapter from "@/components/test/test-chapter";
 import TestTopics from "@/components/test/test-topic";
-import { FaAngleLeft } from "react-icons/fa6";
 import CommonLoader from "@/commonLoader";
 import { TbBulb } from "react-icons/tb";
 import { LuNotebookPen } from "react-icons/lu";
 import { RiBook2Line } from "react-icons/ri";
 import { HiArrowSmallLeft } from "react-icons/hi2";
+import { FiSearch, FiX } from "react-icons/fi";
 import PremiumPopup from "@/components/PremiumPopup";
 
-// Custom Hook for Tab State with SessionStorage Persistence
+// ---------- Small UI piece just for the search ----------
+const SearchBar = ({ value, onChange, placeholder = "Search..." }) => {
+  return (
+    <div className="relative w-full max-w-xs md:max-w-md">
+      <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-[#007acc]" />
+      <input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full pl-10 pr-10 py-2 rounded-lg border border-[#cfe9fb] focus:outline-none focus:ring-2 focus:ring-[#007acc] text-[#00497a]"
+      />
+      {value ? (
+        <button
+          type="button"
+          onClick={() => onChange("")}
+          className="absolute right-3 top-1/2 -translate-y-1/2"
+          aria-label="Clear search"
+        >
+          <FiX className="text-[#4b6b86] bg-[#fff]" />
+        </button>
+      ) : null}
+    </div>
+  );
+};
+
+// ---------- Tab state hook (unchanged logic) ----------
 const useTabState = (tabKey, initialScreen) => {
   const sessionKey = `tabState-${tabKey}`;
 
@@ -46,9 +72,7 @@ const useTabState = (tabKey, initialScreen) => {
     sessionStorage.setItem(sessionKey, JSON.stringify(state));
   }, [state]);
 
-  const update = (updates) => {
-    setState((prev) => ({ ...prev, ...updates }));
-  };
+  const update = (updates) => setState((prev) => ({ ...prev, ...updates }));
 
   const navigateTo = (screen) => {
     update({
@@ -61,10 +85,7 @@ const useTabState = (tabKey, initialScreen) => {
     if (state.history.length > 1) {
       const newHistory = state.history.slice(0, -1);
       const previousScreen = newHistory[newHistory.length - 1];
-      update({
-        history: newHistory,
-        currentScreen: previousScreen,
-      });
+      update({ history: newHistory, currentScreen: previousScreen });
     }
   };
 
@@ -72,32 +93,32 @@ const useTabState = (tabKey, initialScreen) => {
     ...state,
     goBack,
     navigateTo,
-    handlePortionSelect: (portion) =>
-      update({ selectedPortion: portion }) || navigateTo("test-subject"),
-
-    handleTestSubjectSelect: (subject, portion) =>
-      update({ selectedSubject: subject, selectedPortion: portion }) ||
-      navigateTo("test-chapter"),
-
-    handleTestChapterSelect: (subject, portion, chapter) =>
+    handlePortionSelect: (portion) => (
+      update({ selectedPortion: portion }), navigateTo("test-subject")
+    ),
+    handleTestSubjectSelect: (subject, portion) => (
+      update({ selectedSubject: subject, selectedPortion: portion }),
+      navigateTo("test-chapter")
+    ),
+    handleTestChapterSelect: (subject, portion, chapter) => (
       update({
         selectedSubject: subject,
         selectedPortion: portion,
         selectedChapter: chapter,
-      }) || navigateTo("test-topic"),
-
-    handleSubjectSelect: (subject) =>
-      update({ selectedSubject: subject }) || navigateTo("chapter"),
-
-    handleChapterSelect: (chapter) =>
-      update({ selectedChapter: chapter }) || navigateTo("topic"),
-
-    handleTopicSelect: (topic) =>
-      update({ selectedTopic: topic }) || navigateTo("questiontype"),
-
+      }),
+      navigateTo("test-topic")
+    ),
+    handleSubjectSelect: (subject) => (
+      update({ selectedSubject: subject }), navigateTo("chapter")
+    ),
+    handleChapterSelect: (chapter) => (
+      update({ selectedChapter: chapter }), navigateTo("topic")
+    ),
+    handleTopicSelect: (topic) => (
+      update({ selectedTopic: topic }), navigateTo("questiontype")
+    ),
     handleQuestiontypeSelect: (questiontype) =>
       update({ selectedQuestiontype: questiontype }),
-
     handleScreenSelection: (screen) => navigateTo(screen),
   };
 };
@@ -109,18 +130,36 @@ export default function Practice() {
   const practiceState = useTabState("practice", "subject");
   const testState = useTabState("test", "full-portion");
   const studyMaterialState = useTabState("study-material", "subject");
+
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showPremiumPopup, setShowPremiumPopup] = useState(false);
+
+  // NEW: per-tab search terms (filtered only where Back shows)
+  const [practiceSearch, setPracticeSearch] = useState("");
+  const [testSearch, setTestSearch] = useState("");
+  const [studySearch, setStudySearch] = useState("");
 
   useEffect(() => {
     const savedTab = sessionStorage.getItem("activeTab");
     if (savedTab) setActiveTab(savedTab);
 
-    // Check if user is logged in
     const userId =
       typeof window !== "undefined" && localStorage.getItem("userId");
     setIsLoggedIn(!!userId);
   }, []);
+
+  // Reset search when screen changes (so it feels scoped to that screen)
+  useEffect(() => {
+    setPracticeSearch("");
+  }, [practiceState.currentScreen]);
+
+  useEffect(() => {
+    setTestSearch("");
+  }, [testState.currentScreen]);
+
+  useEffect(() => {
+    setStudySearch("");
+  }, [studyMaterialState.currentScreen]);
 
   const tabDetails = {
     tab1: {
@@ -137,56 +176,61 @@ export default function Practice() {
     },
   };
 
-  useEffect(() => {
-    const savedTab = sessionStorage.getItem("activeTab");
-    if (savedTab) setActiveTab(savedTab);
-  }, []);
-
   const handleTabClick = (tab) => {
     if (tab === "tab3" && !isLoggedIn) {
       setShowPremiumPopup(true);
       return;
     }
-
     setIsLoading(true);
     setTimeout(() => {
       setActiveTab(tab);
       sessionStorage.setItem("activeTab", tab);
       setIsLoading(false);
 
-      if (tab === "tab1") {
-        practiceState.navigateTo("subject");
-      } else if (tab === "tab2") {
-        testState.navigateTo("full-portion");
-      } else if (tab === "tab3") {
-        studyMaterialState.navigateTo("subject");
-      }
+      if (tab === "tab1") practiceState.navigateTo("subject");
+      else if (tab === "tab2") testState.navigateTo("full-portion");
+      else if (tab === "tab3") studyMaterialState.navigateTo("subject");
     }, 50);
   };
 
+  // helpers to know when to show Back + Search (scoped to same places)
+  const showPracticeHeader = ["chapter", "topic", "questiontype"].includes(
+    practiceState.currentScreen
+  );
+  const showTestHeader = [
+    "test-subject",
+    "test-chapter",
+    "test-topic",
+    "questiontype",
+  ].includes(testState.currentScreen);
+  const showStudyHeader = ["chapter", "topic"].includes(
+    studyMaterialState.currentScreen
+  );
+
   return (
     <div className="pt-6">
-      {/* Tab Buttons */}
+      {/* Tabs */}
       <div className="tabs flex space-x-3 md:space-x-4">
-        {["tab1", "tab2", "tab3"].map((tab, index) => (
+        {["tab1", "tab2", "tab3"].map((tab) => (
           <button
-            key={index}
+            key={tab}
             className={`tab ${
               activeTab === tab
                 ? "bg-[#007ACC] text-white font-bold rounded-5xl text-[--text]"
                 : "text-[#00497A]"
             } px-2 md:px-9 md:py-3 py-2`}
             onClick={() => handleTabClick(tab)}
-            aria-label={
-              tab === "tab1"
-                ? "Practice"
-                : tab === "tab2"
-                ? "Test"
-                : "Study Material"
-            }
+            aria-label={tabDetails[tab]?.label || "Tab"}
             aria-selected={activeTab === tab}
           >
-            {tabDetails[tab] ? (
+            <span
+              className={`flex items-center transition-all duration-300 ease-in-out ${
+                tab === activeTab
+                  ? "text-white md:text-[18px] text-[13px]"
+                  : "text-[#00497a] md:text-[16px] text-[14px]"
+              }`}
+            >
+              {tabDetails[tab]?.icon}
               <span
                 className={`flex items-center transition-all duration-300 ease-in-out ${
                   tab === activeTab
@@ -194,20 +238,9 @@ export default function Practice() {
                     : "text-[#00497a] md:text-[16px] text-[14px]"
                 }`}
               >
-                {tabDetails[tab].icon}
-                <span
-                  className={`flex items-center transition-all duration-300 ease-in-out ${
-                    tab === activeTab
-                      ? "text-white md:text-[18px] text-[13px]"
-                      : "text-[#00497a] md:text-[16px] text-[14px]"
-                  }`}
-                >
-                  {tabDetails[tab].label}
-                </span>
+                {tabDetails[tab]?.label ?? "Unknown Tab"}
               </span>
-            ) : (
-              "Unknown Tab"
-            )}
+            </span>
           </button>
         ))}
       </div>
@@ -216,20 +249,32 @@ export default function Practice() {
         <CommonLoader />
       ) : (
         <div className="mt-4">
-          {/* Practice Tab */}
+          {/* PRACTICE */}
           {activeTab === "tab1" && (
             <div>
-              {["chapter", "topic", "questiontype"].includes(
-                practiceState.currentScreen
-              ) && (
-                <button
-                  onClick={practiceState.goBack}
-                  className="flex items-center p-2 rounded-md ml-4 bg-[transparent] transition-colors duration-200"
-                >
-                  <HiArrowSmallLeft className="text-xl text-[#007acc]" />
-                  <span className="text-[#007acc] ml-1">Back</span>
-                </button>
+              {showPracticeHeader && (
+                <div className="flex justify-between items-center gap-3 md:gap-4 px-4 mb-3">
+                  <button
+                    onClick={practiceState.goBack}
+                    className="flex items-center p-2 rounded-md bg-transparent"
+                  >
+                    <HiArrowSmallLeft className="text-xl text-[#007acc]" />
+                    <span className="text-[#007acc] ml-1">Back</span>
+                  </button>
+                  <SearchBar
+                    value={practiceSearch}
+                    onChange={setPracticeSearch}
+                    placeholder={
+                      practiceState.currentScreen === "chapter"
+                        ? "Search chapters..."
+                        : practiceState.currentScreen === "topic"
+                        ? "Search topics..."
+                        : "Search types..."
+                    }
+                  />
+                </div>
               )}
+
               {practiceState.currentScreen === "subject" && (
                 <Subject
                   onSubjectSelect={practiceState.handleSubjectSelect}
@@ -242,12 +287,14 @@ export default function Practice() {
                   selectedPortion={practiceState.selectedPortion}
                   onChapterSelect={practiceState.handleChapterSelect}
                   onScreenSelection={practiceState.handleScreenSelection}
+                  searchTerm={practiceSearch} // NEW
                 />
               )}
               {practiceState.currentScreen === "topic" && (
                 <TopicsPage
                   selectedChapter={practiceState.selectedChapter}
                   onTopicSelect={practiceState.handleTopicSelect}
+                  searchTerm={practiceSearch} // NEW
                 />
               )}
               {practiceState.currentScreen === "questiontype" && (
@@ -255,28 +302,40 @@ export default function Practice() {
                   selectedTopic={practiceState.selectedTopic}
                   selectedChapter={practiceState.selectedChapter}
                   onQuestiontypeSelect={practiceState.handleQuestiontypeSelect}
+                  searchTerm={practiceSearch} // NEW
                 />
               )}
             </div>
           )}
 
-          {/* Test Tab */}
+          {/* TEST */}
           {activeTab === "tab2" && (
             <div>
-              {[
-                "test-subject",
-                "test-chapter",
-                "test-topic",
-                "questiontype",
-              ].includes(testState.currentScreen) && (
-                <button
-                  onClick={testState.goBack}
-                  className="flex items-center bg-[transparent] p-2 rounded-md ml-4"
-                >
-                  <HiArrowSmallLeft className="text-xl text-[#007acc]" />
-                  <span className="text-[#007acc] ml-1">Back</span>
-                </button>
+              {showTestHeader && (
+                <div className="flex justify-between items-center gap-3 md:gap-4 px-4 mb-3">
+                  <button
+                    onClick={testState.goBack}
+                    className="flex items-center p-2 rounded-md bg-transparent"
+                  >
+                    <HiArrowSmallLeft className="text-xl text-[#007acc]" />
+                    <span className="text-[#007acc] ml-1">Back</span>
+                  </button>
+                  <SearchBar
+                    value={testSearch}
+                    onChange={setTestSearch}
+                    placeholder={
+                      testState.currentScreen === "test-subject"
+                        ? "Search subjects..."
+                        : testState.currentScreen === "test-chapter"
+                        ? "Search chapters..."
+                        : testState.currentScreen === "test-topic"
+                        ? "Search topics..."
+                        : "Search types..."
+                    }
+                  />
+                </div>
               )}
+
               {testState.currentScreen === "full-portion" && (
                 <Portion
                   onPortionSelect={testState.handlePortionSelect}
@@ -288,6 +347,7 @@ export default function Practice() {
                   selectedPortion={testState.selectedPortion}
                   onSubjectSelect={testState.handleTestSubjectSelect}
                   onScreenSelection={testState.handleScreenSelection}
+                  searchTerm={testSearch} // NEW
                 />
               )}
               {testState.currentScreen === "test-chapter" && (
@@ -296,6 +356,7 @@ export default function Practice() {
                   selectedPortion={testState.selectedPortion}
                   onChapterSelect={testState.handleChapterSelect}
                   onScreenSelection={testState.handleScreenSelection}
+                  searchTerm={testSearch} // NEW
                 />
               )}
               {testState.currentScreen === "test-topic" && (
@@ -305,6 +366,7 @@ export default function Practice() {
                   selectedChapter={testState.selectedChapter}
                   onTopicSelect={testState.handleTestChapterSelect}
                   onScreenSelection={testState.handleScreenSelection}
+                  searchTerm={testSearch} // NEW
                 />
               )}
               {testState.currentScreen === "questiontype" && (
@@ -312,31 +374,36 @@ export default function Practice() {
                   selectedTopic={testState.selectedTopic}
                   selectedChapter={testState.selectedChapter}
                   onQuestiontypeSelect={testState.handleQuestiontypeSelect}
+                  searchTerm={testSearch} // NEW
                 />
               )}
             </div>
           )}
 
-          {/* Study Material Tab */}
+          {/* STUDY MATERIAL */}
           {activeTab === "tab3" && (
             <div>
-              {["chapter", "topic"].includes(
-                studyMaterialState.currentScreen
-              ) && (
-                <div
-                  onClick={studyMaterialState.goBack}
-                  className="flex items-center mb-6 cursor-pointer"
-                >
-                  <button className="flex bg-[transparent] items-center p-2 rounded-md ml-4">
+              {showStudyHeader && (
+                <div className="flex items-center justify-between gap-3 md:gap-4 px-4 mb-3">
+                  <button
+                    className="flex bg-transparent items-center p-2 rounded-md"
+                    onClick={studyMaterialState.goBack}
+                  >
                     <HiArrowSmallLeft className="text-xl text-[#007acc]" />
+                    <span className="text-[#007acc] ml-1">Back</span>
                   </button>
-                  <h2 className="text-2xl font-semibold capitalize text-[#007acc]">
-                    {studyMaterialState.currentScreen === "chapter"
-                      ? "Learn by Chapter"
-                      : "Learn By Topic"}
-                  </h2>
+                  <SearchBar
+                    value={studySearch}
+                    onChange={setStudySearch}
+                    placeholder={
+                      studyMaterialState.currentScreen === "chapter"
+                        ? "Search chapters..."
+                        : "Search topics..."
+                    }
+                  />
                 </div>
               )}
+
               {studyMaterialState.currentScreen === "subject" && (
                 <MeterialsSubject
                   onSubjectSelect={studyMaterialState.handleSubjectSelect}
@@ -348,18 +415,21 @@ export default function Practice() {
                   selectedSubject={studyMaterialState.selectedSubject}
                   onChapterSelect={studyMaterialState.handleChapterSelect}
                   onScreenSelection={studyMaterialState.handleScreenSelection}
+                  searchTerm={studySearch} // NEW
                 />
               )}
               {studyMaterialState.currentScreen === "topic" && (
                 <MeterialsTopicsPage
                   selectedChapter={studyMaterialState.selectedChapter}
                   onTopicSelect={studyMaterialState.handleTopicSelect}
+                  searchTerm={studySearch} // NEW
                 />
               )}
             </div>
           )}
         </div>
       )}
+
       {showPremiumPopup && (
         <PremiumPopup onClose={() => setShowPremiumPopup(false)} />
       )}

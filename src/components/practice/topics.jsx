@@ -7,12 +7,16 @@ import axios from "axios";
 import PremiumPopup from "../PremiumPopup";
 import CommonLoader from "@/commonLoader";
 
-export default function TopicsPage({ selectedChapter, onTopicSelect }) {
+export default function TopicsPage({
+  selectedChapter,
+  onTopicSelect,
+  searchTerm = "", // ⬅️ from nav.js
+}) {
   const searchParams = useSearchParams();
   const chapterId = selectedChapter?.id || searchParams.get("chapterId");
 
-  const [topics, setTopics] = useState([]);
-  const [filteredTopics, setFilteredTopics] = useState([]);
+  const [topics, setTopics] = useState([]); // raw topics with questionCount
+  const [filteredTopics, setFilteredTopics] = useState([]); // valid + search-filtered
   const [chapterName, setChapterName] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -75,14 +79,14 @@ export default function TopicsPage({ selectedChapter, onTopicSelect }) {
           })
         );
 
-        const validTopics = topicsWithQuestions.filter(
-          (topic) => topic.questionCount > 0
-        );
-
         setTopics(topicsWithQuestions);
-        setFilteredTopics(validTopics);
 
-        if (validTopics.length === 0) {
+        const initialValid = topicsWithQuestions.filter(
+          (t) => t.questionCount > 0
+        );
+        setFilteredTopics(initialValid);
+
+        if (initialValid.length === 0) {
           setError("No topics with questions found in this chapter.");
         }
       } catch (err) {
@@ -98,10 +102,26 @@ export default function TopicsPage({ selectedChapter, onTopicSelect }) {
     }
   }, [chapterId]);
 
+  // 🔎 Recompute filtered list when searchTerm or topics change
+  useEffect(() => {
+    const term = searchTerm.trim().toLowerCase();
+    const valid = topics.filter((t) => t.questionCount > 0);
+    const bySearch = term
+      ? valid.filter((t) =>
+          String(t.name || "")
+            .toLowerCase()
+            .includes(term)
+        )
+      : valid;
+
+    setFilteredTopics(bySearch);
+  }, [topics, searchTerm]);
+
+  // reset selection on filtered list change
   useEffect(() => {
     setSelectedTopics([]);
     setSelectAll(false);
-  }, [filteredTopics]);
+  }, [filteredTopics, setSelectedTopics]);
 
   const handleCheckboxChange = (topic) => {
     if (isGuestUser() && topic.isPremium) {
@@ -116,6 +136,7 @@ export default function TopicsPage({ selectedChapter, onTopicSelect }) {
     } else {
       const updated = [...selectedTopics, topic.id];
       setSelectedTopics(updated);
+
       const allowedCount = filteredTopics.filter(
         (t) => !isGuestUser() || !t.isPremium
       ).length;
@@ -145,6 +166,12 @@ export default function TopicsPage({ selectedChapter, onTopicSelect }) {
     }
   };
 
+  const noMatches =
+    !loading &&
+    !error &&
+    filteredTopics.length === 0 &&
+    searchTerm.trim().length > 0;
+
   return (
     <div className="p-4">
       <h1 className="text-xl font-bold mb-4">Attempt by Topic</h1>
@@ -155,75 +182,83 @@ export default function TopicsPage({ selectedChapter, onTopicSelect }) {
 
       {!loading && !error && (
         <>
-          <div className="topic_cards space-y-3">
-            {filteredTopics.length > 0 && !isGuestUser() && (
-              <div className="topic_card">
-                <input
-                  type="checkbox"
-                  id="selectAll"
-                  checked={selectAll}
-                  onChange={handleSelectAll}
-                />
-                <label
-                  htmlFor="selectAll"
-                  className="cursor-pointer text-md ml-2"
-                >
-                  Full Chapter ({filteredTopics.length} topics)
-                </label>
-              </div>
-            )}
+          {noMatches && (
+            <p className="text-center pt-10">No topics match your search.</p>
+          )}
 
-            {[...filteredTopics]
-              .sort((a, b) => {
-                const aLocked = isGuestUser() && a.isPremium;
-                const bLocked = isGuestUser() && b.isPremium;
-                return aLocked - bLocked;
-              })
-              .map((topic) => {
-                const isLocked = isGuestUser() && topic.isPremium;
-                return (
-                  <div
-                    key={topic.id}
-                    style={{ margin: 0 }}
-                    className={`topic_card flex items-center space-x-2 ${
-                      isLocked ? "opacity-50 cursor-not-allowed " : ""
-                    }`}
-                    onClick={() => {
-                      if (isLocked) setShowPopup(true);
-                    }}
-                  >
+          {!noMatches && (
+            <>
+              <div className="topic_cards space-y-3">
+                {filteredTopics.length > 0 && !isGuestUser() && (
+                  <div className="topic_card">
                     <input
                       type="checkbox"
-                      id={`topic-${topic.id}`}
-                      className="cursor-pointer"
-                      checked={selectedTopics.includes(topic.id)}
-                      disabled={isLocked}
-                      onChange={(e) => {
-                        e.stopPropagation();
-                        handleCheckboxChange(topic);
-                      }}
+                      id="selectAll"
+                      checked={selectAll}
+                      onChange={handleSelectAll}
                     />
                     <label
-                      htmlFor={`topic-${topic.id}`}
-                      className="cursor-pointer text-lg font-normal"
+                      htmlFor="selectAll"
+                      className="cursor-pointer text-md ml-2"
                     >
-                      {topic.name}
-                      {topic.isPremium && isGuestUser() && (
-                        <span className="text-red-500 ml-2">🔒 Locked</span>
-                      )}
+                      Full Chapter ({filteredTopics.length} topics)
                     </label>
                   </div>
-                );
-              })}
-          </div>
+                )}
 
-          {filteredTopics.length > 0 && (
-            <button
-              className="mx-auto mt-14 btn bg-blue-600 text-white px-4 py-2 rounded"
-              onClick={startTest}
-            >
-              Lets Practice
-            </button>
+                {[...filteredTopics]
+                  .sort((a, b) => {
+                    const aLocked = isGuestUser() && a.isPremium;
+                    const bLocked = isGuestUser() && b.isPremium;
+                    return aLocked - bLocked;
+                  })
+                  .map((topic) => {
+                    const isLocked = isGuestUser() && topic.isPremium;
+                    return (
+                      <div
+                        key={topic.id}
+                        style={{ margin: 0 }}
+                        className={`topic_card flex items-center space-x-2 ${
+                          isLocked ? "opacity-50 cursor-not-allowed " : ""
+                        }`}
+                        onClick={() => {
+                          if (isLocked) setShowPopup(true);
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          id={`topic-${topic.id}`}
+                          className="cursor-pointer"
+                          checked={selectedTopics.includes(topic.id)}
+                          disabled={isLocked}
+                          onChange={(e) => {
+                            e.stopPropagation();
+                            handleCheckboxChange(topic);
+                          }}
+                        />
+                        <label
+                          htmlFor={`topic-${topic.id}`}
+                          className="cursor-pointer text-lg font-normal"
+                        >
+                          {topic.name}
+                          {topic.isPremium && isGuestUser() && (
+                            <span className="text-red-500 ml-2">🔒 Locked</span>
+                          )}
+                        </label>
+                      </div>
+                    );
+                  })}
+              </div>
+
+              {filteredTopics.length > 0 && (
+                <button
+                  className="mx-auto mt-14 btn bg-blue-600 text-white px-4 py-2 rounded"
+                  onClick={startTest}
+                >
+                  Lets Practice
+                </button>
+              )}
+            </>
           )}
         </>
       )}

@@ -1,24 +1,26 @@
 "use client";
-import React, { useState, useEffect } from "react";
+
+import React, { useState, useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { fetchTopics, fetchQuestionByTopic } from "@/utils/api";
 import axios from "axios";
-import PremiumPopup from "../PremiumPopup"; // ✅ Imported popup
+import PremiumPopup from "../PremiumPopup";
 import CommonLoader from "@/commonLoader";
 
 export default function MeterialsTopicsPage({
   selectedChapter,
   onTopicSelect,
+  searchTerm = "", // ⬅️ from nav.js
 }) {
   const searchParams = useSearchParams();
   const chapterId = selectedChapter?.id || searchParams.get("chapterId");
 
   const [topics, setTopics] = useState([]);
-  const [filteredTopics, setFilteredTopics] = useState([]);
   const [chapterName, setChapterName] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [showPopup, setShowPopup] = useState(false); // ✅ State for popup
+  const [showPopup, setShowPopup] = useState(false);
+  const [selectedTopicId, setSelectedTopicId] = useState(null);
 
   const router = useRouter();
 
@@ -67,14 +69,12 @@ export default function MeterialsTopicsPage({
                 `❌ Error fetching questions for topic ID ${topic.id}:`,
                 error
               );
-              // Still return the topic with 0 question count to prevent skipping
               return { ...topic, questionCount: 0 };
             }
           })
         );
 
         setTopics(topicsWithQuestions);
-        setFilteredTopics(topicsWithQuestions); // Show all topics
 
         if (topicsWithQuestions.length === 0) {
           setError("No topics found in this chapter.");
@@ -87,85 +87,117 @@ export default function MeterialsTopicsPage({
       }
     };
 
-    if (chapterId) {
-      loadTopics();
-    }
+    if (chapterId) loadTopics();
   }, [chapterId]);
 
-  const startTopicTest = (topicId) => {
-    router.push(`/user/study-materials?topicId=${topicId}`);
+  // 🔎 Filter by searchTerm (name only, case-insensitive)
+  const filteredTopics = useMemo(() => {
+    const term = searchTerm.trim().toLowerCase();
+    if (!term) return topics;
+    return topics.filter((t) =>
+      String(t.name || "")
+        .toLowerCase()
+        .includes(term)
+    );
+  }, [topics, searchTerm]);
+
+  // reset selected topic if it’s not visible anymore
+  useEffect(() => {
+    if (
+      selectedTopicId &&
+      !filteredTopics.some((t) => t.id === selectedTopicId)
+    ) {
+      setSelectedTopicId(null);
+    }
+  }, [filteredTopics, selectedTopicId]);
+
+  const toggleTopic = (topic) => {
+    const locked = isGuestUser() && topic.isPremium;
+    if (locked) {
+      setShowPopup(true);
+      return;
+    }
+    setSelectedTopicId((prev) => (prev === topic.id ? null : topic.id));
   };
+
+  const startSelectedTopic = () => {
+    if (!selectedTopicId) return;
+    router.push(`/user/study-materials?topicId=${selectedTopicId}`);
+  };
+
+  const noMatches =
+    !loading &&
+    !error &&
+    filteredTopics.length === 0 &&
+    searchTerm.trim().length > 0;
 
   return (
     <div className="p-4">
+      <h1 className="text-xl font-bold mb-4">Attempt by Topic</h1>
       {chapterName && <h2 className="text-lg mb-4">{chapterName}</h2>}
 
       {loading && <CommonLoader />}
       {error && <p className="text-center pt-10 text-red-500">{error}</p>}
 
       {!loading && !error && (
-        <div className="topic_cards">
-          {[...filteredTopics]
-            .sort((a, b) => {
-              const isAGuestLocked = isGuestUser() && a.isPremium;
-              const isBGuestLocked = isGuestUser() && b.isPremium;
-              return isAGuestLocked - isBGuestLocked;
-            })
-            .map((topic) => {
-              const locked = isGuestUser() && topic.isPremium;
-              const randomBg = `hsl(${Math.floor(
-                Math.random() * 360
-              )}, 70%, 30%)`;
+        <>
+          {noMatches ? (
+            <p className="text-center pt-10">No topics match your search.</p>
+          ) : (
+            <>
+              <div className="topic_cards space-y-3 pb-24">
+                {[...filteredTopics]
+                  .sort((a, b) => {
+                    const aLocked = isGuestUser() && a.isPremium;
+                    const bLocked = isGuestUser() && b.isPremium;
+                    return aLocked - bLocked;
+                  })
+                  .map((topic) => {
+                    const locked = isGuestUser() && topic.isPremium;
+                    const checked = selectedTopicId === topic.id;
 
-              return (
-                <div
-                  key={topic.id}
-                  style={{ backgroundColor: randomBg }}
-                  className="topic_card topicc_card p-4 rounded-2xl shadow-md text-white"
-                >
-                  <h2 className="text-lg font-semibold">
-                    {topic.name}
-                    {locked && (
-                      <span className="ml-2 text-red-300 text-sm">
-                        🔒 Locked
-                      </span>
-                    )}
-                  </h2>
-                  <button
-                    onClick={() => {
-                      if (locked) {
-                        setShowPopup(true);
-                      } else {
-                        startTopicTest(topic.id);
-                      }
-                    }}
-                    style={{
-                      backgroundColor: "#ffffff", // white button
-                      color: locked ? "#4b5563" : randomBg, // button text color
-                      border: `2px solid ${locked ? "#d1d5db" : randomBg}`, // optional border
-                    }}
-                    className={`px-4 py-3 mt-3 rounded-full font-semibold transition-transform duration-100 ease-in-out ${
-                      locked ? "cursor-not-allowed" : "hover:-translate-y-[1px]"
-                    }`}
-                  >
-                    <div className="flex items-center justify-center">
-                      <span
-                        style={{
-                          color: locked ? "#4b5563" : randomBg, // button text color
-                        }}
-                        className="font-bold"
+                    return (
+                      <div
+                        key={topic.id}
+                        className={`topic_card flex items-center space-x-2 p-3 border rounded-lg ${
+                          locked
+                            ? "opacity-50 cursor-not-allowed"
+                            : "cursor-pointer"
+                        }`}
+                        onClick={() => toggleTopic(topic)}
                       >
-                        {locked ? "Premium Only" : "Start Studying"}
-                      </span>
-                    </div>
+                        <input
+                          type="checkbox"
+                          readOnly
+                          checked={checked}
+                          className="cursor-pointer"
+                        />
+                        <span className="text-lg font-normal flex-1">
+                          {topic.name}
+                          {locked && (
+                            <span className="text-red-500 ml-2">🔒 Locked</span>
+                          )}
+                        </span>
+                      </div>
+                    );
+                  })}
+              </div>
+
+              {selectedTopicId && (
+                <div className="flex justify-center mt-0">
+                  <button
+                    className="btn bg-blue-600 text-white px-4 py-2 rounded"
+                    onClick={startSelectedTopic}
+                  >
+                    Start Studying
                   </button>
                 </div>
-              );
-            })}
-        </div>
+              )}
+            </>
+          )}
+        </>
       )}
 
-      {/* ✅ Premium Popup for locked content */}
       {showPopup && <PremiumPopup onClose={() => setShowPopup(false)} />}
     </div>
   );

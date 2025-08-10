@@ -11,26 +11,31 @@ const useAuth = () => {
     const refreshToken = localStorage.getItem("refreshToken");
     let role = localStorage.getItem("role");
 
-    // If role doesn't exist, set it to "guest"
-if (!role) {
-  // Set role in localStorage
-  localStorage.setItem("role", "guest");
+    // ✅ Default guest role setup (if missing)
+    if (!role) {
+      localStorage.setItem("role", "guest");
 
-  // Set role in cookies (expires in 7 days)
-  const expiryDate = new Date();
-  expiryDate.setDate(expiryDate.getDate() + 7);
-  document.cookie = `role=guest; expires=${expiryDate.toUTCString()}; path=/`;
+      // Set role in cookies (expires in 7 days)
+      const expiryDate = new Date();
+      expiryDate.setDate(expiryDate.getDate() + 7);
+      document.cookie = `role=guest; expires=${expiryDate.toUTCString()}; path=/`;
 
-  role = "guest";
-}
+      role = "guest";
+    }
 
-    // If no token, redirect to homepage
-    // if (!token) {
+    // ❗ Optionally: redirect if no token at all
+    // if (!token && role !== "guest") {
     //   router.push("/");
     //   return;
     // }
 
     const refreshAccessToken = async () => {
+      if (!refreshToken) {
+        console.warn("No refresh token found.");
+        logout();
+        return;
+      }
+
       try {
         const response = await fetch(`https://mitoslearning.in/auth/refresh`, {
           method: "POST",
@@ -42,25 +47,26 @@ if (!role) {
 
         if (response.ok) {
           localStorage.setItem("token", data.accessToken);
-          console.log("Token refreshed successfully.");
+          console.log("✅ Token refreshed successfully.");
         } else {
-          console.warn("Refresh token expired, logging out...");
-          localStorage.removeItem("token");
-          localStorage.removeItem("refreshToken");
-          localStorage.removeItem("role");
-          router.push("/");
+          console.warn("⚠️ Refresh token expired or invalid. Logging out...");
+          logout();
         }
       } catch (error) {
-        console.error("Error refreshing token:", error);
-        localStorage.removeItem("token");
-        localStorage.removeItem("refreshToken");
-        localStorage.removeItem("role");
-        router.push("/");
+        console.error("❌ Error refreshing token:", error);
+        logout();
       }
     };
 
-    // Refresh token every 5 hours
-    const interval = setInterval(refreshAccessToken, 5 * 60 * 60 * 1000);
+    const logout = () => {
+      localStorage.removeItem("token");
+      localStorage.removeItem("refreshToken");
+      localStorage.removeItem("role");
+      router.push("/");
+    };
+
+    // ⏰ Refresh every 6 days (proactive before 7-day access token expires)
+    const interval = setInterval(refreshAccessToken, 6 * 24 * 60 * 60 * 1000); // every 6 days
 
     return () => clearInterval(interval);
   }, [router]);

@@ -130,7 +130,7 @@ const SubjectTabs = ({ monthData, section }) => {
             className={`px-8 py-3 rounded text-xl font-semibold ${
               activeSubject === subject
                 ? "bg-[#31CA31] text-white"
-                : "bg-white text-[#35095e] border border-gray-200 hover:bg-[] hover:text-white duration-300"
+                : "bg-white text-[#35095e] border border-gray-200 hover:bg-[] hover:text-[#017bcd] duration-300"
             }`}
             onClick={() => setActiveSubject(subject)}
           >

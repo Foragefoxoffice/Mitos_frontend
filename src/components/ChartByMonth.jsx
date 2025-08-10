@@ -353,10 +353,10 @@ export default function ChartResultsByWeek({ results = [] }) {
             weekData.totalUnanswered += test.unanswered || 0;
             // Update accuracy using the formula: (Correct / Total Questions) × 100
             weekData.accuracy =
-              weekData.totalQuestions > 0
+              weekData.totalAttempted > 0
                 ? Math.min(
                     Math.round(
-                      (weekData.totalCorrect / weekData.totalQuestions) * 100
+                      (weekData.totalCorrect / weekData.totalAttempted) * 100
                     ),
                     100
                   )
@@ -401,11 +401,11 @@ export default function ChartResultsByWeek({ results = [] }) {
 
               // Update subject accuracy using the formula: (Correct / Total Questions) × 100
               weekSubjectData[subjectName].accuracy =
-                weekSubjectData[subjectName].totalQuestions > 0
+                weekSubjectData[subjectName].attempted > 0
                   ? Math.min(
                       Math.round(
                         (weekSubjectData[subjectName].correct /
-                          weekSubjectData[subjectName].totalQuestions) *
+                          weekSubjectData[subjectName].attempted) *
                           100
                       ),
                       100
@@ -513,15 +513,14 @@ export default function ChartResultsByWeek({ results = [] }) {
         (sum, test) => sum + (test.correct || 0),
         0
       );
-      const totalQuestions = testsInMonth.reduce((sum, test) => {
-        const answered = test.answered ?? test.correct + test.wrong ?? 0;
-        const unanswered = test.unanswered ?? 0;
-        const total = test.totalQuestions ?? answered + unanswered;
-        return sum + total;
+      const totalAttempted = testsInMonth.reduce((sum, test) => {
+        const attempted =
+          test.answered ?? (test.correct ?? 0) + (test.wrong ?? 0); // fallback if answered is missing
+        return sum + attempted;
       }, 0);
 
       const avgAccuracy =
-        totalQuestions > 0 ? (totalCorrect / totalQuestions) * 100 : 0;
+        totalAttempted > 0 ? (totalCorrect / totalAttempted) * 100 : 0;
 
       return {
         key: monthKey,
@@ -639,13 +638,13 @@ export default function ChartResultsByWeek({ results = [] }) {
     (sum, week) => sum + week.totalCorrect,
     0
   );
-  const totalMonthQuestions = validWeeks.reduce(
-    (sum, week) => sum + week.totalQuestions,
+  const totalMonthAttempted = validWeeks.reduce(
+    (sum, week) => sum + week.totalAttempted,
     0
   );
   const avgAccuracy =
-    totalMonthQuestions > 0
-      ? (totalMonthCorrect / totalMonthQuestions) * 100
+    totalMonthAttempted > 0
+      ? (totalMonthCorrect / totalMonthAttempted) * 100
       : 0;
 
   // Sort data by week number
@@ -725,7 +724,7 @@ export default function ChartResultsByWeek({ results = [] }) {
         >
           <div className="bg-[#00A86B] py-2 md:py-6 rounded-lg mb-5">
             <h4 className="text-xl font-semibold text-white text-center">
-              Weekly Performance
+              🏆 Weekly Performance
             </h4>
           </div>
 
@@ -794,7 +793,7 @@ export default function ChartResultsByWeek({ results = [] }) {
             <div className="bg-[#BC41AA] py-2 md:py-6 rounded-lg mb-5">
               {" "}
               <h4 className="text-xl font-semibold text-white text-center">
-                Weekly Accuracy Trend
+                🎯 Weekly Accuracy Trend
               </h4>
             </div>
 
@@ -861,7 +860,7 @@ export default function ChartResultsByWeek({ results = [] }) {
             <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
               <div className="bg-[#5041BC] py-2 md:py-6 rounded-lg mb-5">
                 <h4 className="text-xl font-semibold text-white text-center">
-                  Subject-wise Accuracy Comparison
+                  📊 Subject-wise Accuracy Comparison
                 </h4>
               </div>
 

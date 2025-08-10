@@ -15,28 +15,54 @@ const Leaderboard = () => {
   const [error, setError] = useState(null);
   const [currentUserId, setCurrentUserId] = useState(null);
   const currentUserRef = useRef(null);
-  const initialCount = 10;
+  const initialCount = 8;
   const [visibleCount, setVisibleCount] = useState(initialCount);
+  const [currentUserRank, setCurrentUserRank] = useState(null);
 
   useEffect(() => {
-    const userId =
-      typeof window !== "undefined" ? localStorage.getItem("userId") : null;
-    setCurrentUserId(userId);
+    if (typeof window !== "undefined") {
+      const userId = localStorage.getItem("userId");
+      if (userId) {
+        setCurrentUserId(userId);
+      } else {
+        setLoading(false); // Don't keep loading if no user ID
+      }
+    }
   }, []);
 
   useEffect(() => {
+    if (!currentUserId) return;
+
     const fetchData = async () => {
       try {
         const data = await fetchLeaderBoard();
         setLeaderboard(data);
+
+        const userIndex = data.findIndex(
+          (user) => user.userId === currentUserId
+        );
+
+        console.log("User index:", userIndex); // Debug log
+        console.log("Current user ID:", currentUserId); // Debug log
+
+        if (userIndex !== -1) {
+          setCurrentUserRank({
+            ...data[userIndex],
+            rank: userIndex + 1,
+          });
+        } else {
+          console.warn("Current user not found in leaderboard");
+        }
       } catch (err) {
+        console.error("Error fetching leaderboard:", err);
         setError("Failed to fetch leaderboard");
       } finally {
         setLoading(false);
       }
     };
+
     fetchData();
-  }, []);
+  }, [currentUserId]);
 
   useEffect(() => {
     if (currentUserRef.current && !loading) {
@@ -147,9 +173,54 @@ const Leaderboard = () => {
           ))}
         </div>
       </div>
+      {currentUserRank ? (
+        <div className="mt-10 p-4 mb-6 rounded-xl bg-white border-2 border-green-500 shadow-sm">
+          <h3 className="text-lg font-bold mb-3 text-green-700">
+            🎯 Your Rank
+          </h3>
+          <div className="grid grid-cols-12 items-center px-4 py-3 text-sm bg-[#F2FAFF] rounded-lg border border-[#007ACC40]">
+            <div className="col-span-2 text-black text-lg font-semibold">
+              #{currentUserRank.rank}
+            </div>
+            <div className="col-span-6 flex items-center gap-3">
+              <Image
+                src={getProfileImageUrl(
+                  currentUserRank.profile || "/images/user/default.png"
+                )}
+                width={30}
+                height={30}
+                alt="Profile"
+                className="rounded-full"
+              />
+              <span className="font-medium">{currentUserRank.name}</span>
+            </div>
+            <div className="col-span-3 font-semibold text-green-600">
+              {parseFloat(currentUserRank.accuracy).toFixed(0)}%
+            </div>
+            <div className="col-span-1 text-center text-gray-400">
+              <FaEllipsisV />
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="mt-10 p-4 mb-6 rounded-xl bg-white border-2 border-yellow-500 shadow-sm">
+          <h3 className="text-lg font-bold mb-3 text-yellow-700">
+            ⚠️ You're not currently ranked
+          </h3>
+          <p>Complete more tests to appear on the leaderboard!</p>
+        </div>
+      )}
 
       {/* Leaderboard Table */}
-      {leaderboard.slice(0, visibleCount).map((user, index) => {
+      {[
+        ...leaderboard.slice(0, visibleCount),
+        ...(currentUserRank &&
+        !leaderboard
+          .slice(0, visibleCount)
+          .some((u) => u.userId === currentUserId)
+          ? [currentUserRank]
+          : []),
+      ].map((user, index) => {
         const isCurrentUser = user.userId === currentUserId;
         const rankChange = index === 0 ? "up" : index === 1 ? "down" : null;
 

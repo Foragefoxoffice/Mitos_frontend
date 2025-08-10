@@ -347,6 +347,7 @@
   place-items: flex-start;
   place-content: center;
   gap: 20px;
+  align-items: end;
 }
 
 .topic_card {
