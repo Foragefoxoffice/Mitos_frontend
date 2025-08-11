@@ -98,7 +98,40 @@ export default function LandingPage() {
   ];
 
   return (
-    <main className="bg-white text-gray-800 overflow-hidden mt-10">
+    <main className="bg-white text-gray-800 overflow-hidden mt-3 md:mt-10">
+      {/* header */}
+      <section className="bg-white md:mr-16 md:ml-16 mr-2 ml-2 md:mb-2 mb-4">
+        <div className="mx-auto md:flex block items-center justify-between gap-4 px-5 py-3">
+          {/* Logo */}
+          <div className="flex justify-center md:mb-0 mb-3">
+            <img
+              src="images/practice/header-logo.png"
+              alt="MITOS LEARNING"
+              className="md:w-[60%] w-[50%]"
+            />
+          </div>
+
+          {/* CTA Button */}
+          <a
+            href="/start"
+            className="flex items-center gap-2 rounded-full border border-purple-600 text-[#6F3195] font-semibold px-5 py-3 bg-gradient-to-b from-purple-600/10 to-purple-600/5 shadow-[inset_0_0_0_1px_rgba(122,42,239,0.12)] transition-all hover:bg-purple-600 hover:text-white hover:shadow-[0_6px_18px_rgba(122,42,239,0.25)] active:translate-y-[1px] whitespace-nowrap md:whitespace-normal"
+          >
+            Start your NEET success now
+            <svg
+              viewBox="0 0 24 24"
+              className="w-[18px] h-[18px]"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M5 12h14M13 5l7 7-7 7" />
+            </svg>
+          </a>
+        </div>
+      </section>
+
       {/* HERO */}
       <section
         style={{
