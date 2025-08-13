@@ -9,7 +9,7 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from "recharts";
-import { motion } from "framer-motion";
+import { FaCircleDot } from "react-icons/fa6";
 
 const LegendDot = ({ color }) => (
   <span
@@ -63,14 +63,20 @@ export default function ChartComparison({
         </div>
 
         {/* Legend */}
-        <div className="flex items-center justify-center md:gap-6 gap-1 mb-4">
-          <div className="px-4 py-2 border rounded-xl bg-white shadow-sm">
-            <LegendDot color="#22c55e" />
-            <span className="text-sm font-medium">You with mitos learning</span>
-          </div>
-          <div className="px-4 py-2 border rounded-xl bg-white shadow-sm">
-            <LegendDot color="#6366f1" />
-            <span className="text-sm font-medium">Without mitos earning</span>
+        <div className="flex justify-center">
+          <div className="inline-block py-3 rounded-xl mb-4 bg-[#FEF8FF] border border-[#B886C1]">
+            <div className="px-4 rounded-xl flex items-center gap-1">
+              <FaCircleDot color="#22c55e" />
+              <span className="text-lg font-semibold text-[#2D2D2D]">
+                You with mitos learning
+              </span>
+            </div>
+            <div className="px-4 rounded-xl mt-2 flex items-center gap-1">
+              <FaCircleDot color="#6366f1" />
+              <span className="text-lg font-semibold text-[#2D2D2D]">
+                Without mitos earning
+              </span>
+            </div>
           </div>
         </div>
 

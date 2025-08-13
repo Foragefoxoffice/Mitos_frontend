@@ -298,10 +298,10 @@ export default function LandingPage() {
 
               <thead>
                 <tr className="bg-[#6D3093] text-white">
-                  <th className="md:py-5 md:px-4 py-2 px-2 text text-xl font-semibold md:text-end text-center">
+                  <th className="md:py-5 md:px-4 py-2 px-2 text text-xl font-semibold md:text-end text-center"></th>
+                  <th className="md:py-5 md:px-4 py-2 px-2 text-center text-xl border-l border-[#fff] font-semibold">
                     Mitos learning
                   </th>
-                  <th className="md:py-5 md:px-4 py-2 px-2 text-left text-xl font-semibold"></th>
                   <th className="py-5 text-center pl-4 pr-6 border-l border-[#fff] text-xl font-semibold">
                     Others
                   </th>
@@ -501,7 +501,10 @@ export default function LandingPage() {
               viewport={{ once: true }}
               className="bg-gray-50 p-8 rounded-xl border border-gray-200 relative overflow-hidden"
             >
-              <div className="absolute -top-4 -right-4 text-9xl font-bold text-gray-100 z-0">
+              <div
+                style={{ opacity: 0.2 }}
+                className="absolute -top-4 -right-4 text-9xl font-bold text-[#3C0047] z-0"
+              >
                 {step.step}
               </div>
               <div className="relative z-10">
