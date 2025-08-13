@@ -98,7 +98,7 @@ export default function LandingPage() {
   ];
 
   return (
-    <main className="bg-white text-gray-800 overflow-hidden mt-3 md:mt-10">
+    <main className="bg-white text-gray-800 overflow-hidden mt-3 ">
       {/* header */}
       <section className="bg-white md:mr-16 md:ml-16 mr-2 ml-2 md:mb-2 mb-4">
         <div className="mx-auto md:flex block items-center justify-between gap-4 px-5 py-3">
@@ -113,7 +113,7 @@ export default function LandingPage() {
 
           {/* CTA Button */}
           <a
-            href="/start"
+            href="/user/dashboard"
             className="flex items-center gap-2 rounded-full border border-purple-600 text-[#6F3195] font-semibold px-5 py-3 bg-gradient-to-b from-purple-600/10 to-purple-600/5 shadow-[inset_0_0_0_1px_rgba(122,42,239,0.12)] transition-all hover:bg-purple-600 hover:text-white hover:shadow-[0_6px_18px_rgba(122,42,239,0.25)] active:translate-y-[1px] whitespace-nowrap md:whitespace-normal"
           >
             Start your NEET success now
@@ -552,7 +552,11 @@ export default function LandingPage() {
           <div className="max-w-4xl mx-auto">
             <div className="flex flex-col md:flex-row justify-between items-center mb-6">
               <div className="text-2xl font-bold text-white mb-4 md:mb-0">
-                NEETMockApp
+                <img
+                  src="images/practice/header-logo.png"
+                  alt="MITOS LEARNING"
+                  className="md:w-[60%] w-[50%]"
+                />
               </div>
               <div className="flex gap-6">
                 <a href="#" className="hover:text-white">

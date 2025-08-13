@@ -14,6 +14,7 @@ import {
   FiSettings,
   FiMenu,
   FiX,
+  FiTarget, // ✅ NEW: icon for NEET Score Predictor
 } from "react-icons/fi";
 
 const navItems = [
@@ -31,6 +32,13 @@ const navItems = [
         icon: <FiTrendingUp size={18} />,
         href: "/user/progress",
         allowedRoles: ["user", "admin"], // Guests cannot access
+      },
+      // ✅ NEW: NEET Score Predictor (only for logged-in users)
+      {
+        title: "Score Predictor",
+        icon: <FiTarget size={18} />,
+        href: "/user/neet-score-predictor",
+        allowedRoles: ["user", "admin"],
       },
       {
         title: "Leader Board",
