@@ -137,3 +137,7 @@ label span {
   background-color: #007acc;
   border-radius: 8px;
 }
+
+mjx-math {
+  white-space: normal !important;
+}

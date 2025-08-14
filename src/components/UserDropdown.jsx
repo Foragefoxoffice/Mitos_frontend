@@ -52,10 +52,9 @@ const UserDropdown = ({ user }) => {
   };
 
   // Build full image URL
-  const profileImage =
-    user?.profile?.startsWith("http")
-      ? user.profile
-      : `https://mitoslearning.in${user?.profile || ""}`;
+  const profileImage = user?.profile?.startsWith("http")
+    ? user.profile
+    : `https://mitoslearning.in${user?.profile || ""}`;
 
   return (
     <div className="relative">
@@ -63,7 +62,7 @@ const UserDropdown = ({ user }) => {
         className="flex items-center bg-transparent space-x-2 focus:outline-none"
         onClick={togglePopup}
       >
-        <div className="w-12 h-12 relative rounded-full overflow-hidden">
+        <div className="w-10 h-10 md:w-12 md:h-12 relative rounded-full overflow-hidden">
           <Image
             src={user?.profile ? profileImage : "/images/user/default.png"}
             alt="User Icon"
@@ -72,7 +71,7 @@ const UserDropdown = ({ user }) => {
             sizes="48px"
           />
         </div>
-        <FaAngleDown className="text-xl text-gray-600" />
+        <FaAngleDown className="text-xl m-0 text-gray-600" />
       </button>
 
       {/* Popup */}

@@ -28,7 +28,7 @@ const navItems = [
         allowedRoles: ["guest", "user", "admin"], // All roles can access
       },
       {
-        title: "Learning Progress",
+        title: "Mark Booster",
         icon: <FiTrendingUp size={18} />,
         href: "/user/progress",
         allowedRoles: ["user", "admin"], // Guests cannot access
@@ -125,7 +125,7 @@ const Menu = () => {
       {isMobile && (
         <div
           className={`md:hidden fixed left-4 z-50 ${
-            isMobileMenuOpen ? "top-2 left-[12rem]" : "relative "
+            isMobileMenuOpen ? "top-2 left-[15rem]" : "relative "
           }`}
         >
           <button
@@ -141,7 +141,11 @@ const Menu = () => {
       <div
         className={`
           ${isMobile ? "fixed inset-y-0 left-0 z-40 transform" : "relative"}
-          ${isMobileMenuOpen ? "translate-x-0 w-64" : "-translate-x-full"}
+          ${
+            isMobileMenuOpen
+              ? "translate-x-0 w-[80%] sidebar"
+              : "-translate-x-full"
+          }
           md:translate-x-0 transition-transform duration-300 ease-in-out
            text-white h-screen
         `}
@@ -161,7 +165,7 @@ const Menu = () => {
                       onClick={() => {
                         if (isMobile) setIsMobileMenuOpen(false);
                       }}
-                      className={`flex items-center gap-3 pt-3 pb-3 pr-2 pl-2 rounded-lg mx-2 group
+                      className={`flex items-center gap-3 pt-3 pb-3 px-3 rounded-lg mx-2 group
     transition-all duration-300 ease-in-out
     ${
       isActive(item.href)
@@ -199,12 +203,14 @@ const Menu = () => {
                     <button
                       key={item.title}
                       onClick={handlePremiumClick}
-                      className={`w-[100%] flex items-center gap-1 pt-3 mb-3 pb-3 pr-2 pl-2 rounded-lg group
+                      className={`w-[100%] flex items-center gap-1 pt-3 mb-3 pb-3 px-2 rounded-lg group
     transition-all duration-300 ease-in-out ${
       isActive(item.href)
         ? "bg-white text-[#35095E]"
         : "text-white hover:bg-purple-800"
-    } opacity-50`}
+    } 
+     ${isMobileMenuOpen ? " mx-2 w-[90%]" : " mx-0"}
+    opacity-50`}
                     >
                       <span className="text-white text-[12px]">
                         {item.icon}

@@ -356,7 +356,7 @@ export default function NeetScorePredictorPage() {
             </div>
             <div className="flex items-center gap-2">
               <StatPill label="Tests" value={view.counts.testsLoaded} />
-              <StatPill label="Subject rows" value={view.counts.subjectRows} />
+              {/* <StatPill label="Subject rows" value={view.counts.subjectRows} /> */}
               <StatPill label="Avg accuracy" value={`${view.meanAcc}%`} />
             </div>
           </div>
@@ -445,14 +445,9 @@ export default function NeetScorePredictorPage() {
             <ul className="list-disc ml-5 mt-2 text-sm text-gray-700 space-y-1">
               <li>
                 <b>11th Accuracy</b> and <b>12th Accuracy</b> are computed per
-                subject from your attempted questions only (
-                <i>correct ÷ attempted × 100</i>).
+                subject from your attempted questions only
               </li>
-              <li>
-                <b>Subject accuracy</b> = average of available grades:
-                <br />• both available → <code>(11th% + 12th%) / 2</code>
-                <br />• only one available → that grade’s %.
-              </li>
+
               <li>
                 Estimated scores: Physics = <code>accuracy × 1.8</code>,
                 Chemistry = <code>accuracy × 1.8</code>, Biology ={" "}

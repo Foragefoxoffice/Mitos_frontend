@@ -9,6 +9,7 @@ import {
   FaArrowRight,
   FaStar,
   FaMedal,
+  FaGift,
 } from "react-icons/fa";
 import { motion } from "framer-motion";
 import { useInView } from "react-intersection-observer";
@@ -55,7 +56,7 @@ export default function LandingPage() {
     },
     {
       icon: FaSlidersH,
-      title: "Customised Topic",
+      title: "Customizable question practice",
       desc: "Customizable topic-wise practice for all chapters and 10+ question types for each topic.",
       accent: "bg-violet-100 text-violet-600",
     },
@@ -79,7 +80,7 @@ export default function LandingPage() {
     },
     {
       icon: FaUserCircle,
-      title: "Personal Datadriven",
+      title: "Personal data driven score booster",
       desc: "Personalised, data-driven error analytics and score booster for weak areas.",
       accent: "bg-pink-100 text-pink-600",
     },
@@ -156,7 +157,7 @@ export default function LandingPage() {
           <div className="inline-flex items-center bg-[#4A2588] px-4 py-2 rounded-full mb-6 border border-[#7B4EC7]">
             <FaMedal className="mr-2 text-white" />
             <span className="text-white text-left md:text-center">
-              Trusted by 50,000+ NEET Aspirants
+              Trusted by 10,000+ NEET Aspirants
             </span>
           </div>
           <h1
@@ -165,12 +166,12 @@ export default function LandingPage() {
           >
             Do you need to be top 1%
             <br className="br-tag" />
-            in NEET Toppers
+            in NEET Toppers?
           </h1>
           <p className="text-md md:text-2xl font-medium mb-8 max-w-2xl mx-auto text-white">
-            Master NEET with unlimited Praitice,Tests, study
+            Master NEET with limitless practice, tests, study guides,
             <br className="br-tag" />
-            materials, Data driven personal Analytics and move.
+            data-driven personal analytics, and more.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <motion.a
@@ -179,7 +180,7 @@ export default function LandingPage() {
               href="/user/dashboard"
               className="bg-white whitespace-nowrap md:whitespace-normal text-[#6F3195] px-8 py-4 text-lg rounded-full hover:bg-white font-medium flex items-center justify-center gap-2 shadow-lg shadow-[#51216e]/30"
             >
-              Click your way into 650t in NEET <FaArrowRight />
+              Click your way into 650+ in NEET <FaArrowRight />
             </motion.a>
           </div>
         </motion.div>
@@ -313,7 +314,7 @@ export default function LandingPage() {
                   <td className="md:py-5 py-2 md:pl-6 md:pr-4 pl-2 pr-2 font-medium text-[#000000] border border-[#e0e0e0]">
                     Line by line NCERT Questions
                   </td>
-                  <td className="py-5 px-4 font-medium text-[#000000] border border-[#e0e0e0]">
+                  <td className="py-5 px-4 font-bold text-lg text-[#fff] bg-[#6d3093] border border-[#e0e0e0]">
                     30000+
                   </td>
                   <td className="border border-[#e0e0e0] md:py-5 py-2 md:pl-6 md:pr-4 pl-2 pr-2 font-medium text-[#000000]">
@@ -325,7 +326,7 @@ export default function LandingPage() {
                   <td className="border border-[#e0e0e0] md:py-5 py-2 md:pl-6 md:pr-4 pl-2 pr-2 font-medium text-[#000000]">
                     Practice question based on question types
                   </td>
-                  <td className="py-5 border border-[#e0e0e0] px-4 font-medium text-[#000000]">
+                  <td className="py-5 border border-[#e0e0e0] px-4 font-bold text-lg text-[#fff] bg-[#6d3093]">
                     Yes
                   </td>
                   <td className="border border-[#e0e0e0] md:py-5 py-2 md:pl-6 md:pr-4 pl-2 pr-2 font-medium text-[#000000]">
@@ -335,11 +336,11 @@ export default function LandingPage() {
 
                 <tr className="border-t text-center">
                   <td className="border border-[#e0e0e0] md:py-5 py-2 md:pl-6 md:pr-4 pl-2 pr-2 font-medium text-[#000000]">
-                    customised practice for weak
+                    Customizable practice for weak
                     <br className="hidden md:block" />
                     chapters &amp; question types
                   </td>
-                  <td className="py-5 border border-[#e0e0e0] px-4 font-medium text-[#000000]">
+                  <td className="py-5 border border-[#e0e0e0] px-4 font-bold text-lg text-[#fff] bg-[#6d3093]">
                     Yes
                   </td>
                   <td className="border border-[#e0e0e0] md:py-5 py-2 md:pl-6 md:pr-4 pl-2 pr-2 font-medium text-[#000000]">
@@ -351,7 +352,7 @@ export default function LandingPage() {
                   <td className="border border-[#e0e0e0] md:py-5 py-2 md:pl-6 md:pr-4 pl-2 pr-2 font-medium text-[#000000]">
                     Subject wise weekly accuracy Trend
                   </td>
-                  <td className="py-5 border border-[#e0e0e0] px-4 font-medium text-[#000000]">
+                  <td className="py-5 border border-[#e0e0e0] px-4 font-bold text-lg text-[#fff] bg-[#6d3093]">
                     Yes
                   </td>
                   <td className="border border-[#e0e0e0] md:py-5 py-2 md:pl-6 md:pr-4 pl-2 pr-2 font-medium text-[#000000]">
@@ -365,7 +366,7 @@ export default function LandingPage() {
                     <br className="hidden md:block" />
                     error analysis
                   </td>
-                  <td className="py-5 border border-[#e0e0e0] px-4 font-medium text-[#000000]">
+                  <td className="py-5 border border-[#e0e0e0] px-4 font-bold text-lg text-[#fff] bg-[#6d3093]">
                     Yes
                   </td>
                   <td className="border border-[#e0e0e0] md:py-5 py-2 md:pl-6 md:pr-4 pl-2 pr-2 font-medium text-[#000000]">
@@ -374,6 +375,14 @@ export default function LandingPage() {
                 </tr>
               </tbody>
             </table>
+          </div>
+
+          <div className="p-6 bg-[#6d3093]/90 rounded-2xl  mt-6 flex justify-center items-center gap-4">
+            <FaGift className="text-white" />
+            <p className="text-center text-white text-lg">
+              Bonus Benifits: NCERT Exemplar, Solved Excercise, Short, long and
+              very long questions
+            </p>
           </div>
         </div>
       </section>
@@ -448,9 +457,9 @@ export default function LandingPage() {
                 </div>
                 <div>
                   <div className="font-bold text-gray-900">{t.name}</div>
-                  <div className="text-sm text-gray-500">
+                  {/* <div className="text-sm text-gray-500">
                     NEET Score: {t.score}/720
-                  </div>
+                  </div> */}
                 </div>
               </div>
             </motion.div>

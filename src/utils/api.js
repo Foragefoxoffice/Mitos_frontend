@@ -72,67 +72,90 @@ export const fetchChapterTopics = async (chapterId) => {
     throw error;
   }
 };
+export const fetchTopicsWithPDF = (chapterId) =>
+  API.get(`/pdf/chapters/${chapterId}/topics-with-topic-pdfs`);
 export const fetchTopics = (chapterId) => API.get(`/topics/topic/${chapterId}`);
 export const fetchQuestionType = () => API.get("/question-types");
 
-export const fetchQuestionBychapter = (chapterId) => API.get(`/questions/chapter/${chapterId}`);
-export const fetchQuestionByTopic = (topicId) => API.get(`/questions/topic/${topicId}`);
-export const fetchQuestionByType = (typeId) => API.get(`/questions/topic/${typeId}`);
+export const fetchQuestionBychapter = (chapterId) =>
+  API.get(`/questions/chapter/${chapterId}`);
+export const fetchQuestionByTopic = (topicId) =>
+  API.get(`/questions/topic/${topicId}`);
+export const fetchQuestionByType = (typeId) =>
+  API.get(`/questions/topic/${typeId}`);
 
-export const fetchQuestion = (topicId) => API.get(`/questions?topicId=${topicId}`);
+export const fetchQuestion = (topicId) =>
+  API.get(`/questions?topicId=${topicId}`);
 export const fetchQuestions = (topics) => {
   const topicIds = topics.join(","); // Ensure topics are serialized correctly
   return API.get(`/questions/topics?topicIds=${topicIds}`); // Use 'topicIds' here
 };
 export const fetchQuestionsByTypes = (selectedQuestionTypes, chapterId) => {
   const questionTypeIds = selectedQuestionTypes.join(","); // Ensure topics are serialized correctly
-  return API.get(`/questions/questiontype?questionTypeIds=${questionTypeIds}&chapterId=${chapterId}`); // Use 'topicIds' here
+  return API.get(
+    `/questions/questiontype?questionTypeIds=${questionTypeIds}&chapterId=${chapterId}`
+  ); // Use 'topicIds' here
 };
 
-export const getQuestionsBySubjectAndQuestionId = (subjectId, selectedQuestionTypes) => {
-  return API.get(`/questions/by-subject-and-id?subjectId=${subjectId}&questiontypeId=${selectedQuestionTypes}`);
+export const getQuestionsBySubjectAndQuestionId = (
+  subjectId,
+  selectedQuestionTypes
+) => {
+  return API.get(
+    `/questions/by-subject-and-id?subjectId=${subjectId}&questiontypeId=${selectedQuestionTypes}`
+  );
 };
 
 export const getQuestionsBySubjectAndChapterId = (subjectId, chapterId) => {
-  return API.get(`/questions/by-subject-and-chapter-id?subjectId=${subjectId}&chapterId=${chapterId}`);
+  return API.get(
+    `/questions/by-subject-and-chapter-id?subjectId=${subjectId}&chapterId=${chapterId}`
+  );
 };
 
 export const fetchFullTestQuestion = () => API.get(`/questions/fulltest`);
 
-export const fetchFullTestByPortion = (portionId) => API.get(`/questions/portion/${portionId}`);
+export const fetchFullTestByPortion = (portionId) =>
+  API.get(`/questions/portion/${portionId}`);
 
-export const fetchFullTestBySubject = (portionId, subjectId) => API.get(`/questions/portion/${portionId}/subject/${subjectId}`);
+export const fetchFullTestBySubject = (portionId, subjectId) =>
+  API.get(`/questions/portion/${portionId}/subject/${subjectId}`);
 
-export const fetchFullTestByChapter = (portionId, subjectId,chapterId) => API.get(`/questions/portion/${portionId}/subject/${subjectId}/chapter/${chapterId}`);
+export const fetchFullTestByChapter = (portionId, subjectId, chapterId) =>
+  API.get(
+    `/questions/portion/${portionId}/subject/${subjectId}/chapter/${chapterId}`
+  );
 
 export const fetchCustomTestQuestions = async (
   portionId,
   chapterIds,
   questionLimit
 ) => {
-
   const token = localStorage.getItem("token"); // Retrieve the token from localStorage
 
   if (!token) {
     throw new Error("No token found. Please log in.");
   }
-  const response = await fetch("https://mitoslearning.in/api/questions/custom", {
-    
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`, // Include the token in the Authorization header
-    },
-    body: JSON.stringify({
-      portionId,
-      chapterIds,
-      questionLimit,
-    }),
-  });
+  const response = await fetch(
+    "https://mitoslearning.in/api/questions/custom",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`, // Include the token in the Authorization header
+      },
+      body: JSON.stringify({
+        portionId,
+        chapterIds,
+        questionLimit,
+      }),
+    }
+  );
 
   if (!response.ok) {
     const errorData = await response.json(); // Parse the error response
-    throw new Error(errorData.message || "Failed to fetch custom test questions");
+    throw new Error(
+      errorData.message || "Failed to fetch custom test questions"
+    );
   }
 
   return response.json();
@@ -165,7 +188,7 @@ export const addFavoriteQuestion = async (userId, questionId) => {
   try {
     const { data } = await API.post("/fav-questions", {
       userId: parseInt(userId, 10),
-      questionId
+      questionId,
     });
     return data;
   } catch (error) {
@@ -179,8 +202,8 @@ export const removeFavoriteQuestion = async (userId, questionId) => {
     const { data } = await API.delete("/fav-questions", {
       data: {
         userId: parseInt(userId, 10),
-        questionId
-      }
+        questionId,
+      },
     });
     return data;
   } catch (error) {
@@ -193,7 +216,7 @@ export const reportWrongQuestion = async (questionId, reason) => {
   try {
     const { data } = await API.post("/wrong-reports", {
       questionId,
-      reason
+      reason,
     });
     return data;
   } catch (error) {
@@ -215,7 +238,7 @@ export const getAllWrongQuestionReports = async () => {
 export const updateWrongQuestionReportStatus = async (id, status) => {
   try {
     const { data } = await API.patch(`/wrong-reports/${id}`, {
-      status
+      status,
     });
     return data;
   } catch (error) {
@@ -223,6 +246,5 @@ export const updateWrongQuestionReportStatus = async (id, status) => {
     throw error;
   }
 };
-
 
 export default API;

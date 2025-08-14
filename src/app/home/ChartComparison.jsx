@@ -1,5 +1,6 @@
 // ChartComparison.jsx
-import React, { useEffect, useMemo, useState } from "react";
+"use client";
+import React, { useEffect, useMemo, useState, useId } from "react";
 import {
   AreaChart,
   Area,
@@ -11,108 +12,125 @@ import {
 } from "recharts";
 import { FaCircleDot } from "react-icons/fa6";
 
-const LegendDot = ({ color }) => (
-  <span
-    className="inline-block w-3 h-3 rounded-full mr-2"
-    style={{ background: color, boxShadow: "0 0 0 4px rgba(0,0,0,0.04)" }}
-  />
-);
+// Generate 5 evenly spaced weeks and force green growth from 1% → 100%
+function generateData(blueData = []) {
+  const base = Array.from({ length: 5 }, (_, i) => {
+    const weekLabel = `Week ${i + 1}`;
+    const blueMatch = blueData.find(
+      (d) => String(d.label).toLowerCase() === weekLabel.toLowerCase()
+    );
+    return {
+      label: weekLabel,
+      // Smooth exponential-like growth for green
+      withMitos: Math.round(1 + Math.pow(i / 4, 1.5) * 99),
+      withoutMitos: blueMatch?.withoutMitos ?? Math.round(20 + i * 10),
+    };
+  });
+  return base;
+}
 
 export default function ChartComparison({
-  title = "Chart",
-  data: initialData,
+  title = "Your NEET Prep Trajectory",
+  data: initialData = [],
   live = false,
+  className = "",
 }) {
-  const [data, setData] = useState(initialData);
+  const uid = useId();
+  const [data, setData] = useState(generateData(initialData));
 
-  // Gentle “live” jiggle
+  useEffect(() => {
+    setData(generateData(initialData));
+  }, [initialData]);
+
+  // Optional live jiggle for blue line only
   useEffect(() => {
     if (!live) return;
     const id = setInterval(() => {
       setData((prev) =>
-        prev.map((d, i) => {
-          const jitter = Math.sin(Date.now() / 700 + i) * 0.6;
-          return {
-            ...d,
-            withMitos: Math.max(0, d.withMitos + jitter),
-            withoutMitos: Math.max(0, d.withoutMitos + jitter * 0.35),
-          };
-        })
+        prev.map((d, i) => ({
+          ...d,
+          withoutMitos: Math.max(
+            1,
+            Math.min(100, d.withoutMitos + Math.sin(Date.now() / 600 + i) * 1.5)
+          ),
+        }))
       );
     }, 700);
     return () => clearInterval(id);
   }, [live]);
 
-  const maxY = useMemo(
-    () =>
-      Math.max(...data.map((d) => Math.max(d.withMitos, d.withoutMitos))) * 1.2,
-    [data]
-  );
+  const yTicks = [0, 20, 40, 60, 80, 100];
 
   return (
-    <section className="w-full flex justify-center px-2 md:px-2 md:py-8 py-4">
-      <div className="w-full max-w-4xl">
+    <section
+      className={`w-full flex justify-center px-2 md:px-2 md:py-8 py-4 ${className}`}
+    >
+      <div className="w-full max-w-6xl">
         {/* Title */}
-        <div className="text-center mb-10">
+        <div className="text-center mb-8">
           <h2
             style={{ fontWeight: 800 }}
-            className="text-3xl md:text-5xl mb-4 bg-gradient-to-r from-[#2f1042] to-[#bf6af4] bg-clip-text text-transparent"
+            className="text-3xl md:text-5xl bg-gradient-to-r from-[#2f1042] to-[#bf6af4] bg-clip-text text-transparent"
           >
-            Chart
+            {title}
           </h2>
         </div>
 
         {/* Legend */}
         <div className="flex justify-center">
-          <div className="inline-block py-3 rounded-xl mb-4 bg-[#FEF8FF] border border-[#B886C1]">
-            <div className="px-4 rounded-xl flex items-center gap-1">
+          <div className="inline-block py-3 px-4 rounded-xl mb-5 bg-[#FEF8FF] border border-[#B886C1]">
+            <div className="flex items-center gap-2">
               <FaCircleDot color="#22c55e" />
-              <span className="text-lg font-semibold text-[#2D2D2D]">
-                You with mitos learning
+              <span className="text-sm md:text-base font-semibold text-[#2D2D2D]">
+                You with Mitos (1% → 100%)
               </span>
             </div>
-            <div className="px-4 rounded-xl mt-2 flex items-center gap-1">
+            <div className="flex items-center gap-2 mt-2">
               <FaCircleDot color="#6366f1" />
-              <span className="text-lg font-semibold text-[#2D2D2D]">
-                Without mitos earning
+              <span className="text-sm md:text-base font-semibold text-[#2D2D2D]">
+                Without Mitos
               </span>
             </div>
           </div>
         </div>
 
-        {/* Chart Card */}
-        <div className="relative rounded-3xl p-4 md:p-6">
-          {/* subtle diagonal band */}
-          <div className="pointer-events-none absolute inset-0" />
-
-          {/* NEET TOPPER label */}
-          <div className="absolute text-center left-[-0px] top-[20%] font-medium md:-left-24 md:text-sm text-[#000] md:font-medium text-[10px]">
-            NEET TOPPER
+        {/* Chart */}
+        <div className="relative rounded-3xl p-4 md:p-6 bg-white shadow-sm">
+          {/* Axis labels */}
+          <div className="pointer-events-none absolute inset-0">
+            <div className="absolute left-2 md:-left-24 top-1/2 -translate-y-1/2 text-[10px] md:text-sm text-black font-medium">
+              Subject Understanding
+              <br /> & Accuracy
+            </div>
+            <div className="absolute left-1/2 -translate-x-1/2 -bottom-4 md:-bottom-6 text-xs md:text-sm text-gray-700 font-medium">
+              Time & Effort (Weeks 1–5)
+            </div>
           </div>
 
-          {/* Y Label with typos */}
-          <div className="absolute text-center left-[-0px] md:top-[60%] top-[50%] md:-left-24 text-[10px] md:text-sm text-[#000] font-medium">
-            Subjeit understanding
-            <br /> & Accurary
-          </div>
-
-          {/* X Label */}
-          <div className=" left-1/2 -translate-x-1/2 -bottom-6 md:-bottom-8 text-xs md:text-sm text-gray-700 font-medium">
-            Time & Effort
-          </div>
-
-          <div className="h-[280px] md:h-[320px] relative">
+          <div className="h-[350px] relative">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart
                 data={data}
-                margin={{ left: 10, right: 10, top: 10, bottom: 10 }}
+                margin={{ left: 20, right: 20, top: 20, bottom: 20 }}
               >
                 <defs>
-                  <linearGradient id="withFill" x1="0" y1="0" x2="0" y2="1">
+                  <linearGradient
+                    id={`withFill-${uid}`}
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
                     <stop offset="5%" stopColor="#22c55e" stopOpacity={0.28} />
                     <stop offset="95%" stopColor="#22c55e" stopOpacity={0.04} />
                   </linearGradient>
-                  <linearGradient id="withoutFill" x1="0" y1="0" x2="0" y2="1">
+                  <linearGradient
+                    id={`withoutFill-${uid}`}
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
                     <stop offset="5%" stopColor="#6366f1" stopOpacity={0.28} />
                     <stop offset="95%" stopColor="#6366f1" stopOpacity={0.04} />
                   </linearGradient>
@@ -126,7 +144,9 @@ export default function ChartComparison({
                   tickLine={false}
                 />
                 <YAxis
-                  domain={[0, Math.max(1, maxY)]}
+                  domain={[0, 100]}
+                  ticks={yTicks}
+                  tickFormatter={(v) => `${v}%`}
                   tick={{ fontSize: 12 }}
                   axisLine={false}
                   tickLine={false}
@@ -138,23 +158,29 @@ export default function ChartComparison({
                     border: "1px solid #eee",
                     boxShadow: "0 10px 24px rgba(0,0,0,0.06)",
                   }}
-                  formatter={(value) => Number(value).toFixed(1)}
+                  formatter={(value) => `${Math.round(value)}%`}
                   labelClassName="text-sm font-medium"
                 />
+
+                {/* Blue line */}
                 <Area
                   type="monotone"
                   dataKey="withoutMitos"
+                  name="Without Mitos"
                   stroke="#6366f1"
-                  fill="url(#withoutFill)"
+                  fill={`url(#withoutFill-${uid})`}
                   strokeWidth={2.5}
                   dot={false}
                   isAnimationActive
                 />
+
+                {/* Green line: smooth growth */}
                 <Area
                   type="monotone"
                   dataKey="withMitos"
+                  name="With Mitos"
                   stroke="#22c55e"
-                  fill="url(#withFill)"
+                  fill={`url(#withFill-${uid})`}
                   strokeWidth={2.5}
                   dot={false}
                   isAnimationActive
@@ -162,19 +188,6 @@ export default function ChartComparison({
               </AreaChart>
             </ResponsiveContainer>
           </div>
-        </div>
-
-        {/* Live toggle */}
-        <div className="mt-4 flex items-center justify-center gap-3">
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              className="size-4 accent-[#6F3195]"
-              checked={live}
-              readOnly
-            />
-            Live animation
-          </label>
         </div>
       </div>
     </section>

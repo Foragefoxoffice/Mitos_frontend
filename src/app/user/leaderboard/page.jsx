@@ -1,68 +1,136 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { fetchLeaderBoard } from "@/utils/api";
 import Image from "next/image";
+import Link from "next/link";
 import CommonLoader from "@/commonLoader";
-import { FaEllipsisV } from "react-icons/fa";
-import { FaSortUp } from "react-icons/fa";
-import { FaCaretDown } from "react-icons/fa";
 import { BsGraphUpArrow } from "react-icons/bs";
 
 const Leaderboard = () => {
   const [leaderboard, setLeaderboard] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
   const [currentUserId, setCurrentUserId] = useState(null);
+  const [currentUserRank, setCurrentUserRank] = useState(null);
   const currentUserRef = useRef(null);
+
   const initialCount = 8;
   const [visibleCount, setVisibleCount] = useState(initialCount);
-  const [currentUserRank, setCurrentUserRank] = useState(null);
+
+  // News box
+  const [newsItems, setNewsItems] = useState([]);
+  const [newsLoading, setNewsLoading] = useState(true);
+  const [newsError, setNewsError] = useState(null);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const userId = localStorage.getItem("userId");
-      if (userId) {
-        setCurrentUserId(userId);
-      } else {
-        setLoading(false); // Don't keep loading if no user ID
-      }
+      const uid = localStorage.getItem("userId");
+      if (uid) setCurrentUserId(uid);
     }
   }, []);
 
+  const getProfileImageUrl = (url = "") => {
+    if (!url) return "/images/user/default.png";
+    if (url.startsWith("/images/user/"))
+      return `https://mitoslearning.in${url}`;
+    return url;
+  };
+
+  const toNumber = (v) => {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : 0;
+  };
+
+  const getTotalScore = (u) => {
+    const candidates = [
+      u.totalScore,
+      u.total_score,
+      u.score,
+      u.marks,
+      u.points,
+    ];
+    for (const c of candidates) {
+      const n = toNumber(c);
+      if (n !== 0) return n;
+    }
+    return 0;
+  };
+
   useEffect(() => {
-    if (!currentUserId) return;
-
-    const fetchData = async () => {
+    const load = async () => {
       try {
-        const data = await fetchLeaderBoard();
-        setLeaderboard(data);
+        setLoading(true);
+        setError(null);
+        const raw = await fetchLeaderBoard();
+        const arr = Array.isArray(raw) ? raw : [];
 
-        const userIndex = data.findIndex(
-          (user) => user.userId === currentUserId
-        );
+        const withScore = arr.map((u) => ({
+          ...u,
+          totalScore: getTotalScore(u),
+        }));
 
-        console.log("User index:", userIndex); // Debug log
-        console.log("Current user ID:", currentUserId); // Debug log
+        withScore.sort((a, b) => b.totalScore - a.totalScore);
 
-        if (userIndex !== -1) {
-          setCurrentUserRank({
-            ...data[userIndex],
-            rank: userIndex + 1,
-          });
+        let lastScore = null;
+        let lastRank = 0;
+        const ranked = withScore.map((u, i) => {
+          const rank =
+            lastScore !== null && u.totalScore === lastScore ? lastRank : i + 1;
+          lastScore = u.totalScore ?? 0;
+          lastRank = rank;
+          return { ...u, rank };
+        });
+
+        setLeaderboard(ranked);
+
+        if (currentUserId) {
+          const me = ranked.find(
+            (u) => String(u.userId) === String(currentUserId)
+          );
+          setCurrentUserRank(me || null);
         } else {
-          console.warn("Current user not found in leaderboard");
+          setCurrentUserRank(null);
         }
-      } catch (err) {
-        console.error("Error fetching leaderboard:", err);
+      } catch (e) {
+        console.error(e);
         setError("Failed to fetch leaderboard");
       } finally {
         setLoading(false);
       }
     };
-
-    fetchData();
+    load();
   }, [currentUserId]);
+
+  useEffect(() => {
+    const fetchNews = async () => {
+      try {
+        setNewsLoading(true);
+        setNewsError(null);
+
+        const resp = await fetch("https://mitoslearning.in/api/news");
+        if (!resp.ok) throw new Error("Failed to fetch news");
+        const data = await resp.json();
+
+        const list = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.data)
+          ? data.data
+          : data?.data
+          ? [data.data]
+          : [data];
+
+        setNewsItems(list.slice(0, 5));
+      } catch (err) {
+        console.error(err);
+        setNewsError("Failed to load news");
+      } finally {
+        setNewsLoading(false);
+      }
+    };
+    fetchNews();
+  }, []);
 
   useEffect(() => {
     if (currentUserRef.current && !loading) {
@@ -73,20 +141,43 @@ const Leaderboard = () => {
     }
   }, [loading, leaderboard]);
 
-  const getProfileImageUrl = (url) => {
-    if (url.startsWith("/images/user/"))
-      return `https://mitoslearning.in${url}`;
-    return url;
+  const ordinal = (n) => {
+    const s = ["th", "st", "nd", "rd"];
+    const v = n % 100;
+    return s[(v - 20) % 10] || s[v] || s[0];
   };
 
-  const getRankIcon = (rank, change) => {
-    if (change === "up") return <FaSortUp className="text-green-500 mr-1" />;
-    if (change === "down") return <FaCaretDown className="text-red-500 mr-1" />;
-    return <span className="text-gray-400 mr-1">-</span>;
+  const formatDate = (dateString) => {
+    if (!dateString) return "";
+    const options = { year: "numeric", month: "long", day: "numeric" };
+    return new Date(dateString).toLocaleDateString(undefined, options);
   };
 
   const top3 = leaderboard.slice(0, 3);
-  const others = leaderboard.slice(3);
+
+  const rankMap = useMemo(() => {
+    const m = new Map();
+    leaderboard.forEach((u) => m.set(String(u.userId), u.rank || 0));
+    return m;
+  }, [leaderboard]);
+
+  const others = useMemo(
+    () => leaderboard.filter((u) => String(u.userId) !== String(currentUserId)),
+    [leaderboard, currentUserId]
+  );
+
+  const visibleOthersCount = useMemo(() => {
+    const reserved = currentUserRank ? 1 : 0;
+    return Math.min(others.length, Math.max(0, visibleCount - reserved));
+  }, [others.length, visibleCount, currentUserRank]);
+
+  const rows = useMemo(() => {
+    if (currentUserRank)
+      return [currentUserRank, ...others.slice(0, visibleOthersCount)];
+    return others.slice(0, visibleOthersCount);
+  }, [currentUserRank, others, visibleOthersCount]);
+
+  const canShowMore = visibleOthersCount < others.length;
 
   if (loading) return <CommonLoader />;
   if (error) return <p className="text-center text-red-500">{error}</p>;
@@ -94,50 +185,47 @@ const Leaderboard = () => {
   return (
     <div className="p-5 md:p-10 bg-[#F2F8FE] min-h-screen">
       {/* Top Section */}
-      <div className="grid md:grid-cols-2 items-end gap-6 mb-10">
-        {/* Bar Graph Section */}
+      <div className="grid md:grid-cols-2 items-start gap-6 mb-10">
+        {/* Top Rankers */}
         <div className="bg-white rounded-2xl pt-6 pb-0 pr-6 pl-6 shadow-md">
           <h2 className="text-xl font-bold text-black mb-4 flex justify-end items-center gap-2">
-            <BsGraphUpArrow /> Top Rankers
+            <BsGraphUpArrow /> Top Rankers (by Total Score)
           </h2>
           <div className="flex gap-3 justify-center items-end">
             {top3.map((user, index) => {
-              const rankColor = [
-                "bg-[#FF6B6B]",
-                "bg-[#F7941D]",
-                "bg-[#5041BC]",
-              ];
-              const rankPercent = [
-                "text-[#FF6B6B]",
-                "text-[#F7941D]",
-                "text-[#5041BC]",
+              const palette = [
+                { block: "bg-[#FF6B6B]", text: "text-[#FF6B6B]" },
+                { block: "bg-[#F7941D]", text: "text-[#F7941D]" },
+                { block: "bg-[#5041BC]", text: "text-[#5041BC]" },
               ];
               const heights = ["h-32 md:h-52", "h-24 md:h-36", "h-16 md:h-28"];
+              const rankNum = user.rank ?? index + 1;
+              const p = palette[index] || palette[2];
               return (
-                <div key={user.userId} className="flex flex-col items-center">
+                <div
+                  key={String(user.userId)}
+                  className="flex flex-col items-center"
+                >
                   <div className="grid md:flex items-top gap-0 md:gap-2 mb-2">
                     <Image
-                      src={getProfileImageUrl(
-                        user.profile || "/images/user/default.png"
-                      )}
+                      src={getProfileImageUrl(user.profile)}
                       alt="Profile"
                       width={40}
                       height={40}
                       className="rounded-full mb-2"
                     />
                     <span className="mt-2 font-semibold text-sm md:text-lg">
-                      {user.name}
+                      {user.name || "User"}
                     </span>
                   </div>
-
-                  <span className={`text-2xl ${rankPercent[index]}`}>
-                    {parseFloat(user.accuracy).toFixed(0)}%
+                  <span className={`text-2xl ${p.text}`}>
+                    {(user.totalScore ?? 0).toLocaleString()} pts
                   </span>
                   <div
-                    className={`w-[90px] md:w-[150px] mt-3 ${heights[index]} ${rankColor[index]} rounded-t-3xl flex items-center justify-center text-white text-xl font-bold`}
+                    className={`w-[90px] md:w-[150px] mt-3 ${heights[index]} ${p.block} rounded-t-3xl flex items-center justify-center text-white text-xl font-bold`}
                   >
-                    {index + 1}
-                    <sup className="text-2xl ml-1">st</sup>
+                    {rankNum}
+                    <sup className="text-2xl ml-1">{ordinal(rankNum)}</sup>
                   </div>
                 </div>
               );
@@ -145,64 +233,56 @@ const Leaderboard = () => {
           </div>
         </div>
 
-        {/* NEET Updates */}
+        {/* News */}
         <div className="bg-white rounded-xl p-6 shadow-md">
-          <h2 className="text-xl font-bold mb-4">NEET Updates</h2>
-          {[1, 2].map((_, i) => (
-            <div
-              key={i}
-              className="flex items-center mb-4 bg-[#F9FAFB] p-4 rounded-lg"
-            >
-              <Image
-                src="/images/user/default.png"
-                alt="News"
-                width={60}
-                height={60}
-                className="rounded-lg mr-4"
-              />
-              <div className="flex-1">
-                <span className="text-xs bg-red-100 text-red-500 px-2 py-1 rounded-md">
-                  News
-                </span>
-                <h3 className="font-semibold mt-2 text-sm">
-                  NEET 2025 Syllabus
-                </h3>
-                <p className="text-xs text-gray-400">Dec 25, 2025 • 👁️ 111</p>
-              </div>
+          <h2 className="text-xl font-bold text-black mb-4">Latest News</h2>
+          {newsLoading && <CommonLoader />}
+          {newsError && <p className="text-red-500">{newsError}</p>}
+          {!newsLoading && !newsError && newsItems.length === 0 && (
+            <p className="text-sm text-gray-500">
+              No news available right now.
+            </p>
+          )}
+          {!newsLoading && !newsError && newsItems.length > 0 && (
+            <div className="space-y-3">
+              {newsItems.map((n) => {
+                const id = n.id ?? n._id ?? n.slug ?? n.newsId ?? "";
+                const title = n.title ?? n.heading ?? "Untitled";
+                const thumb =
+                  n.image ?? n.thumbnail ?? "/images/user/default.png";
+                const createdAt = n.createdAt ?? n.publishedAt ?? n.date;
+                const href = id ? `/news/${id}` : "#";
+                return (
+                  <Link
+                    key={id || title}
+                    href={href}
+                    className="group flex items-center gap-3 rounded-lg border bg-[#F9FAFB] p-3 hover:bg-white hover:shadow transition"
+                  >
+                    <div className="relative w-14 h-14 rounded-md overflow-hidden shrink-0">
+                      <Image
+                        src={thumb}
+                        alt={title}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-semibold text-gray-800 line-clamp-1 group-hover:text-[#017bcd]">
+                        {title}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {formatDate(createdAt)}
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
-          ))}
+          )}
         </div>
       </div>
-      {currentUserRank ? (
-        <div className="mt-10 p-4 mb-6 rounded-xl bg-white border-2 border-green-500 shadow-sm">
-          <h3 className="text-lg font-bold mb-3 text-green-700">
-            🎯 Your Rank
-          </h3>
-          <div className="grid grid-cols-12 items-center px-4 py-3 text-sm bg-[#F2FAFF] rounded-lg border border-[#007ACC40]">
-            <div className="col-span-2 text-black text-lg font-semibold">
-              #{currentUserRank.rank}
-            </div>
-            <div className="col-span-6 flex items-center gap-3">
-              <Image
-                src={getProfileImageUrl(
-                  currentUserRank.profile || "/images/user/default.png"
-                )}
-                width={30}
-                height={30}
-                alt="Profile"
-                className="rounded-full"
-              />
-              <span className="font-medium">{currentUserRank.name}</span>
-            </div>
-            <div className="col-span-3 font-semibold text-green-600">
-              {parseFloat(currentUserRank.accuracy).toFixed(0)}%
-            </div>
-            <div className="col-span-1 text-center text-gray-400">
-              <FaEllipsisV />
-            </div>
-          </div>
-        </div>
-      ) : (
+
+      {!currentUserRank && (
         <div className="mt-10 p-4 mb-6 rounded-xl bg-white border-2 border-yellow-500 shadow-sm">
           <h3 className="text-lg font-bold mb-3 text-yellow-700">
             ⚠️ You're not currently ranked
@@ -211,49 +291,54 @@ const Leaderboard = () => {
         </div>
       )}
 
-      {/* Leaderboard Table */}
-      {[
-        ...leaderboard.slice(0, visibleCount),
-        ...(currentUserRank &&
-        !leaderboard
-          .slice(0, visibleCount)
-          .some((u) => u.userId === currentUserId)
-          ? [currentUserRank]
-          : []),
-      ].map((user, index) => {
-        const isCurrentUser = user.userId === currentUserId;
-        const rankChange = index === 0 ? "up" : index === 1 ? "down" : null;
-
+      {rows.map((user) => {
+        const isCurrentUser = String(user.userId) === String(currentUserId);
+        const trueRank = rankMap.get(String(user.userId)) ?? user.rank ?? 0;
+        const acc =
+          user.accuracy != null
+            ? `${parseFloat(String(user.accuracy)).toFixed(0)}%`
+            : "—";
+        const totalScore = user.totalScore ?? getTotalScore(user);
         return (
           <div
-            key={user.userId}
+            key={String(user.userId)}
             ref={isCurrentUser ? currentUserRef : null}
-            className={`grid grid-cols-12 mb-5 items-center px-6 py-4 text-sm ${
-              isCurrentUser ? "bg-[#F2FAFF]" : "bg-[#F2FAFF]"
-            } border border-[#007ACC40] rounded-xl`}
+            className={`grid grid-cols-12 mb-5 items-center px-6 py-4 text-sm rounded-xl ${
+              isCurrentUser
+                ? "bg-[#FFFDF2] border-2 border-yellow-400"
+                : "bg-[#F2FAFF] border border-[#007ACC40]"
+            }`}
           >
             <div className="col-span-2 flex items-center text-black text-lg font-semibold">
-              {getRankIcon(index + 1, rankChange)}
-              {index + 1}
-              <sup className="ml-0.5">th</sup>
+              #{trueRank}
+              <sup className="ml-0.5">{ordinal(trueRank)}</sup>
+              {isCurrentUser && (
+                <span className="ml-2 text-xs font-bold bg-yellow-200 text-yellow-800 px-2 py-0.5 rounded-full">
+                  You
+                </span>
+              )}
             </div>
-            <div className="col-span-6 flex items-center gap-3">
+            <div className="col-span-5 flex items-center gap-3">
               <Image
-                src={getProfileImageUrl(
-                  user.profile || "/images/user/default.png"
-                )}
+                src={getProfileImageUrl(user.profile)}
                 width={30}
                 height={30}
                 alt="Profile"
                 className="rounded-full"
               />
-              <span className="font-medium">{user.name}</span>
+              <span className="font-medium">{user.name || "User"}</span>
             </div>
-            <div className="col-span-3 font-semibold text-green-600">
-              {parseFloat(user.accuracy).toFixed(0)}%
-            </div>
-            <div className="col-span-1 text-center text-gray-400">
-              <FaEllipsisV />
+            <div className="col-span-3 font-semibold text-green-600">{acc}</div>
+            <div className="col-span-2 flex justify-end">
+              <span
+                className={`text-xs px-3 py-1 rounded-full font-semibold ${
+                  totalScore > 0
+                    ? "bg-blue-100 text-blue-700"
+                    : "bg-gray-200 text-gray-600"
+                }`}
+              >
+                {(totalScore || 0).toLocaleString()} pts
+              </span>
             </div>
           </div>
         );
@@ -261,9 +346,11 @@ const Leaderboard = () => {
 
       {leaderboard.length > initialCount && (
         <div className="text-center mt-4">
-          {visibleCount < leaderboard.length ? (
+          {canShowMore ? (
             <button
-              onClick={() => setVisibleCount(leaderboard.length)}
+              onClick={() =>
+                setVisibleCount(others.length + (currentUserRank ? 1 : 0))
+              }
               className="px-6 py-2 bg-[#017bcd] text-white rounded-full hover:bg-[#005fa3] transition"
             >
               Show More

@@ -45,15 +45,15 @@ export const TestSidebar = ({
           const isCorrect = userAnswers[question.id] === question.correctOption;
 
           let buttonColor = "bg-[#CAE2FF]";
-          let buttonText = "text-[#fff]";
+          let buttonText = "text-[#35095E]";
 
           if (onShowAnswers) {
             if (isAnswered) {
               buttonColor = isCorrect ? "bg-[#4CAF50]" : "bg-[#F44336]";
               buttonText = "text-white";
             } else {
-              buttonColor = "bg-[#CAE2FF] text-white";
-              buttonText = "text-white";
+              buttonColor = "bg-[#CAE2FF]   text-[#35095E]";
+              buttonText = "text-[#35095E]";
             }
           } else {
             // Original coloring logic when not showing answers
@@ -61,10 +61,10 @@ export const TestSidebar = ({
               buttonColor = "bg-[#35095E]";
               buttonText = "text-[#fff]";
             } else if (isVisited) {
-              buttonColor = "bg-[#e49331]";
+              buttonColor = "bg-[#e49331] text-[#fff]";
             }
             if (isMarked) {
-              buttonColor = "bg-[#8e0068]";
+              buttonColor = "bg-[#8e0068] text-[#fff] ";
             }
           }
 

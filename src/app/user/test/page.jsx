@@ -27,7 +27,7 @@ import { TestSidebar } from "@/components/fulltest/TestSidebar";
 import { TestTimer } from "@/components/fulltest/TestTimer";
 import Notification from "@/components/Notification";
 import ImagePopup from "@/components/ImagePopup";
-import { FaHeart, FaRegHeart, FaFlag } from "react-icons/fa";
+import { FaHeart, FaRegHeart, FaFlag, FaArrowLeft } from "react-icons/fa";
 import CommonLoader from "@/commonLoader";
 
 export default function TestPage() {
@@ -51,6 +51,7 @@ export default function TestPage() {
   const questionNavRefs = useRef([]);
   const [userId, setUserId] = useState(null);
   const [showSubmitConfirmation, setShowSubmitConfirmation] = useState(false);
+  const [showResultsModal, setShowResultsModal] = useState(false);
   const [notification, setNotification] = useState({
     show: false,
     message: "",
@@ -999,7 +1000,7 @@ export default function TestPage() {
         </div>
       )}
 
-      {showResults && showAnswer === false && (
+      {showResults && showAnswer === false && showResultsModal === false && (
         <TestResults
           calculateScore={calculateScore}
           totalTime={totalTime}
@@ -1024,7 +1025,20 @@ export default function TestPage() {
       )}
 
       <TestHeader />
-
+      {showAnswer === true && (
+        <button
+          onClick={() => {
+            setShowAnswer(false);
+            setShowResults(true);
+            setShowResultsModal(false);
+          }}
+          className="btn whitespace-nowrap mt-3"
+          style={{ padding: "0.5rem 2rem" }}
+        >
+          <FaArrowLeft />
+          Back
+        </button>
+      )}
       {Array.isArray(questions) &&
         questions.length > 0 &&
         !showInstructionPopup && (

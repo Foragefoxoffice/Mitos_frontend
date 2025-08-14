@@ -322,6 +322,7 @@ export default function TestSubject({ selectedPortion, searchTerm = "" }) {
           </div>
 
           {/* Question limit modal */}
+          {/* Question limit modal */}
           {showLimitPopup && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
               <div className="bg-white rounded-xl w-full max-w-lg shadow-lg overflow-hidden relative">
@@ -330,18 +331,18 @@ export default function TestSubject({ selectedPortion, searchTerm = "" }) {
                 </div>
 
                 <div className="px-6 py-4 space-y-4">
-                  {[30, 50, 100, 180].map((option) => {
-                    const isSelected =
-                      (typeof option === "number" &&
-                        questionLimit === option) ||
-                      (option === 180 && questionLimit === "Full");
+                  {[
+                    { label: "30 Questions", value: 30 },
+                    { label: "50 Questions", value: 50 },
+                    { label: "100 Questions", value: 100 },
+                    { label: "Full (180) Questions", value: 180 },
+                  ].map((opt) => {
+                    const isSelected = questionLimit === opt.value;
 
                     return (
                       <div
-                        key={option}
-                        onClick={() =>
-                          setQuestionLimit(option === 180 ? "Full" : option)
-                        }
+                        key={opt.value}
+                        onClick={() => setQuestionLimit(opt.value)} // <-- number, not "Full"
                         className={`flex bg-[#F0F8FF] items-center px-6 py-6 rounded-lg cursor-pointer border transition-all ${
                           isSelected
                             ? "border-[#007ACC] text-[#000] bg-blue-50 shadow-sm"
@@ -369,9 +370,7 @@ export default function TestSubject({ selectedPortion, searchTerm = "" }) {
                             )}
                           </div>
                           <span className="text-base font-medium">
-                            {typeof option === "number"
-                              ? `${option} Questions`
-                              : option}
+                            {opt.label}
                           </span>
                         </div>
                       </div>
@@ -389,12 +388,12 @@ export default function TestSubject({ selectedPortion, searchTerm = "" }) {
                   <button
                     style={{
                       boxShadow: `
-                        0px 4px 8px 0px #00000040,
-                        -1px 15px 15px 0px #00000036,
-                        -3px 34px 20px 0px #00000021,
-                        -5px 60px 24px 0px #0000000A,
-                        -7px 94px 26px 0px #00000000
-                      `,
+              0px 4px 8px 0px #00000040,
+              -1px 15px 15px 0px #00000036,
+              -3px 34px 20px 0px #00000021,
+              -5px 60px 24px 0px #0000000A,
+              -7px 94px 26px 0px #00000000
+            `,
                     }}
                     onClick={confirmStartTest}
                     className="px-4 py-2 bg-[#31CA31] text-white rounded-full font-medium shadow hover:bg-green-600"

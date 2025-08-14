@@ -6,8 +6,8 @@ import Image from "next/image";
 export const TestInstructions = ({ setShowInstructionPopup }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-      <div className="bg-[#f5faff] w-full max-w-4xl rounded-xl overflow-auto md:overflow-hidden h-[500px] md:h-[auto] shadow-lg flex flex-col md:flex-row">
-        <div className="w-[85%] border-[1px] border-[#007ACC40] md:w-1/2 bg-white p-4 m-6 grid rounded-lg justify-items-center text-center">
+      <div className="bg-[#f5faff] w-full max-w-4xl rounded-xl overflow-auto md:overflow-hidden h-[100%] md:h-[auto] shadow-lg flex flex-col md:flex-row">
+        <div className="w-[90%] border-[1px] border-[#007ACC40] md:w-1/2 bg-white p-4 m-6 grid rounded-lg justify-items-center text-center">
           <img
             src="/images/practice/Instructions-logo.png"
             alt="Instructions Banner"
@@ -27,8 +27,10 @@ export const TestInstructions = ({ setShowInstructionPopup }) => {
           </h2>
           <ul className="text-sm space-y-2 text-gray-700 list-decimal pl-5">
             <li className="pb-4">
-              Each question takes 1 minute, so total number of questions × 1 min
-              for total test time. (Time is for the whole test.)
+              Each correctly answer question carries 4 marks.
+            </li>
+            <li className="pb-4">
+              Each wrongly answered question deducts 1 mark.
             </li>
             <li className="pb-4">
               4 buttons for navigation: <strong>“Previous Question”</strong>,{" "}
@@ -36,9 +38,17 @@ export const TestInstructions = ({ setShowInstructionPopup }) => {
               <strong>“Questions”</strong>.
             </li>
             <li className="pb-4">
-              Questions will have pop-up box for navigating to any question.
+              Questions will have pop-up box for navigating to any subject or
+              question.
             </li>
             <li className="pb-4">
+              Timer will be based on NEET standard (Approx 1 minute per
+              question)
+            </li>
+            <li className="pb-4">
+              No corrections can be made after submitting the exam.
+            </li>
+            {/* <li className="pb-4">
               Attempted question —{" "}
               <span className="inline-block w-3 h-3 rounded-full bg-green-600 ml-2"></span>
             </li>
@@ -49,8 +59,13 @@ export const TestInstructions = ({ setShowInstructionPopup }) => {
             <li className="pb-4">
               Marked for review —{" "}
               <span className="inline-block w-3 h-3 rounded-full bg-yellow-400 ml-2"></span>
-            </li>
+            </li> */}
           </ul>
+          <div className="mt-4 mb-2 text-center">
+            <span className="inline-block px-6 py-2 text-lg md:text-xl font-extrabold tracking-wide bg-gradient-to-r from-[#007ACC]  to-[#9b00e8] text-white rounded-full shadow-lg shadow-[#e52e71]/30 animate-pulse">
+              🎯 Best of Luck! 🎯
+            </span>
+          </div>
 
           {/* Buttons */}
           <div className="mt-6 flex justify-between">

@@ -159,7 +159,7 @@ export const TestQuestion = ({
               : "bg-red-100 border-red-300"
           }`}
         >
-          <div className="mb-4 question_option">
+          <div className="mb-4 question_option flex gap-2">
             <span
               style={{ color: "green", fontWeight: 800 }}
               className="font-bold"

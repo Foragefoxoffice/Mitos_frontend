@@ -615,6 +615,12 @@ input[type="checkbox"] {
   color: var(--text);
   font-size: 22px;
 }
+.question_option a {
+  pointer-events: none;
+  cursor: default;
+  text-decoration: none;
+  color: #000;
+}
 
 /*-------------------
  portion page style 

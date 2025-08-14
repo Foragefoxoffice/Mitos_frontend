@@ -56,7 +56,7 @@ export default function DashboardLayout({ children }) {
                 alt="Logo"
                 width={50}
                 height={50}
-                className="rounded-full"
+                className="rounded-full w-[120px]"
               />
               <Menu />
             </div>

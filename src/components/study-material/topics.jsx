@@ -2,25 +2,23 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { fetchTopics, fetchQuestionByTopic } from "@/utils/api";
-import axios from "axios";
+import { fetchTopicsWithPDF } from "@/utils/api"; // uses /pdf/chapters/:chapterId/topics-with-topic-pdfs
 import PremiumPopup from "../PremiumPopup";
 import CommonLoader from "@/commonLoader";
 
 export default function MeterialsTopicsPage({
   selectedChapter,
   onTopicSelect,
-  searchTerm = "", // ⬅️ from nav.js
+  searchTerm = "",
 }) {
   const searchParams = useSearchParams();
   const chapterId = selectedChapter?.id || searchParams.get("chapterId");
 
   const [topics, setTopics] = useState([]);
-  const [chapterName, setChapterName] = useState("");
+  const [chapterName, setChapterName] = useState(selectedChapter?.name || "");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showPopup, setShowPopup] = useState(false);
-  const [selectedTopicId, setSelectedTopicId] = useState(null);
 
   const router = useRouter();
 
@@ -37,60 +35,44 @@ export default function MeterialsTopicsPage({
   };
 
   useEffect(() => {
-    const loadTopics = async () => {
+    const loadTopicsWithPDFs = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        const response = await fetchTopics(chapterId);
-        const { data, chapterName } = response;
-
-        if (!Array.isArray(data)) {
-          throw new Error("Invalid data format received");
+        if (!chapterId) {
+          setLoading(false);
+          setError("No chapter selected.");
+          return;
         }
 
-        setChapterName(chapterName);
+        const resp = await fetchTopicsWithPDF(chapterId);
+        const payload = resp?.data || {};
+        const list = Array.isArray(payload.topics) ? payload.topics : [];
 
-        const topicsWithQuestions = await Promise.all(
-          data.map(async (topic) => {
-            try {
-              const questionsResponse = await fetchQuestionByTopic(topic.id);
-              let questionCount = 0;
+        if (selectedChapter?.name) setChapterName(selectedChapter.name);
 
-              if (Array.isArray(questionsResponse?.data)) {
-                questionCount = questionsResponse.data.length;
-              } else if (Array.isArray(questionsResponse)) {
-                questionCount = questionsResponse.length;
-              }
+        setTopics(list);
 
-              return { ...topic, questionCount };
-            } catch (error) {
-              console.error(
-                `❌ Error fetching questions for topic ID ${topic.id}:`,
-                error
-              );
-              return { ...topic, questionCount: 0 };
-            }
-          })
-        );
-
-        setTopics(topicsWithQuestions);
-
-        if (topicsWithQuestions.length === 0) {
-          setError("No topics found in this chapter.");
+        if (list.length === 0) {
+          setError("No topics with PDFs found in this chapter.");
         }
       } catch (err) {
-        console.error("Failed to fetch topics:", err);
-        setError("Unable to load topics. Please try again later.");
+        console.error("Failed to fetch topics with PDFs:", err);
+        const msg =
+          err?.response?.status === 404
+            ? "No topics with PDFs found in this chapter."
+            : "Unable to load topics. Please try again later.";
+        setError(msg);
       } finally {
         setLoading(false);
       }
     };
 
-    if (chapterId) loadTopics();
-  }, [chapterId]);
+    loadTopicsWithPDFs();
+  }, [chapterId, selectedChapter?.name]);
 
-  // 🔎 Filter by searchTerm (name only, case-insensitive)
+  // 🔎 Filter by topic name
   const filteredTopics = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
     if (!term) return topics;
@@ -101,28 +83,14 @@ export default function MeterialsTopicsPage({
     );
   }, [topics, searchTerm]);
 
-  // reset selected topic if it’s not visible anymore
-  useEffect(() => {
-    if (
-      selectedTopicId &&
-      !filteredTopics.some((t) => t.id === selectedTopicId)
-    ) {
-      setSelectedTopicId(null);
-    }
-  }, [filteredTopics, selectedTopicId]);
-
-  const toggleTopic = (topic) => {
+  const handleGoToMaterials = (topic) => {
     const locked = isGuestUser() && topic.isPremium;
     if (locked) {
       setShowPopup(true);
       return;
     }
-    setSelectedTopicId((prev) => (prev === topic.id ? null : topic.id));
-  };
-
-  const startSelectedTopic = () => {
-    if (!selectedTopicId) return;
-    router.push(`/user/study-materials?topicId=${selectedTopicId}`);
+    // One button per topic → navigate directly with that topicId
+    router.push(`/user/study-materials?topicId=${topic.id}`);
   };
 
   const noMatches =
@@ -133,8 +101,8 @@ export default function MeterialsTopicsPage({
 
   return (
     <div className="p-4">
-      <h1 className="text-xl font-bold mb-4">Attempt by Topic</h1>
-      {chapterName && <h2 className="text-lg mb-4">{chapterName}</h2>}
+      <h1 className="text-xl font-bold mb-1">Study Materials</h1>
+      {/* {chapterName && <h2 className="text-lg mb-4">Chapter: {chapterName}</h2>} */}
 
       {loading && <CommonLoader />}
       {error && <p className="text-center pt-10 text-red-500">{error}</p>}
@@ -144,56 +112,51 @@ export default function MeterialsTopicsPage({
           {noMatches ? (
             <p className="text-center pt-10">No topics match your search.</p>
           ) : (
-            <>
-              <div className="topic_cards space-y-3 pb-24">
-                {[...filteredTopics]
-                  .sort((a, b) => {
-                    const aLocked = isGuestUser() && a.isPremium;
-                    const bLocked = isGuestUser() && b.isPremium;
-                    return aLocked - bLocked;
-                  })
-                  .map((topic) => {
-                    const locked = isGuestUser() && topic.isPremium;
-                    const checked = selectedTopicId === topic.id;
-
-                    return (
-                      <div
-                        key={topic.id}
-                        className={`topic_card flex items-center space-x-2 p-3 border rounded-lg ${
-                          locked
-                            ? "opacity-50 cursor-not-allowed"
-                            : "cursor-pointer"
-                        }`}
-                        onClick={() => toggleTopic(topic)}
-                      >
-                        <input
-                          type="checkbox"
-                          readOnly
-                          checked={checked}
-                          className="cursor-pointer"
-                        />
-                        <span className="text-lg font-normal flex-1">
+            <div className="grid mt-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pb-24">
+              {[...filteredTopics]
+                // push locked items to bottom for guests
+                .sort((a, b) => {
+                  const aLocked = isGuestUser() && a.isPremium;
+                  const bLocked = isGuestUser() && b.isPremium;
+                  if (aLocked !== bLocked) return aLocked - bLocked;
+                  return a.name.localeCompare(b.name);
+                })
+                .map((topic) => {
+                  const locked = isGuestUser() && topic.isPremium;
+                  return (
+                    <div
+                      key={topic.id}
+                      className="rounded-xl bg-transparent p-6 text-black border border-[#ccc] shadow-sm"
+                    >
+                      <div className="min-w-0">
+                        <p className="text-2xl font-semibold leading-tight truncate text-black">
                           {topic.name}
                           {locked && (
-                            <span className="text-red-500 ml-2">🔒 Locked</span>
+                            <span className="ml-2 text-white/80">🔒</span>
                           )}
-                        </span>
+                        </p>
+                        {/* keep content same: no extra lines like "8 Topics" added */}
                       </div>
-                    );
-                  })}
-              </div>
 
-              {selectedTopicId && (
-                <div className="flex justify-center mt-0">
-                  <button
-                    className="btn bg-blue-600 text-white px-4 py-2 rounded"
-                    onClick={startSelectedTopic}
-                  >
-                    Start Studying
-                  </button>
-                </div>
-              )}
-            </>
+                      <div className="mt-6 flex justify-center">
+                        <button
+                          className={`inline-flex min-w-[220px] items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold shadow-sm
+        ${
+          locked
+            ? "bg-white/70 text-[#5C222A]/60 cursor-not-allowed"
+            : "bg-[#5C222A] text-[#fff] hover:bg-white/90 hover:text-[#5C222A]"
+        }`}
+                          disabled={locked}
+                          onClick={() => handleGoToMaterials(topic)}
+                          title={locked ? "Premium content" : "Open materials"}
+                        >
+                          Open Materials
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
           )}
         </>
       )}

@@ -6,7 +6,9 @@
   .tabs {
     padding: 16px;
   }
-
+  .nav_btns button:last-child {
+    padding: 6px 40px;
+  }
   .inside_practice .subject_card {
     height: auto;
   }
