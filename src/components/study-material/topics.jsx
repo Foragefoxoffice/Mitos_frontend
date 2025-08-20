@@ -148,9 +148,9 @@ export default function MeterialsTopicsPage({
         }`}
                           disabled={locked}
                           onClick={() => handleGoToMaterials(topic)}
-                          title={locked ? "Premium content" : "Open materials"}
+                          title={locked ? "Premium content" : "Start Studying"}
                         >
-                          Open Materials
+                          Start Studying
                         </button>
                       </div>
                     </div>

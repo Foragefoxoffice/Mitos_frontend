@@ -769,8 +769,8 @@ export default function TestPage() {
                   }`}
                 >
                   <p
-                    className="text-green-500 font-bold"
-                    style={{ fontWeight: 700 }}
+                    className="text-green-800 font-bold"
+                    style={{ fontWeight: 800 }}
                   >
                     Correct Answer:{" "}
                     {filteredQuestions[currentQuestionIndex].correctOption}

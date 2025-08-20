@@ -116,11 +116,13 @@ export default function LoginPage() {
           <div className="w-full md:w-[60%]">
             <div className="login_content">
               <div className="logo text-center">
-                <img
-                  src="/images/logo/logo.png"
-                  alt="Logo"
-                  className="mx-auto"
-                />
+                <a href="/user/dashboard">
+                  <img
+                    src="/images/logo/logo.png"
+                    alt="Logo"
+                    className="mx-auto"
+                  />
+                </a>
               </div>
 
               <h1 className="font-bold text-center pt-6">Student Login</h1>

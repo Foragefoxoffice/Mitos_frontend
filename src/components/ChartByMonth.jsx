@@ -65,27 +65,38 @@ const COLOR_MAP = {
   Accuracy: "#4E79A7", // Base color for subject accuracies (overridden by specific colors)
   "Total Questions": "#35095e",
 };
-
+const BAR_ORDER = ["Unanswered", "Wrong", "Correct"];
 const SUBJECT_COLORS = [
-  "#4E79A7", // Blue
-  "#F28E2B", // Orange
-  "#E15759", // Red
-  "#76B7B2", // Teal
-  "#59A14F", // Green
-  "#EDC948", // Yellow
-  "#B07AA1", // Purple
-  "#FF9DA7", // Pink
-  "#9C755F", // Brown
-  "#BAB0AC", // Gray
+  "#e6194B",
+  "#3cb44b",
+  "#4363d8",
+  "#f58231",
+  "#911eb4",
+  "#42d4f4",
+  "#f032e6",
+  "#bfef45",
+  "#ffd700",
+  "#000000",
+  "#a9a9a9",
+  "#800000",
+  "#469990",
+  "#000075",
+  "#9A6324",
+  "#800080",
+  "#808000",
+  "#008080",
+  "#e6beff",
+  "#ffe119",
 ];
 
+const subjectColorMap = new Map();
+
 const getSubjectColor = (subjectName) => {
-  // Create a simple hash from the subject name to get consistent colors
-  let hash = 0;
-  for (let i = 0; i < subjectName.length; i++) {
-    hash = subjectName.charCodeAt(i) + ((hash << 5) - hash);
+  if (!subjectColorMap.has(subjectName)) {
+    const color = SUBJECT_COLORS[subjectColorMap.size % SUBJECT_COLORS.length];
+    subjectColorMap.set(subjectName, color);
   }
-  return SUBJECT_COLORS[Math.abs(hash) % SUBJECT_COLORS.length];
+  return subjectColorMap.get(subjectName);
 };
 
 const CustomTooltip = ({ active, payload, label }) => {
@@ -117,23 +128,26 @@ const CustomTooltip = ({ active, payload, label }) => {
           .filter(
             (entry) =>
               entry.value !== undefined &&
-              entry.dataKey !== "totalQuestions" && // Exclude totalQuestions from main list
-              !entry.name.includes("Accuracy") // Exclude accuracy entries for this section
+              entry.dataKey !== "totalQuestions" && // Exclude total
+              !entry.name.includes("Accuracy") // Exclude accuracy here
           )
+          // ✅ enforce order: Correct → Wrong → Unanswered
+          .sort((a, b) => {
+            const ia = BAR_ORDER.indexOf(a.name);
+            const ib = BAR_ORDER.indexOf(b.name);
+            return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
+          })
           .map((entry, index) => {
-            let color;
+            let color = COLOR_MAP[entry.name] || entry.color || "#888";
             let displayName = entry.name;
 
-            // Handle subject accuracy entries
             if (
               entry.name.endsWith(" Accuracy") &&
               entry.name !== "Overall Accuracy"
             ) {
               const subject = entry.name.replace(" Accuracy", "");
               color = getSubjectColor(subject);
-              displayName = subject; // Show just the subject name in tooltip
-            } else {
-              color = COLOR_MAP[entry.name] || entry.color || "#888";
+              displayName = subject;
             }
 
             return (

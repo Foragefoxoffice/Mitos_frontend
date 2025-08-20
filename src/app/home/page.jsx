@@ -51,7 +51,7 @@ export default function LandingPage() {
     {
       icon: FaQuestionCircle,
       title: "30,000+ Questions",
-      desc: "30000+ Line by Line NCERT based questions with NCERT reference.",
+      desc: "30000+ Line by Line NCERT based questions with NCERT reference modeled on past NEET question papers.",
       accent: "bg-amber-100 text-amber-600",
     },
     {
@@ -62,7 +62,7 @@ export default function LandingPage() {
     },
     {
       icon: FaLightbulb,
-      title: "30+ Years",
+      title: "30+ Years Previous Year Questions",
       desc: "Past 30+ years PYQ with solutions.",
       accent: "bg-lime-100 text-lime-600",
     },
@@ -92,7 +92,7 @@ export default function LandingPage() {
     },
     {
       icon: FaFlagCheckered,
-      title: "Test Track",
+      title: "Key Features",
       desc: "Topic-wise HD study material, leaderboard to know where you stand, NEET updates & more.",
       accent: "bg-rose-100 text-rose-600",
     },
@@ -105,11 +105,13 @@ export default function LandingPage() {
         <div className="mx-auto md:flex block items-center justify-between gap-4 px-5 py-3">
           {/* Logo */}
           <div className="flex justify-center md:mb-0 mb-3">
-            <img
-              src="images/practice/header-logo.png"
-              alt="MITOS LEARNING"
-              className="md:w-[60%] w-[50%]"
-            />
+            <a href="/">
+              <img
+                src="images/practice/header-logo.png"
+                alt="MITOS LEARNING"
+                className="md:w-[60%] w-[50%]"
+              />
+            </a>
           </div>
 
           {/* CTA Button */}
@@ -284,7 +286,7 @@ export default function LandingPage() {
               transition={{ duration: 0.5 }}
               className="text-3xl md:text-5xl mb-4 bg-gradient-to-r from-[#2f1042] to-[#bf6af4] bg-clip-text text-transparent"
             >
-              Comparision
+              Why Choose Us?
             </motion.h2>
           </div>
 
@@ -359,7 +361,17 @@ export default function LandingPage() {
                     No
                   </td>
                 </tr>
-
+                <tr className="border-t text-center">
+                  <td className="border border-[#e0e0e0] md:py-5 py-2 md:pl-6 md:pr-4 pl-2 pr-2 font-medium text-[#000000]">
+                    NEET Score Predictor
+                  </td>
+                  <td className="py-5 border border-[#e0e0e0] px-4 font-bold text-lg text-[#fff] bg-[#6d3093]">
+                    Yes
+                  </td>
+                  <td className="border border-[#e0e0e0] md:py-5 py-2 md:pl-6 md:pr-4 pl-2 pr-2 font-medium text-[#000000]">
+                    No
+                  </td>
+                </tr>
                 <tr className="border-t text-center">
                   <td className="border border-[#e0e0e0] md:py-5 py-2 md:pl-6 md:pr-4 pl-2 pr-2 font-medium text-[#000000]">
                     Unlimited customised test with
@@ -390,7 +402,7 @@ export default function LandingPage() {
       {/* chart */}
 
       <section className="chart md:py-20 py-6">
-        <ChartComparison title="Chart" data={chartData} live={true} />
+        <ChartComparison title="" data={chartData} live={true} />
       </section>
 
       {/* TESTIMONIALS */}

@@ -7,6 +7,7 @@ import {
 } from "@/utils/api";
 import axios from "axios";
 import CommonLoader from "@/commonLoader";
+import { FiInfo } from "react-icons/fi";
 
 export default function Chapter({
   selectedSubject,
@@ -165,6 +166,22 @@ export default function Chapter({
       {loading && <CommonLoader />}
       {error && <p className="text-center pt-10">{error}</p>}
 
+      <div className="mb-4">
+        <div className="flex items-center gap-3 rounded-xl border border-purple-200 bg-purple-50 p-3 md:p-4">
+          {/* Icon */}
+          <div className="mt-0.5 inline-flex h-8 w-8 flex-none items-center justify-center rounded-full bg-purple-600">
+            <FiInfo className="h-5 w-5 text-white" />
+          </div>
+
+          {/* Text */}
+          <p className="text-sm md:text-base text-purple-900">
+            <span className="font-semibold">Key Info:</span> Each information in
+            NCERT is framed in{" "}
+            <span className="font-semibold">10+ different question types</span>.
+          </p>
+        </div>
+      </div>
+
       {!loading && !error && (
         <>
           {/* When search is active but nothing matches */}
@@ -194,7 +211,7 @@ export default function Chapter({
                       className="mt-4 px-4 py-2 rounded-full font-semibold bg-white transition-transform duration-100 ease-in-out hover:-translate-y-[1px]"
                       style={{ color: chapter.randomBgColor }}
                     >
-                      Attempt by Topicss
+                      Attempt by Topics
                     </button>
                     <button
                       onClick={() => handleQuestionTypeClick(chapter)}

@@ -21,7 +21,9 @@ import { HiArrowSmallLeft } from "react-icons/hi2";
 import { FiSearch, FiX } from "react-icons/fi";
 import PremiumPopup from "@/components/PremiumPopup";
 
-// ---------- Small UI piece just for the search ----------
+/* ----------------------- small reusable components ----------------------- */
+
+// Search
 const SearchBar = ({ value, onChange, placeholder = "Search..." }) => {
   return (
     <div className="relative w-full max-w-xs md:max-w-md">
@@ -46,7 +48,95 @@ const SearchBar = ({ value, onChange, placeholder = "Search..." }) => {
   );
 };
 
-// ---------- Tab state hook (unchanged logic) ----------
+// Blocking modal to complete profile (mobile + class)
+const ProfileCompletionModal = ({
+  open,
+  values,
+  setValues,
+  onSubmit,
+  submitting,
+  error,
+}) => {
+  if (!open) return null;
+
+  const classOptions = [
+    { label: "Select class…", value: "" },
+    { label: "Class 11", value: "11" },
+    { label: "Class 12", value: "12" },
+    { label: "PROVISIONAL", value: "PROVISIONAL" },
+  ];
+
+  return (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <div className="w-[92%] max-w-md rounded-2xl bg-white p-6 shadow-xl">
+        <h3 className="text-xl font-semibold text-[#00497a] mb-1">
+          Complete your profile
+        </h3>
+        <p className="text-sm text-[#4b6b86] mb-4">
+          Please add your mobile number and class to continue.
+        </p>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm text-[#00497a] mb-1">
+              Mobile number (India)
+            </label>
+            <input
+              type="tel"
+              inputMode="numeric"
+              maxLength={10}
+              placeholder="10-digit mobile"
+              className="w-full border text-black border-[#cfe9fb] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#007acc]"
+              value={values.phoneNumber}
+              onChange={(e) => {
+                // keep digits only
+                const onlyDigits = e.target.value.replace(/\D/g, "");
+                setValues((v) => ({
+                  ...v,
+                  phoneNumber: onlyDigits.slice(0, 10),
+                }));
+              }}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm text-[#00497a] mb-1">Class</label>
+            <select
+              className="w-full border text-black border-[#cfe9fb] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#007acc] bg-white"
+              value={values.className}
+              onChange={(e) =>
+                setValues((v) => ({ ...v, className: e.target.value }))
+              }
+            >
+              {classOptions.map((opt) => (
+                <option key={opt.value || "empty"} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {error ? <div className="text-sm text-red-600">{error}</div> : null}
+
+          <button
+            onClick={onSubmit}
+            disabled={submitting}
+            className="w-full bg-[#007ACC] text-white font-semibold rounded-lg py-2 hover:opacity-95 disabled:opacity-60"
+          >
+            {submitting ? "Saving..." : "Save & continue"}
+          </button>
+
+          <p className="text-xs text-[#4b6b86] text-center">
+            These details help us tailor your experience.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ---------------------------- tab state helper --------------------------- */
+
 const useTabState = (tabKey, initialScreen) => {
   const sessionKey = `tabState-${tabKey}`;
 
@@ -123,6 +213,8 @@ const useTabState = (tabKey, initialScreen) => {
   };
 };
 
+/* --------------------------------- page --------------------------------- */
+
 export default function Practice() {
   const [activeTab, setActiveTab] = useState("tab1");
   const [isLoading, setIsLoading] = useState(false);
@@ -134,32 +226,73 @@ export default function Practice() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showPremiumPopup, setShowPremiumPopup] = useState(false);
 
-  // NEW: per-tab search terms (filtered only where Back shows)
+  // NEW: profile requirements
+  const [user, setUser] = useState(null);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [profileValues, setProfileValues] = useState({
+    phoneNumber: "",
+    className: "",
+  });
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [profileError, setProfileError] = useState("");
+
+  // per-tab search terms
   const [practiceSearch, setPracticeSearch] = useState("");
   const [testSearch, setTestSearch] = useState("");
   const [studySearch, setStudySearch] = useState("");
 
+  // Init active tab + logged-in
   useEffect(() => {
     const savedTab = sessionStorage.getItem("activeTab");
     if (savedTab) setActiveTab(savedTab);
 
     const userId =
       typeof window !== "undefined" && localStorage.getItem("userId");
+    // treat presence of userId as logged-in
     setIsLoggedIn(!!userId);
   }, []);
 
-  // Reset search when screen changes (so it feels scoped to that screen)
+  // Fetch user and enforce profile completion
   useEffect(() => {
-    setPracticeSearch("");
-  }, [practiceState.currentScreen]);
+    if (!isLoggedIn) return;
 
-  useEffect(() => {
-    setTestSearch("");
-  }, [testState.currentScreen]);
+    const token =
+      typeof window !== "undefined" && localStorage.getItem("token");
+    if (!token) return; // cannot fetch without token
 
-  useEffect(() => {
-    setStudySearch("");
-  }, [studyMaterialState.currentScreen]);
+    (async () => {
+      try {
+        const res = await fetch("https://mitoslearning.in/api/users/me", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) throw new Error("Failed to fetch user profile");
+        const data = await res.json();
+        const u = data?.user ?? data; // support either shape
+        setUser(u);
+
+        const phoneOk =
+          !!u?.phoneNumber && String(u.phoneNumber).trim().length >= 10;
+        const classOk = !!u?.className && String(u.className).trim().length > 0;
+
+        // seed modal form with current values
+        setProfileValues({
+          phoneNumber: u?.phoneNumber ? String(u.phoneNumber).slice(0, 10) : "",
+          className: u?.className ?? "",
+        });
+
+        // Block the page until completed
+        setShowProfileModal(!(phoneOk && classOk));
+      } catch (e) {
+        // Silent fail: do not block if /me fails
+        console.error(e);
+      }
+    })();
+  }, [isLoggedIn]);
+
+  // Reset search when screen changes (scoped feel)
+  useEffect(() => setPracticeSearch(""), [practiceState.currentScreen]);
+  useEffect(() => setTestSearch(""), [testState.currentScreen]);
+  useEffect(() => setStudySearch(""), [studyMaterialState.currentScreen]);
 
   const tabDetails = {
     tab1: {
@@ -193,7 +326,7 @@ export default function Practice() {
     }, 50);
   };
 
-  // helpers to know when to show Back + Search (scoped to same places)
+  // helpers to know when to show Back + Search
   const showPracticeHeader = ["chapter", "topic", "questiontype"].includes(
     practiceState.currentScreen
   );
@@ -207,8 +340,73 @@ export default function Practice() {
     studyMaterialState.currentScreen
   );
 
+  // Save profile via your provided endpoint
+  const handleSaveProfile = async () => {
+    setProfileError("");
+
+    // Validate
+    const phone = (profileValues.phoneNumber || "").replace(/\D/g, "");
+    if (phone.length !== 10) {
+      setProfileError("Please enter a valid 10-digit mobile number.");
+      return;
+    }
+    const allowed = new Set(["11", "12", "PROVISIONAL"]);
+    if (!allowed.has(profileValues.className)) {
+      setProfileError("Please select your class.");
+      return;
+    }
+    if (!user?.id) {
+      setProfileError("User not found. Please re-login.");
+      return;
+    }
+
+    try {
+      setSavingProfile(true);
+      const token = localStorage.getItem("token");
+      const fd = new FormData();
+      fd.append("phoneNumber", phone);
+      fd.append("className", profileValues.className); // "11" | "12" | "PROVISIONAL"
+
+      const res = await fetch(
+        `https://mitoslearning.in/api/users/update-profile/${user.id}`,
+        {
+          method: "PUT",
+          headers: { Authorization: `Bearer ${token}` },
+          body: fd,
+        }
+      );
+
+      if (!res.ok) {
+        const t = await res.text().catch(() => "");
+        throw new Error(t || "Failed to update profile");
+      }
+
+      // Update local state with new values & close modal
+      setUser((u) => ({
+        ...(u || {}),
+        phoneNumber: phone,
+        className: profileValues.className,
+      }));
+      setShowProfileModal(false);
+    } catch (err) {
+      setProfileError(err.message || "Something went wrong.");
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
   return (
     <div className="pt-6">
+      {/* Force profile completion (blocking) */}
+      <ProfileCompletionModal
+        open={isLoggedIn && showProfileModal}
+        values={profileValues}
+        setValues={setProfileValues}
+        onSubmit={handleSaveProfile}
+        submitting={savingProfile}
+        error={profileError}
+      />
+
       {/* Tabs */}
       <div className="tabs flex space-x-3 md:space-x-4">
         {["tab1", "tab2", "tab3"].map((tab) => (
@@ -251,7 +449,11 @@ export default function Practice() {
         <div className="mt-4">
           {/* PRACTICE */}
           {activeTab === "tab1" && (
-            <div>
+            <div
+              className={
+                showProfileModal ? "pointer-events-none opacity-40" : ""
+              }
+            >
               {showPracticeHeader && (
                 <div className="flex justify-between items-center gap-3 md:gap-4 px-4 mb-3">
                   <button
@@ -287,14 +489,14 @@ export default function Practice() {
                   selectedPortion={practiceState.selectedPortion}
                   onChapterSelect={practiceState.handleChapterSelect}
                   onScreenSelection={practiceState.handleScreenSelection}
-                  searchTerm={practiceSearch} // NEW
+                  searchTerm={practiceSearch}
                 />
               )}
               {practiceState.currentScreen === "topic" && (
                 <TopicsPage
                   selectedChapter={practiceState.selectedChapter}
                   onTopicSelect={practiceState.handleTopicSelect}
-                  searchTerm={practiceSearch} // NEW
+                  searchTerm={practiceSearch}
                 />
               )}
               {practiceState.currentScreen === "questiontype" && (
@@ -302,7 +504,7 @@ export default function Practice() {
                   selectedTopic={practiceState.selectedTopic}
                   selectedChapter={practiceState.selectedChapter}
                   onQuestiontypeSelect={practiceState.handleQuestiontypeSelect}
-                  searchTerm={practiceSearch} // NEW
+                  searchTerm={practiceSearch}
                 />
               )}
             </div>
@@ -310,7 +512,11 @@ export default function Practice() {
 
           {/* TEST */}
           {activeTab === "tab2" && (
-            <div>
+            <div
+              className={
+                showProfileModal ? "pointer-events-none opacity-40" : ""
+              }
+            >
               {showTestHeader && (
                 <div className="flex justify-between items-center gap-3 md:gap-4 px-4 mb-3">
                   <button
@@ -347,7 +553,7 @@ export default function Practice() {
                   selectedPortion={testState.selectedPortion}
                   onSubjectSelect={testState.handleTestSubjectSelect}
                   onScreenSelection={testState.handleScreenSelection}
-                  searchTerm={testSearch} // NEW
+                  searchTerm={testSearch}
                 />
               )}
               {testState.currentScreen === "test-chapter" && (
@@ -356,7 +562,7 @@ export default function Practice() {
                   selectedPortion={testState.selectedPortion}
                   onChapterSelect={testState.handleChapterSelect}
                   onScreenSelection={testState.handleScreenSelection}
-                  searchTerm={testSearch} // NEW
+                  searchTerm={testSearch}
                 />
               )}
               {testState.currentScreen === "test-topic" && (
@@ -366,7 +572,7 @@ export default function Practice() {
                   selectedChapter={testState.selectedChapter}
                   onTopicSelect={testState.handleTestChapterSelect}
                   onScreenSelection={testState.handleScreenSelection}
-                  searchTerm={testSearch} // NEW
+                  searchTerm={testSearch}
                 />
               )}
               {testState.currentScreen === "questiontype" && (
@@ -374,7 +580,7 @@ export default function Practice() {
                   selectedTopic={testState.selectedTopic}
                   selectedChapter={testState.selectedChapter}
                   onQuestiontypeSelect={testState.handleQuestiontypeSelect}
-                  searchTerm={testSearch} // NEW
+                  searchTerm={testSearch}
                 />
               )}
             </div>
@@ -382,7 +588,11 @@ export default function Practice() {
 
           {/* STUDY MATERIAL */}
           {activeTab === "tab3" && (
-            <div>
+            <div
+              className={
+                showProfileModal ? "pointer-events-none opacity-40" : ""
+              }
+            >
               {showStudyHeader && (
                 <div className="flex items-center justify-between gap-3 md:gap-4 px-4 mb-3">
                   <button
@@ -415,14 +625,14 @@ export default function Practice() {
                   selectedSubject={studyMaterialState.selectedSubject}
                   onChapterSelect={studyMaterialState.handleChapterSelect}
                   onScreenSelection={studyMaterialState.handleScreenSelection}
-                  searchTerm={studySearch} // NEW
+                  searchTerm={studySearch}
                 />
               )}
               {studyMaterialState.currentScreen === "topic" && (
                 <MeterialsTopicsPage
                   selectedChapter={studyMaterialState.selectedChapter}
                   onTopicSelect={studyMaterialState.handleTopicSelect}
-                  searchTerm={studySearch} // NEW
+                  searchTerm={studySearch}
                 />
               )}
             </div>

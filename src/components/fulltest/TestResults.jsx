@@ -8,17 +8,20 @@ export const TestResults = ({
   totalTime,
   timeLeft,
   formatTime,
-  userAnswers,
-  questions,
+  userAnswers = {},
+  questions = [],
   calculateCorrectAnswers,
   calculateWrongAnswers,
   calculateAccuracy,
-  resultsBySubject,
-  resultsByType,
+  resultsBySubject = {},
+  resultsByType = {},
   onShowAnswers,
 }) => {
   const router = useRouter();
   const [showTypeResults, setShowTypeResults] = useState(false);
+
+  // ✅ compute attempted safely here
+  const attempted = Object.keys(userAnswers || {}).length;
 
   const subjects = ["Physics", "Chemistry", "Biology"];
   const subjectColors = {
@@ -28,8 +31,8 @@ export const TestResults = ({
   };
 
   const processedSubjects = subjects.map((subj) => {
-    const match = Object.values(resultsBySubject).find((r) =>
-      r.subjectName.toLowerCase().includes(subj.toLowerCase())
+    const match = Object.values(resultsBySubject || {}).find((r) =>
+      (r.subjectName || "").toLowerCase().includes(subj.toLowerCase())
     );
     const marks = match ? match.correct * 4 - match.wrong : 0;
     return { name: subj, marks };
@@ -37,7 +40,7 @@ export const TestResults = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-black bg-opacity-70 h-[auto] md:h-[auto] overflow-auto flex items-center justify-center">
-      <div className="relative bg-[#F0F8FF] rounded-2xl shadow-2xl w-[95%] max-w-[700px] p-6 pt-10 text-center">
+      <div className="relative bg-[#F0F8FF] rounded-2xl shadow-2xl w-[95%] max-w-[800px] p-6 pt-10 text-center">
         {/* Trophy */}
         <div className="absolute -top-[244px] left-1/2 transform -translate-x-1/2">
           <div className="relative">
@@ -57,7 +60,7 @@ export const TestResults = ({
               Over All Score :
             </p>
             <p className="text-[#007ACC] md:text-4xl text-2xl font-semibold">
-              {calculateScore()}
+              {calculateScore()} / {totalMarks}
             </p>
           </div>
           <div className="border border-[#e0e0e0] rounded-3xl py-6 px-4 bg-white flex flex-col gap-2 shadow-inner">
@@ -85,17 +88,21 @@ export const TestResults = ({
         </div>
 
         {/* Stats Badges */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-2 text-xs mb-6">
           <div className="bg-[#9BCD1326] border border-[#5A7B0040] text-[#759E05] px-2 py-2 rounded-xl font-medium">
             <p className="text-lg font-bold text-[#759E05]">Correct Answer</p>
             <p className="text-xl font-bold text-[#759E05]">
               {calculateCorrectAnswers()}
             </p>
           </div>
+          <div className="bg-[#E3F2FD] border border-[#90CAF940] text-[#007ACC] px-2 py-2 rounded-xl font-medium">
+            <p className="text-lg font-bold text-[#007ACC]">Attempted</p>
+            <p className="text-xl font-bold text-[#007ACC]">{attempted}</p>
+          </div>
           <div className="bg-[#3157D426] border border-[#2C4BB040] text-[#3457a1] px-2 py-2 rounded-xl font-medium">
-            <p className="text-lg font-bold text-[#2C4BB0]">Un Answered</p>
+            <p className="text-lg font-bold text-[#2C4BB0]">Unanswered</p>
             <p className="text-xl font-bold text-[#2C4BB0]">
-              {questions.length - Object.keys(userAnswers).length}
+              {questions.length - attempted}
             </p>
           </div>
           <div className="bg-[#D4319026] border border-[#C6428F40] text-[#b30c91] px-2 py-2 rounded-xl font-medium">
@@ -182,7 +189,7 @@ export const TestResults = ({
 
             {/* Body */}
             <div className="p-4 md:p-6 space-y-6 overflow-auto max-h-[600px] scrollbar-thin-custom">
-              {Object.entries(resultsByType).map(([typeId, typeData]) => (
+              {Object.entries(resultsByType || {}).map(([typeId, typeData]) => (
                 <div
                   key={typeId}
                   className="bg-[#F8FBFF] p-4 rounded-[14px] shadow-sm space-y-3"
@@ -207,7 +214,7 @@ export const TestResults = ({
 
                   {/* Subject Data */}
                   <div className="space-y-2">
-                    {Object.entries(typeData.subjects).map(
+                    {Object.entries(typeData.subjects || {}).map(
                       ([subjectId, subjectData]) => (
                         <div
                           key={subjectId}
@@ -242,12 +249,12 @@ export const TestResults = ({
                 className="bg-[#D32F2F] hover:bg-[#b91c1c] text-white px-8 py-2 rounded-full text-[16px] font-semibold"
                 style={{
                   boxShadow: `
-      0px 4px 8px 0px #00000040,
-      -1px 15px 15px 0px #00000036,
-      -3px 34px 20px 0px #00000021,
-      -5px 60px 24px 0px #0000000A,
-      -7px 94px 26px 0px #00000000
-    `,
+                    0px 4px 8px 0px #00000040,
+                    -1px 15px 15px 0px #00000036,
+                    -3px 34px 20px 0px #00000021,
+                    -5px 60px 24px 0px #0000000A,
+                    -7px 94px 26px 0px #00000000
+                  `,
                 }}
               >
                 Close

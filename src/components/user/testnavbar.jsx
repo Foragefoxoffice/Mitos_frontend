@@ -1,4 +1,4 @@
-'use client';
+"use client";
 import { useEffect, useRef, useState } from "react";
 import UserDropdown from "../UserDropdown";
 import Image from "next/image";
@@ -38,16 +38,21 @@ const TestNavbar = () => {
     fetchUser();
   }, []);
 
-
   return (
     <div className="">
       <div className="test_header flex justify-between items-center">
-       
-          <h1 className="font-bold text-2xl md:text-3xl">Test</h1>
-          <Image src={"/images/logo/logo.png"}  className="hidden md:block" alt="logo" width={150} height={80} />
-          <UserDropdown user={user} />
+        <h1 className="font-bold text-2xl md:text-3xl">Test</h1>
+        <a href="/user/dashboard">
+          <Image
+            src={"/images/logo/logo.png"}
+            className="hidden md:block"
+            alt="logo"
+            width={150}
+            height={80}
+          />
+        </a>
+        <UserDropdown user={user} />
       </div>
-      
     </div>
   );
 };

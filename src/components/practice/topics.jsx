@@ -7,6 +7,22 @@ import axios from "axios";
 import PremiumPopup from "../PremiumPopup";
 import CommonLoader from "@/commonLoader";
 
+// ✅ Special topics that must appear LAST in this exact order (if present)
+const SPECIAL_BOTTOM_ORDER = [
+  "Previous Year Questions",
+  "Previous Year Questions-Part 1",
+  "Assertion & Reason Questions",
+  "Picture Based Questions",
+  "NCERT Exemplar Questions",
+];
+
+const getSpecialRank = (name = "") => {
+  const i = SPECIAL_BOTTOM_ORDER.findIndex(
+    (t) => t.toLowerCase() === String(name).toLowerCase().trim()
+  );
+  return i === -1 ? -1 : i; // -1 means not special
+};
+
 export default function TopicsPage({
   selectedChapter,
   onTopicSelect,
@@ -208,9 +224,25 @@ export default function TopicsPage({
 
                 {[...filteredTopics]
                   .sort((a, b) => {
-                    const aLocked = isGuestUser() && a.isPremium;
-                    const bLocked = isGuestUser() && b.isPremium;
-                    return aLocked - bLocked;
+                    // 1) For guests, keep unlocked first
+                    const guest = isGuestUser();
+                    const aLocked = guest && a.isPremium;
+                    const bLocked = guest && b.isPremium;
+                    if (aLocked !== bLocked) return aLocked - bLocked;
+
+                    // 2) Push special topics to the bottom in the specified order
+                    const aRank = getSpecialRank(a.name);
+                    const bRank = getSpecialRank(b.name);
+                    const aIsSpecial = aRank !== -1;
+                    const bIsSpecial = bRank !== -1;
+
+                    if (aIsSpecial !== bIsSpecial) return aIsSpecial ? 1 : -1; // non-special first
+                    if (aIsSpecial && bIsSpecial) return aRank - bRank; // both special → enforce given order
+
+                    // 3) Fallback alphabetical
+                    return String(a.name || "").localeCompare(
+                      String(b.name || "")
+                    );
                   })
                   .map((topic) => {
                     const isLocked = isGuestUser() && topic.isPremium;

@@ -235,43 +235,58 @@ const StatRow = ({ label, value, icon }) => (
 
 const groupResultsByWeek = (results) => {
   const weeksMap = new Map();
-  const today = new Date();
-  const currentDay = today.getDate();
-  const currentMonth = format(today, "MMM");
-  const currentYear = today.getFullYear();
 
-  let currentWeekLabel = "";
-  if (currentDay >= 1 && currentDay <= 7)
-    currentWeekLabel = `${currentMonth} 1 - 7`;
-  else if (currentDay >= 8 && currentDay <= 14)
-    currentWeekLabel = `${currentMonth} 8 - 14`;
-  else if (currentDay >= 15 && currentDay <= 21)
-    currentWeekLabel = `${currentMonth} 15 - 21`;
-  else if (currentDay >= 22 && currentDay <= 28)
-    currentWeekLabel = `${currentMonth} 22 - 28`;
-  else {
-    const lastDay = new Date(currentYear, today.getMonth() + 1, 0).getDate();
-    currentWeekLabel = `${currentMonth} 29 - ${lastDay}`;
-  }
+  const labelFor = (monthStr, day) =>
+    `${monthStr} ${day} - ${
+      day === 1 ? 7 : day === 8 ? 14 : day === 15 ? 21 : day === 22 ? 28 : ""
+    }`;
+  const startDayFor = (d) =>
+    d <= 7 ? 1 : d <= 14 ? 8 : d <= 21 ? 15 : d <= 28 ? 22 : 29;
+
+  // figure out the current week label (so we can pin it to the front)
+  const today = new Date();
+  const currentMonthStr = format(today, "MMM");
+  const currentStartDay = startDayFor(today.getDate());
+  const lastDayOfCurrent = new Date(
+    today.getFullYear(),
+    today.getMonth() + 1,
+    0
+  ).getDate();
+  const currentWeekLabel =
+    currentStartDay === 29
+      ? `${currentMonthStr} 29 - ${lastDayOfCurrent}`
+      : `${currentMonthStr} ${currentStartDay} - ${
+          currentStartDay === 1
+            ? 7
+            : currentStartDay === 8
+            ? 14
+            : currentStartDay === 15
+            ? 21
+            : 28
+        }`;
 
   results.forEach((test) => {
     if (!test.createdAt) return;
-    const testDate = new Date(test.createdAt);
-    const dayOfMonth = testDate.getDate();
-    const month = format(testDate, "MMM");
-    const year = testDate.getFullYear();
 
-    let weekLabel = "";
-    if (dayOfMonth >= 1 && dayOfMonth <= 7) weekLabel = `${month} 1 - 7`;
-    else if (dayOfMonth >= 8 && dayOfMonth <= 14) weekLabel = `${month} 8 - 14`;
-    else if (dayOfMonth >= 15 && dayOfMonth <= 21)
-      weekLabel = `${month} 15 - 21`;
-    else if (dayOfMonth >= 22 && dayOfMonth <= 28)
-      weekLabel = `${month} 22 - 28`;
-    else {
-      const lastDay = new Date(year, testDate.getMonth() + 1, 0).getDate();
-      weekLabel = `${month} 29 - ${lastDay}`;
-    }
+    const dt = new Date(test.createdAt);
+    const y = dt.getFullYear();
+    const mIdx = dt.getMonth(); // 0..11
+    const monthStr = format(dt, "MMM");
+
+    const startDay = startDayFor(dt.getDate());
+    const endDay =
+      startDay === 1
+        ? 7
+        : startDay === 8
+        ? 14
+        : startDay === 15
+        ? 21
+        : startDay === 22
+        ? 28
+        : new Date(y, mIdx + 1, 0).getDate();
+
+    const weekLabel = `${monthStr} ${startDay} - ${endDay}`;
+    const weekStartDate = new Date(y, mIdx, startDay); // ✅ real week start
 
     if (!weeksMap.has(weekLabel)) {
       weeksMap.set(weekLabel, {
@@ -282,23 +297,24 @@ const groupResultsByWeek = (results) => {
         totalCorrect: 0,
         totalWrong: 0,
         totalUnanswered: 0,
-        sortOrder: weekLabel === currentWeekLabel ? -1 : null,
-        refDate: new Date(year, testDate.getMonth(), 1),
+        isCurrent: weekLabel === currentWeekLabel,
+        startTs: weekStartDate.getTime(), // ✅ use for ordering
       });
     }
 
-    const data = weeksMap.get(weekLabel);
-    data.totalScore += test.score;
-    data.totalMarks += test.totalMarks;
-    data.totalAnswered += test.answered;
-    data.totalCorrect += test.correct;
-    data.totalWrong += test.wrong;
-    data.totalUnanswered += test.unanswered;
+    const bucket = weeksMap.get(weekLabel);
+    bucket.totalScore += test.score || 0;
+    bucket.totalMarks += test.totalMarks || 0;
+    bucket.totalAnswered += test.answered || 0;
+    bucket.totalCorrect += test.correct || 0;
+    bucket.totalWrong += test.wrong || 0;
+    bucket.totalUnanswered += test.unanswered || 0;
   });
 
+  // Sort: current week first, then by week start (new → old)
   return Array.from(weeksMap.values()).sort((a, b) => {
-    if (a.sortOrder === -1) return -1;
-    if (b.sortOrder === -1) return 1;
-    return b.refDate - a.refDate;
+    if (a.isCurrent && !b.isCurrent) return -1;
+    if (b.isCurrent && !a.isCurrent) return 1;
+    return b.startTs - a.startTs;
   });
 };

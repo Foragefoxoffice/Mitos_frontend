@@ -206,15 +206,15 @@ const Leaderboard = () => {
                   key={String(user.userId)}
                   className="flex flex-col items-center"
                 >
-                  <div className="grid md:flex items-top gap-0 md:gap-2 mb-2">
+                  <div className="grid md:flex items-center gap-0 md:gap-2 mb-2">
                     <Image
                       src={getProfileImageUrl(user.profile)}
                       alt="Profile"
                       width={40}
                       height={40}
-                      className="rounded-full mb-2"
+                      className="rounded-full mb-2 w-10 h-10"
                     />
-                    <span className="mt-2 font-semibold text-sm md:text-lg">
+                    <span className=" font-semibold text-sm md:text-lg">
                       {user.name || "User"}
                     </span>
                   </div>
@@ -324,11 +324,11 @@ const Leaderboard = () => {
                 width={30}
                 height={30}
                 alt="Profile"
-                className="rounded-full"
+                className="rounded-full w-10 h-10"
               />
               <span className="font-medium">{user.name || "User"}</span>
             </div>
-            <div className="col-span-3 font-semibold text-green-600">{acc}</div>
+            {/* <div className="col-span-3 font-semibold text-green-600">{acc}</div> */}
             <div className="col-span-2 flex justify-end">
               <span
                 className={`text-xs px-3 py-1 rounded-full font-semibold ${

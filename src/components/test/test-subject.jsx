@@ -7,6 +7,7 @@ import { useContext } from "react";
 import { useRouter } from "next/navigation";
 import { FaAngleDown } from "react-icons/fa6";
 import CommonLoader from "@/commonLoader";
+import { FiInfo } from "react-icons/fi";
 
 export default function TestSubject({ selectedPortion, searchTerm = "" }) {
   const [subjects, setSubjects] = useState([]);
@@ -172,6 +173,22 @@ export default function TestSubject({ selectedPortion, searchTerm = "" }) {
     <div className="py-6 relative">
       {loading && <CommonLoader />}
       {error && <p className="text-red-500 text-center">{error}</p>}
+
+      <div className="mb-4">
+        <div className="flex items-center gap-3 rounded-xl border border-purple-200 bg-purple-50 p-3 md:p-4">
+          {/* Icon */}
+          <div className="mt-0.5 inline-flex h-8 w-8 flex-none items-center justify-center rounded-full bg-purple-600">
+            <FiInfo className="h-5 w-5 text-white" />
+          </div>
+
+          {/* Text */}
+          <p className="text-sm md:text-base text-purple-900">
+            <span className="font-semibold">Key Info:</span> Each information in
+            NCERT is framed in{" "}
+            <span className="font-semibold">10+ different question types</span>.
+          </p>
+        </div>
+      </div>
 
       {!loading && !error && (
         <>

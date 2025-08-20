@@ -57,14 +57,15 @@ const PracticeNavbar = () => {
           </button>
           <h1 className="font-bold text-xl md:text-3xl">Practice</h1>
         </div>
-
-        <Image
-          src={"/images/logo/logo.png"}
-          className="hidden md:block"
-          alt="logo"
-          width={150}
-          height={80}
-        />
+        <a href="/user/dashboard">
+          <Image
+            src={"/images/logo/logo.png"}
+            className="hidden md:block"
+            alt="logo"
+            width={150}
+            height={80}
+          />
+        </a>
         <UserDropdown user={user} />
       </div>
     </div>

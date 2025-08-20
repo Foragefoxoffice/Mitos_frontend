@@ -30,15 +30,24 @@ export default function DashboardLayout({ children }) {
       {/* Left Side */}
       <div className=" w-[14%] md:w-[10%] lg:w-[16%] xl:[14%] md:p-6 p-2 pt-10 sidebar hidden md:block">
         <div className="bg-white rounded-md hidden md:flex md:p-5">
-          <Image src={"/images/logo/logo.png"} alt="" width={150} height={80} />
+          <a href="/user/dashboard">
+            <Image
+              src={"/images/logo/logo.png"}
+              alt=""
+              width={150}
+              height={80}
+            />
+          </a>
         </div>
         <div className="bg-white rounded-md md:hidden ">
-          <Image
-            src={"/images/logo/logo1.png"}
-            alt=""
-            width={150}
-            height={80}
-          />
+          <a href="/user/dashboard">
+            <Image
+              src={"/images/logo/logo1.png"}
+              alt=""
+              width={150}
+              height={80}
+            />
+          </a>
         </div>
         <header>
           <Menu />
