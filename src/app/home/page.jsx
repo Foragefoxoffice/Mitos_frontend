@@ -361,9 +361,21 @@ export default function LandingPage() {
                     No
                   </td>
                 </tr>
+               
                 <tr className="border-t text-center">
                   <td className="border border-[#e0e0e0] md:py-5 py-2 md:pl-6 md:pr-4 pl-2 pr-2 font-medium text-[#000000]">
                     NEET Score Predictor
+                  </td>
+                  <td className="py-5 border border-[#e0e0e0] px-4 font-bold text-lg text-[#fff] bg-[#6d3093]">
+                    Yes
+                  </td>
+                  <td className="border border-[#e0e0e0] md:py-5 py-2 md:pl-6 md:pr-4 pl-2 pr-2 font-medium text-[#000000]">
+                    No
+                  </td>
+                </tr>
+                  <tr className="border-t text-center">
+                  <td className="border border-[#e0e0e0] md:py-5 py-2 md:pl-6 md:pr-4 pl-2 pr-2 font-medium text-[#000000]">
+                   Biology questions framed even from Unit preface and Chapter summary
                   </td>
                   <td className="py-5 border border-[#e0e0e0] px-4 font-bold text-lg text-[#fff] bg-[#6d3093]">
                     Yes
@@ -392,7 +404,7 @@ export default function LandingPage() {
           <div className="p-6 bg-[#6d3093]/90 rounded-2xl  mt-6 flex justify-center items-center gap-4">
             <FaGift className="text-white" />
             <p className="text-center text-white text-lg">
-              Bonus Benifits: NCERT Exemplar, Solved Excercise, Short, long and
+              Bonus Exercise: NCERT Exemplar, Solved Excercise, Short, long and
               very long questions
             </p>
           </div>

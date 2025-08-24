@@ -65,7 +65,7 @@ const COLOR_MAP = {
   Accuracy: "#4E79A7", // Base color for subject accuracies (overridden by specific colors)
   "Total Questions": "#35095e",
 };
-const BAR_ORDER = ["Unanswered", "Wrong", "Correct"];
+const BAR_ORDER = [ "Correct", "Wrong","Unanswered"];
 const SUBJECT_COLORS = [
   "#e6194B",
   "#3cb44b",
@@ -771,14 +771,16 @@ export default function ChartResultsByWeek({ results = [] }) {
                   legendType="none"
                   isAnimationActive={false}
                 />
+               
                 <Bar
-                  dataKey="totalCorrect"
+                  dataKey="totalUnanswered"
                   stackId="a"
-                  fill="url(#correctGradient)"
-                  name="Correct"
+                  fill="url(#unansweredGradient)"
+                  name="Unanswered"
                   radius={[4, 4, 0, 0]}
                   {...BAR_ANIMATION}
                 />
+                 
                 <Bar
                   dataKey="totalWrong"
                   stackId="a"
@@ -788,10 +790,10 @@ export default function ChartResultsByWeek({ results = [] }) {
                   {...BAR_ANIMATION}
                 />
                 <Bar
-                  dataKey="totalUnanswered"
+                  dataKey="totalCorrect"
                   stackId="a"
-                  fill="url(#unansweredGradient)"
-                  name="Unanswered"
+                  fill="url(#correctGradient)"
+                  name="Correct"
                   radius={[4, 4, 0, 0]}
                   {...BAR_ANIMATION}
                 />

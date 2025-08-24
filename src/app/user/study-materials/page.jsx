@@ -7,6 +7,7 @@ import { HiViewBoards, HiViewList } from 'react-icons/hi';
 import * as pdfjsLib from 'pdfjs-dist';
 import { useMediaQuery } from 'react-responsive';
 import { useSelectedTopics } from "@/contexts/SelectedTopicsContext";
+import { fetchQuestionByTopic } from "@/utils/api";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.js`;
 
@@ -26,7 +27,8 @@ const PdfViewerComponent = () => {
     const [pdfUrl, setPdfUrl] = useState(null);
     const [pdfTitle, setPdfTitle] = useState("Document");
     const [pagesPerView, setPagesPerView] = useState(1); // 1 or 2
-    
+    const [questionCount, setQuestionCount] = useState(null);
+
     const isMobile = useMediaQuery({ query: '(max-width: 768px)' });
     const searchParams = useSearchParams();
     const topicId = searchParams.get('topicId');
@@ -98,6 +100,37 @@ const PdfViewerComponent = () => {
             }
         };
     }, [topicId]);
+
+    useEffect(() => {
+  if (!topicId) {
+    setQuestionCount(0);
+    return;
+  }
+  let cancelled = false;
+
+  (async () => {
+    try {
+      const res = await fetchQuestionByTopic(topicId);
+
+      // Normalize possible response shapes
+      let count = 0;
+      if (Array.isArray(res)) count = res.length;
+      else if (Array.isArray(res?.questions)) count = res.questions.length;
+      else if (typeof res?.total === "number") count = res.total;
+      else if (typeof res?.count === "number") count = res.count;
+      else if (Array.isArray(res?.data)) count = res.data.length;
+
+      if (!cancelled) setQuestionCount(Number.isFinite(count) ? count : 0);
+    } catch {
+      if (!cancelled) setQuestionCount(0);
+    }
+  })();
+
+  return () => {
+    cancelled = true;
+  };
+}, [topicId]);
+
 
     // Render current page
     const renderPage = useCallback(async (pageNum, canvas) => {
@@ -331,43 +364,45 @@ const PdfViewerComponent = () => {
                     <div className="flex items-center space-x-3">
                         {/* Page navigation controls */}
                         <div className="hidden md:flex items-center space-x-2">
-                            <div className="flex justify-center">
-                                <button
-                                    onClick={handlePracticeNavigation}
-                                    className="bg-[#35095e] hover:bg-[#35095e]/90 text-white font-medium py-2 px-6 rounded-full shadow-lg transition-colors"
-                                >
-                                    Practice This Topic
-                                </button>
-                            </div>
-                            <button 
-                                onClick={() => goToPage(1)}
-                                disabled={currentPage === 1}
-                                className="px-2 py-1 text-sm rounded disabled:opacity-50"
-                            >
-                                First
-                            </button>
-                            <button 
-                                onClick={goToPrevPage}
-                                disabled={currentPage === 1}
-                                className="p-1 rounded-full disabled:opacity-50"
-                            >
-                                <ChevronLeft className="w-5 h-5" />
-                            </button>
-                            <button 
-                                onClick={goToNextPage}
-                                disabled={currentPage >= numPages}
-                                className="p-1 rounded-full disabled:opacity-50"
-                            >
-                                <ChevronRight className="w-5 h-5" />
-                            </button>
-                            <button 
-                                onClick={() => goToPage(numPages)}
-                                disabled={currentPage === numPages}
-                                className="px-2 py-1 text-sm rounded disabled:opacity-50"
-                            >
-                                Last
-                            </button>
-                        </div>
+  {questionCount > 1 && (
+    <div className="flex justify-center">
+      <button
+        onClick={handlePracticeNavigation}
+        className="bg-[#35095e] hover:bg-[#35095e]/90 text-white font-medium py-2 px-6 rounded-full shadow-lg transition-colors"
+      >
+        Practice This Topic
+      </button>
+    </div>
+  )}
+  <button
+    onClick={() => goToPage(1)}
+    disabled={currentPage === 1}
+    className="px-2 py-1 text-sm rounded disabled:opacity-50"
+  >
+    First
+  </button>
+  <button
+    onClick={goToPrevPage}
+    disabled={currentPage === 1}
+    className="p-1 rounded-full disabled:opacity-50"
+  >
+    <ChevronLeft className="w-5 h-5" />
+  </button>
+  <button
+    onClick={goToNextPage}
+    disabled={currentPage >= numPages}
+    className="p-1 rounded-full disabled:opacity-50"
+  >
+    <ChevronRight className="w-5 h-5" />
+  </button>
+  <button
+    onClick={() => goToPage(numPages)}
+    disabled={currentPage === numPages}
+    className="px-2 py-1 text-sm rounded disabled:opacity-50"
+  >
+    Last
+  </button>
+</div>
 
                         {/* Pages per view toggle (only show when not mobile) */}
                         {!isMobile && (

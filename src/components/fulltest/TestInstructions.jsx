@@ -69,12 +69,12 @@ export const TestInstructions = ({ setShowInstructionPopup }) => {
 
           {/* Buttons */}
           <div className="mt-6 flex justify-between">
-            <button
+            <a
               className="bg-[#d0efe4] text-[#004d3c] px-8 py-2 rounded-full font-medium shadow"
-              onClick={() => setShowInstructionPopup(false)}
+               href="/user/dashboard"
             >
               Back
-            </button>
+            </a>
             <button
               style={{
                 boxShadow: `

@@ -49,22 +49,71 @@ const SearchBar = ({ value, onChange, placeholder = "Search..." }) => {
 };
 
 // Blocking modal to complete profile (mobile + class)
+// Blocking modal to complete profile (mobile + class)
 const ProfileCompletionModal = ({
   open,
   values,
   setValues,
   onSubmit,
   submitting,
-  error,
+  error,            // top-level/server error
+  errors = {},      // NEW: field-level errors
+  onValidate,       // NEW: live validation callback
 }) => {
   if (!open) return null;
 
+  const [touched, setTouched] = useState({
+    phoneNumber: false,
+    className: false,
+  });
+
   const classOptions = [
     { label: "Select class…", value: "" },
-    { label: "Class 11", value: "11" },
-    { label: "Class 12", value: "12" },
-    { label: "PROVISIONAL", value: "PROVISIONAL" },
+    { label: "Class 11", value: "CLASS_11" },
+    { label: "Class 12", value: "CLASS_12" },
+    { label: "REPEATER", value: "REPEATER" },
   ];
+
+  const phoneInvalid =
+    !!errors.phoneNumber && (touched.phoneNumber || submitting);
+  const classInvalid = !!errors.className && (touched.className || submitting);
+
+  const setTouchedField = (k) =>
+    setTouched((t) => ({ ...t, [k]: true }));
+
+  const handlePhoneChange = (e) => {
+    const onlyDigits = e.target.value.replace(/\D/g, "").slice(0, 10);
+    setValues((v) => ({ ...v, phoneNumber: onlyDigits }));
+    onValidate && onValidate({ ...values, phoneNumber: onlyDigits });
+  };
+
+  const handlePhonePaste = (e) => {
+    e.preventDefault();
+    const text = (e.clipboardData.getData("text") || "")
+      .replace(/\D/g, "")
+      .slice(0, 10);
+    setValues((v) => ({ ...v, phoneNumber: text }));
+    setTouchedField("phoneNumber");
+    onValidate && onValidate({ ...values, phoneNumber: text });
+  };
+
+  const handlePhoneKeyDown = (e) => {
+    const allowed = [
+      "Backspace",
+      "Delete",
+      "ArrowLeft",
+      "ArrowRight",
+      "Tab",
+    ];
+    if (allowed.includes(e.key)) return;
+    if (!/^\d$/.test(e.key)) e.preventDefault();
+  };
+
+  const handleClassChange = (e) => {
+    const val = e.target.value;
+    setValues((v) => ({ ...v, className: val }));
+    onValidate && onValidate({ ...values, className: val });
+  };
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm">
@@ -77,36 +126,56 @@ const ProfileCompletionModal = ({
         </p>
 
         <div className="space-y-4">
+          {/* Phone */}
           <div>
-            <label className="block text-sm text-[#00497a] mb-1">
+            <label className="block text-sm text-[#00497a] mb-1" htmlFor="profile-phone">
               Mobile number (India)
             </label>
             <input
+              id="profile-phone"
               type="tel"
               inputMode="numeric"
               maxLength={10}
-              placeholder="10-digit mobile"
-              className="w-full border text-black border-[#cfe9fb] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#007acc]"
+              placeholder="10-digit mobile (starts with 6–9)"
+              className={[
+                "w-full rounded-lg px-3 py-2 text-black focus:outline-none",
+                phoneInvalid
+                  ? "border border-red-500 ring-1 ring-red-300 focus:ring-red-500"
+                  : "border border-[#cfe9fb] focus:ring-2 focus:ring-[#007acc]",
+              ].join(" ")}
               value={values.phoneNumber}
-              onChange={(e) => {
-                // keep digits only
-                const onlyDigits = e.target.value.replace(/\D/g, "");
-                setValues((v) => ({
-                  ...v,
-                  phoneNumber: onlyDigits.slice(0, 10),
-                }));
-              }}
+              onChange={handlePhoneChange}
+              onBlur={() => setTouchedField("phoneNumber")}
+              onPaste={handlePhonePaste}
+              onKeyDown={handlePhoneKeyDown}
+              aria-invalid={phoneInvalid ? "true" : "false"}
+              aria-describedby={phoneInvalid ? "profile-phone-error" : undefined}
             />
+            {phoneInvalid && (
+              <p id="profile-phone-error" className="mt-1 text-xs text-red-600">
+                {errors.phoneNumber}
+              </p>
+            )}
           </div>
 
+          {/* Class */}
           <div>
-            <label className="block text-sm text-[#00497a] mb-1">Class</label>
+            <label className="block text-sm text-[#00497a] mb-1" htmlFor="profile-class">
+              Class
+            </label>
             <select
-              className="w-full border text-black border-[#cfe9fb] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#007acc] bg-white"
+              id="profile-class"
+              className={[
+                "w-full rounded-lg px-3 py-2 bg-white text-black focus:outline-none",
+                classInvalid
+                  ? "border border-red-500 ring-1 ring-red-300 focus:ring-red-500"
+                  : "border border-[#cfe9fb] focus:ring-2 focus:ring-[#007acc]",
+              ].join(" ")}
               value={values.className}
-              onChange={(e) =>
-                setValues((v) => ({ ...v, className: e.target.value }))
-              }
+              onChange={handleClassChange}
+              onBlur={() => setTouchedField("className")}
+              aria-invalid={classInvalid ? "true" : "false"}
+              aria-describedby={classInvalid ? "profile-class-error" : undefined}
             >
               {classOptions.map((opt) => (
                 <option key={opt.value || "empty"} value={opt.value}>
@@ -114,9 +183,17 @@ const ProfileCompletionModal = ({
                 </option>
               ))}
             </select>
+            {classInvalid && (
+              <p id="profile-class-error" className="mt-1 text-xs text-red-600">
+                {errors.className}
+              </p>
+            )}
           </div>
 
-          {error ? <div className="text-sm text-red-600">{error}</div> : null}
+          {/* Server/top-level error */}
+          {error ? (
+            <div className="text-sm text-red-600">{error}</div>
+          ) : null}
 
           <button
             onClick={onSubmit}
@@ -134,6 +211,7 @@ const ProfileCompletionModal = ({
     </div>
   );
 };
+
 
 /* ---------------------------- tab state helper --------------------------- */
 
@@ -240,6 +318,28 @@ export default function Practice() {
   const [practiceSearch, setPracticeSearch] = useState("");
   const [testSearch, setTestSearch] = useState("");
   const [studySearch, setStudySearch] = useState("");
+const [profileErrors, setProfileErrors] = useState({
+  phoneNumber: "",
+  className: "",
+});
+
+const validateProfile = (vals) => {
+  const errors = { phoneNumber: "", className: "" };
+
+  const phone = (vals.phoneNumber || "").replace(/\D/g, "");
+  if (!phone) errors.phoneNumber = "Mobile number is required.";
+  else if (!/^[6-9]\d{9}$/.test(phone)) {
+    errors.phoneNumber =
+      "Enter a valid Indian mobile (10 digits, starts with 6–9).";
+  }
+
+  const allowed = new Set(["CLASS_11", "CLASS_12", "REPEATER"]);
+  if (!vals.className) errors.className = "Please select your class.";
+  else if (!allowed.has(vals.className))
+    errors.className = "Invalid class selected.";
+
+  return { errors, isValid: !errors.phoneNumber && !errors.className };
+};
 
   // Init active tab + logged-in
   useEffect(() => {
@@ -340,72 +440,96 @@ export default function Practice() {
     studyMaterialState.currentScreen
   );
 
-  // Save profile via your provided endpoint
-  const handleSaveProfile = async () => {
-    setProfileError("");
+const handleSaveProfile = async () => {
+  setProfileError("");
 
-    // Validate
+  const { errors, isValid } = validateProfile(profileValues);
+  setProfileErrors(errors);
+  if (!isValid) {
+    setShowProfileModal(true);
+    setProfileError("Please fix the highlighted fields.");
+    return;
+  }
+  if (!user?.id) {
+    setProfileError("User not found. Please re-login.");
+    return;
+  }
+
+  try {
+    setSavingProfile(true);
+    const token = localStorage.getItem("token");
     const phone = (profileValues.phoneNumber || "").replace(/\D/g, "");
-    if (phone.length !== 10) {
-      setProfileError("Please enter a valid 10-digit mobile number.");
-      return;
-    }
-    const allowed = new Set(["11", "12", "PROVISIONAL"]);
-    if (!allowed.has(profileValues.className)) {
-      setProfileError("Please select your class.");
-      return;
-    }
-    if (!user?.id) {
-      setProfileError("User not found. Please re-login.");
-      return;
-    }
 
-    try {
-      setSavingProfile(true);
-      const token = localStorage.getItem("token");
-      const fd = new FormData();
-      fd.append("phoneNumber", phone);
-      fd.append("className", profileValues.className); // "11" | "12" | "PROVISIONAL"
+    // 🔁 Map UI values -> Prisma enum values (adjust names to match your schema)
+    const classMap = {
+      "11": "CLASS_11",
+      "12": "CLASS_12",
+      "REPEATER": "REPEATER",
+      // Fallback: if your schema uses plain "11" / "12", reverse this map or skip it
+    };
+    const normalizedClass =
+      classMap[profileValues.className] || profileValues.className;
 
-      const res = await fetch(
-        `https://mitoslearning.in/api/users/update-profile/${user.id}`,
-        {
-          method: "PUT",
-          headers: { Authorization: `Bearer ${token}` },
-          body: fd,
-        }
-      );
+    const fd = new FormData();
+    fd.append("phoneNumber", phone);
+    fd.append("className", normalizedClass);
 
-      if (!res.ok) {
-        const t = await res.text().catch(() => "");
-        throw new Error(t || "Failed to update profile");
+    const res = await fetch(
+      `https://mitoslearning.in/api/users/update-profile/${user.id}`,
+      {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${token}` },
+        body: fd,
       }
+    );
 
-      // Update local state with new values & close modal
-      setUser((u) => ({
-        ...(u || {}),
-        phoneNumber: phone,
-        className: profileValues.className,
-      }));
-      setShowProfileModal(false);
-    } catch (err) {
-      setProfileError(err.message || "Something went wrong.");
-    } finally {
-      setSavingProfile(false);
+    if (!res.ok) {
+      let serverMsg = "Failed to update profile";
+      try {
+        const data = await res.json();
+        if (data?.errors) {
+          setProfileErrors((prev) => ({ ...prev, ...data.errors }));
+          serverMsg = "Please fix the highlighted fields.";
+        } else if (data?.message) {
+          serverMsg = String(data.message);
+        }
+      } catch {
+        const t = await res.text().catch(() => "");
+        if (t) serverMsg = t;
+      }
+      throw new Error(serverMsg);
     }
-  };
+
+    setUser((u) => ({
+      ...(u || {}),
+      phoneNumber: phone,
+      className: normalizedClass,
+    }));
+    setShowProfileModal(false);
+  } catch (err) {
+    setProfileError(err.message || "Something went wrong.");
+  } finally {
+    setSavingProfile(false);
+  }
+};
+
+
 
   return (
     <div className="pt-6">
       {/* Force profile completion (blocking) */}
-      <ProfileCompletionModal
-        open={isLoggedIn && showProfileModal}
-        values={profileValues}
-        setValues={setProfileValues}
-        onSubmit={handleSaveProfile}
-        submitting={savingProfile}
-        error={profileError}
-      />
+    <ProfileCompletionModal
+  open={isLoggedIn && showProfileModal}
+  values={profileValues}
+  setValues={setProfileValues}
+  onSubmit={handleSaveProfile}
+  submitting={savingProfile}
+  error={profileError}
+  errors={profileErrors}                                
+  onValidate={(vals) => setProfileErrors(              
+    validateProfile(vals).errors
+  )}
+/>
 
       {/* Tabs */}
       <div className="tabs flex space-x-3 md:space-x-4">

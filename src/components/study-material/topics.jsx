@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { fetchTopicsWithPDF } from "@/utils/api"; // uses /pdf/chapters/:chapterId/topics-with-topic-pdfs
+import { fetchTopicsWithPDF } from "@/utils/api";
 import PremiumPopup from "../PremiumPopup";
 import CommonLoader from "@/commonLoader";
 
