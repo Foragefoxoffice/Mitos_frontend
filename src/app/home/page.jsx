@@ -168,10 +168,10 @@ export default function LandingPage() {
           >
             Do you need to be top 1%
             <br className="br-tag" />
-            in NEET Toppers?
+            in NEET Aspirants?
           </h1>
           <p className="text-md md:text-2xl font-medium mb-8 max-w-2xl mx-auto text-white">
-            Master NEET with limitless practice, tests, study guides,
+            Master NEET with limitless practice, tests, Study Materials,
             <br className="br-tag" />
             data-driven personal analytics, and more.
           </p>
@@ -404,8 +404,7 @@ export default function LandingPage() {
           <div className="p-6 bg-[#6d3093]/90 rounded-2xl  mt-6 flex justify-center items-center gap-4">
             <FaGift className="text-white" />
             <p className="text-center text-white text-lg">
-              Bonus Exercise: NCERT Exemplar, Solved Excercise, Short, long and
-              very long questions
+              Bonus Exercise: NCERT Exemplar, Solved Excercise, Very short, Short and Long Answers
             </p>
           </div>
         </div>

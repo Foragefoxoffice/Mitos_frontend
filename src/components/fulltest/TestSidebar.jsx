@@ -32,7 +32,7 @@ export const TestSidebar = ({
             <li className="text-[#000] after:bg-[#e49331]">Un-answered</li>
             <li className="notvisited-label after:bg-[#CAE2FF]">Not visited</li>
             <li className="text-[#8e0068] after:bg-[#80008e]">
-              Mark as Review
+              Mark for Review
             </li>
           </>
         )}

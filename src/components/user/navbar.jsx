@@ -1,9 +1,15 @@
 "use client";
 import { useEffect, useState } from "react";
 import UserDropdown from "../UserDropdown";
+import { set } from "date-fns";
 
  const UserComponent = () => {
   const [user, setUser] = useState(null);
+  const [role, setRole] = useState(null);
+
+  useEffect(() => {
+     setRole(localStorage.getItem("role")); 
+  }, []);
 
   // Fetch user info
   useEffect(() => {
@@ -39,10 +45,19 @@ import UserDropdown from "../UserDropdown";
   }, []);
 
   return (
-    <div className="flex justify-between">
+    <div className="flex justify-between items-center ">
       <div></div>
       <div>
-        <UserDropdown user={user} />
+        {role === 'guest' ? (
+          <a
+            href="/login"
+            className="inline-block px-6 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-semibold rounded-lg shadow-md hover:scale-105 hover:shadow-lg transition-all duration-200"
+          >
+            Login
+          </a>
+        ) : (
+          <UserDropdown user={user} />
+        )}
       </div>
     </div>
   );

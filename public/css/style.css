@@ -615,7 +615,8 @@ input[type="checkbox"] {
   color: var(--text);
   font-size: 22px;
 }
-.question_option a {
+
+.question_option a,.test_container1 a {
   pointer-events: none;
   cursor: default;
   text-decoration: none;
