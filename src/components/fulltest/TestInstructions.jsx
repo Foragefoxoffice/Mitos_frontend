@@ -27,7 +27,7 @@ export const TestInstructions = ({ setShowInstructionPopup }) => {
           </h2>
           <ul className="text-sm space-y-2 text-gray-700 list-decimal pl-5">
             <li className="pb-4">
-              Each correctly answer question carries 4 marks.
+              Each correctly answered question carries 4 marks.
             </li>
             <li className="pb-4">
               Each wrongly answered question deducts 1 mark.

@@ -71,7 +71,7 @@ const ProfileCompletionModal = ({
     { label: "Select class…", value: "" },
     { label: "Class 11", value: "CLASS_11" },
     { label: "Class 12", value: "CLASS_12" },
-    { label: "REPEATER", value: "REPEATER" },
+    { label: "Repeater", value: "REPEATER" },
   ];
 
   const phoneInvalid =
@@ -409,22 +409,19 @@ const validateProfile = (vals) => {
     },
   };
 
-  const handleTabClick = (tab) => {
-    if (tab === "tab3" && !isLoggedIn) {
-      setShowPremiumPopup(true);
-      return;
-    }
-    setIsLoading(true);
-    setTimeout(() => {
-      setActiveTab(tab);
-      sessionStorage.setItem("activeTab", tab);
-      setIsLoading(false);
+ const handleTabClick = (tab) => {
+  // ❌ no popup for study material in guest mode
+  setIsLoading(true);
+  setTimeout(() => {
+    setActiveTab(tab);
+    sessionStorage.setItem("activeTab", tab);
+    setIsLoading(false);
 
-      if (tab === "tab1") practiceState.navigateTo("subject");
-      else if (tab === "tab2") testState.navigateTo("full-portion");
-      else if (tab === "tab3") studyMaterialState.navigateTo("subject");
-    }, 50);
-  };
+    if (tab === "tab1") practiceState.navigateTo("subject");
+    else if (tab === "tab2") testState.navigateTo("full-portion");
+    else if (tab === "tab3") studyMaterialState.navigateTo("subject");
+  }, 50);
+};
 
   // helpers to know when to show Back + Search
   const showPracticeHeader = ["chapter", "topic", "questiontype"].includes(

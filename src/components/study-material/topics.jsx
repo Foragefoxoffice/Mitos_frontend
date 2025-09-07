@@ -34,6 +34,13 @@ export default function MeterialsTopicsPage({
     return false;
   };
 
+  // NEW → helpers to decide lock based on PDFs too
+  const topicHasPremiumPdf = (topic) =>
+    Array.isArray(topic?.pdf) && topic.pdf.some((p) => !!p?.isPremium);
+
+  const isLockedForGuest = (topic) =>
+    isGuestUser() && (topic?.isPremium || topicHasPremiumPdf(topic));
+
   useEffect(() => {
     const loadTopicsWithPDFs = async () => {
       try {
@@ -83,13 +90,12 @@ export default function MeterialsTopicsPage({
     );
   }, [topics, searchTerm]);
 
+  // UPDATED: lock if guest & any PDF is premium (or topic.isPremium)
   const handleGoToMaterials = (topic) => {
-    const locked = isGuestUser() && topic.isPremium;
-    if (locked) {
+    if (isLockedForGuest(topic)) {
       setShowPopup(true);
       return;
     }
-    // One button per topic → navigate directly with that topicId
     router.push(`/user/study-materials?topicId=${topic.id}`);
   };
 
@@ -102,7 +108,6 @@ export default function MeterialsTopicsPage({
   return (
     <div className="p-4">
       <h1 className="text-xl font-bold mb-1">Study Materials</h1>
-      {/* {chapterName && <h2 className="text-lg mb-4">Chapter: {chapterName}</h2>} */}
 
       {loading && <CommonLoader />}
       {error && <p className="text-center pt-10 text-red-500">{error}</p>}
@@ -116,39 +121,44 @@ export default function MeterialsTopicsPage({
               {[...filteredTopics]
                 // push locked items to bottom for guests
                 .sort((a, b) => {
-                  const aLocked = isGuestUser() && a.isPremium;
-                  const bLocked = isGuestUser() && b.isPremium;
+                  const aLocked = isLockedForGuest(a);
+                  const bLocked = isLockedForGuest(b);
                   if (aLocked !== bLocked) return aLocked - bLocked;
                   return a.name.localeCompare(b.name);
                 })
                 .map((topic) => {
-                  const locked = isGuestUser() && topic.isPremium;
+                  const locked = isLockedForGuest(topic);
+
                   return (
                     <div
                       key={topic.id}
-                      className="rounded-xl bg-transparent p-6 text-black border border-[#ccc] shadow-sm"
+                      className="rounded-xl bg-transparent p-6 text-black border border-[#ccc] shadow-sm place-content-center"
                     >
                       <div className="min-w-0">
-                        <p className="text-2xl font-semibold leading-tight truncate text-black">
+                        <p className="text-2xl font-semibold leading-tight text-black whitespace-normal break-words">
                           {topic.name}
                           {locked && (
-                            <span className="ml-2 text-white/80">🔒</span>
+                            <span className="ml-2 align-middle text-[#b45309]">
+                              🔒
+                            </span>
                           )}
                         </p>
-                        {/* keep content same: no extra lines like "8 Topics" added */}
                       </div>
 
                       <div className="mt-6 flex justify-center">
                         <button
-                          className={`inline-flex min-w-[220px] items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold shadow-sm
-        ${
-          locked
-            ? "bg-white/70 text-[#5C222A]/60 cursor-not-allowed"
-            : "bg-[#5C222A] text-[#fff] hover:bg-white/90 hover:text-[#5C222A]"
-        }`}
-                          disabled={locked}
+                          // keep clickable so popup can appear
+                          aria-disabled={locked}
                           onClick={() => handleGoToMaterials(topic)}
-                          title={locked ? "Premium content" : "Start Studying"}
+                          className={`inline-flex min-w-[220px] items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold shadow-sm transition
+                            ${
+                              locked
+                                ? "bg-white/70 text-[#5C222A]/60 hover:bg-white/80"
+                                : "bg-[#5C222A] text-white hover:bg-white/90 hover:text-[#5C222A]"
+                            }`}
+                          title={
+                            locked ? "Premium content (login/upgrade)" : "Start Studying"
+                          }
                         >
                           Start Studying
                         </button>

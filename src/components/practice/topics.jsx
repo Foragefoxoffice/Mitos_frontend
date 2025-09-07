@@ -11,6 +11,7 @@ import CommonLoader from "@/commonLoader";
 const SPECIAL_BOTTOM_ORDER = [
   "Previous Year Questions",
   "Previous Year Questions-Part 1",
+  "Previous Year Questions-Part 2",
   "Assertion & Reason Questions",
   "Picture Based Questions",
   "NCERT Exemplar Questions",

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.0//EN" "http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd">
+<!-- Creator: CorelDRAW 2021.5 -->
+<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" width="64px" height="64px" version="1.0" style="shape-rendering:geometricPrecision; text-rendering:geometricPrecision; image-rendering:optimizeQuality; fill-rule:evenodd; clip-rule:evenodd"
+viewBox="0 0 6369 6369"
+ xmlns:xlink="http://www.w3.org/1999/xlink"
+ xmlns:xodm="http://www.corel.com/coreldraw/odm/2003">
+ <defs>
+  <style type="text/css">
+   <![CDATA[
+    .str0 {stroke:#2C426B;stroke-width:199;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10}
+    .fil5 {fill:none}
+    .fil4 {fill:none;fill-rule:nonzero}
+    .fil2 {fill:#0091FC;fill-rule:nonzero}
+    .fil3 {fill:#0770BF;fill-rule:nonzero}
+    .fil1 {fill:#B0DDFC;fill-rule:nonzero}
+    .fil0 {fill:#EAEAEA;fill-rule:nonzero}
+   ]]>
+  </style>
+ </defs>
+ <g id="Layer_x0020_1">
+  <metadata id="CorelCorpID_0Corel-Layer"/>
+  <g id="_3082465394880">
+   <g>
+    <polygon class="fil0" points="3129,2213 2138,1653 1837,1830 3132,2563 "/>
+    <polygon class="fil0" points="3134,3360 3134,2221 2831,2047 2831,3535 "/>
+    <polygon class="fil1" points="2130,1652 1150,2232 1154,2582 2434,1824 "/>
+    <polygon class="fil2" points="1162,2222 1162,3360 1465,3535 1465,2047 "/>
+    <polygon class="fil3" points="1167,3368 2158,3929 2459,3752 1164,3018 "/>
+    <polygon class="fil0" points="2154,3929 3134,3349 3130,2999 1850,3758 "/>
+    <polygon class="fil4 str0" points="1162,2222 1162,3360 2148,3929 3134,3360 3134,2222 2148,1653 "/>
+    <polyline class="fil4 str0" points="3173,2235 3173,3373 4159,3942 5144,3373 5144,2235 "/>
+    <polyline class="fil4 str0" points="5144,3331 4159,3900 4159,5038 5144,5607 6130,5038 6130,3900 "/>
+    <line class="fil4 str0" x1="2148" y1="761" x2="2148" y2= "1653" />
+    <line class="fil4 str0" x1="238" y1="3942" x2="1163" y2= "3360" />
+   </g>
+   <rect class="fil5" width="6369" height="6369"/>
+  </g>
+ </g>
+</svg>

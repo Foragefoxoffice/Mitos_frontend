@@ -76,37 +76,37 @@ export default function Subject({ onSubjectSelect, onScreenSelection }) {
 
   const subjectStyles = {
     "11th Biology": {
-      image: "/images/practice/11th-biology.png",
-      bgColor: "bg-[#32CD32]",
-      buttonTextColor: "text-[#248C24]",
-      spinnerColor: "#248C24",
+      image: "/images/practice/11th-biology.svg",
+      bgColor: "bg-[#cd7432]",
+      buttonTextColor: "text-[#cd7432]",
+      spinnerColor: "#cd7432",
     },
     "11th Physics": {
-      image: "/images/practice/11th-physics.png",
+      image: "/images/practice/11th-physics.svg",
       bgColor: "bg-[#B57170]",
       buttonTextColor: "text-[#8C5756]",
       spinnerColor: "#8C5756",
     },
     "11th Chemistry": {
-      image: "/images/practice/11th-chemistry.png",
+      image: "/images/practice/11th-chemistry.svg",
       bgColor: "bg-[#E1AD01]",
       buttonTextColor: "text-[#9B8108]",
       spinnerColor: "#9B8108",
     },
     "12th Biology": {
-      image: "/images/practice/12th-biology.png",
+      image: "/images/practice/12th-biology.svg",
       bgColor: "bg-[#00A86B]",
       buttonTextColor: "text-[#088356]",
       spinnerColor: "#088356",
     },
     "12th Physics": {
-      image: "/images/practice/12th-physics.png",
+      image: "/images/practice/12th-physics.svg",
       bgColor: "bg-[#967969]",
       buttonTextColor: "text-[#7D6659]",
       spinnerColor: "#7D6659",
     },
     "12th Chemistry": {
-      image: "/images/practice/12th-chemistry.png",
+      image: "/images/practice/12th-chemistry.svg",
       bgColor: "bg-[#CDC50A]",
       buttonTextColor: "text-[#999308]",
       spinnerColor: "#999308",

@@ -30,12 +30,63 @@ export const TestResults = ({
     Biology: "bg-[#32CD32]",
   };
 
-  const processedSubjects = subjects.map((subj) => {
-    const match = Object.values(resultsBySubject || {}).find((r) =>
-      (r.subjectName || "").toLowerCase().includes(subj.toLowerCase())
-    );
-    const marks = match ? match.correct * 4 - match.wrong : 0;
-    return { name: subj, marks };
+  // ---------- NEET subject aggregation helpers ----------
+  const MARKS_PER_CORRECT = 4;
+  const NEGATIVE_PER_WRONG = 1;
+
+  const normalizeToNEET = (raw = "") => {
+    const s = String(raw).toLowerCase();
+    if (s.includes("phys")) return "Physics";
+    if (s.includes("chem")) return "Chemistry";
+    // Biology can come as Biology / Botany / Zoology / abbreviations
+    if (s.includes("bio") || s.includes("bot") || s.includes("zoo")) return "Biology";
+    return null;
+  };
+
+  const aggregateSubjects = () => {
+    const agg = {
+      Physics: { correct: 0, wrong: 0 },
+      Chemistry: { correct: 0, wrong: 0 },
+      Biology: { correct: 0, wrong: 0 },
+    };
+
+    // 1) Prefer explicit resultsBySubject if present
+    const rbsValues = Object.values(resultsBySubject || {});
+    let usedSource = false;
+
+    if (rbsValues.length > 0) {
+      for (const r of rbsValues) {
+        const key =
+          normalizeToNEET(r?.subjectName || r?.name || r?.subject || r?.title);
+        if (!key) continue;
+        agg[key].correct += Number(r?.correct || 0);
+        agg[key].wrong += Number(r?.wrong || 0);
+        usedSource = true;
+      }
+    }
+
+    // 2) Fallback: sum across resultsByType[*].subjects
+    if (!usedSource) {
+      for (const typeData of Object.values(resultsByType || {})) {
+        const subjectsMap = typeData?.subjects || {};
+        for (const [subjName, subjData] of Object.entries(subjectsMap)) {
+          const key = normalizeToNEET(subjName);
+          if (!key) continue;
+          agg[key].correct += Number(subjData?.correct || 0);
+          agg[key].wrong += Number(subjData?.wrong || 0);
+        }
+      }
+    }
+
+    return agg;
+  };
+
+  const subjectAgg = aggregateSubjects();
+
+  const processedSubjects = subjects.map((name) => {
+    const { correct = 0, wrong = 0 } = subjectAgg[name] || {};
+    const marks = correct * MARKS_PER_CORRECT - wrong * NEGATIVE_PER_WRONG;
+    return { name, marks };
   });
 
   return (
@@ -56,17 +107,13 @@ export const TestResults = ({
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 text-sm md:px-20 px-4">
           <div className="border border-[#D3CBFB] flex flex-col gap-2 rounded-3xl py-4 px-2 bg-white shadow-inner justify-center">
-            <p className="text-black text-2xl font-semibold">
-              Over All Score :
-            </p>
+            <p className="text-black text-2xl font-semibold">Overall Score :</p>
             <p className="text-[#007ACC] md:text-4xl text-2xl font-semibold">
               {calculateScore()} / {totalMarks}
             </p>
           </div>
           <div className="border border-[#e0e0e0] rounded-3xl py-6 px-4 bg-white flex flex-col gap-2 shadow-inner">
-            <p className="text-black text-2xl font-semibold">
-              Total Time Taken:
-            </p>
+            <p className="text-black text-2xl font-semibold">Total Time Taken:</p>
             <div className="flex justify-center items-center gap-1 text-red-600 font-bold text-2xl">
               <img src="/images/menuicon/time.png" className="w-8 h-auto" />
               {formatTime(totalTime - timeLeft)} MIN
@@ -74,7 +121,7 @@ export const TestResults = ({
           </div>
         </div>
 
-        {/* Subject Score Cards */}
+        {/* Subject Score Cards (NEET: +4 / -1, Biology = Botany+Zoology) */}
         <div className="grid px-6 grid-cols-1 md:grid-cols-3 gap-3 mb-6">
           {processedSubjects.map(({ name, marks }) => (
             <div

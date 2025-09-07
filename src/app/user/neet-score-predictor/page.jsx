@@ -282,32 +282,24 @@ export default function NeetScorePredictorPage() {
 
   if (error) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center px-6">
-        <div className="max-w-md w-full bg-white border border-red-100 rounded-2xl p-6 text-center shadow-sm">
-          <div className="mx-auto w-12 h-12 rounded-full bg-red-50 flex items-center justify-center mb-3">
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              className="text-red-500"
-            >
-              <path
-                fill="currentColor"
-                d="M12 9v4m0 4h.01M12 2a10 10 0 1 1 0 20a10 10 0 0 1 0-20Z"
-                stroke="currentColor"
-                strokeWidth="1.5"
-              />
-            </svg>
-          </div>
-          <h2 className="font-semibold text-[#2A175C] mb-1">
-            Something went wrong
+  <div className="relative w-full h-[400px] overflow-hidden">
+        <img
+          src="/images/score.png"
+          alt="No Results"
+          className="absolute inset-0 w-full h-full object-cover filter blur-sm opacity-70"
+        />
+        <div className="relative z-10 flex flex-col items-center justify-center h-full text-center">
+          <h2 className="text-2xl font-bold text-gray-800">
+            No results available
           </h2>
-          <p className="text-sm text-gray-600">{error}</p>
+          <p className="text-md text-gray-600 mt-2">
+            Please take the test to see your results.
+          </p>
           <a
             href="/user/dashboard"
-            className="inline-flex mt-4 px-4 py-2 rounded-lg bg-[#2A175C] text-white hover:bg-[#2A175C]/90"
+            className="mt-6 px-6 py-2 bg-[#35095e] text-white font-medium rounded-lg hover:bg-[#35095e]/80 transition"
           >
-            Go to Dashboard
+            Take the Test
           </a>
         </div>
       </div>
