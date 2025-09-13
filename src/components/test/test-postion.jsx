@@ -116,19 +116,21 @@ export default function Portion({ onPortionSelect, onScreenSelection }) {
       {error && <p className="text-red-500 text-center">{error}</p>}
 
       {!loading && !error && (
-        <div className="grid md:grid-cols-3 gap-6 px-4">
+        <div className="grid sm:grid-cols-2 gap-6 px-4">
           {/* Full Portion Card */}
           <div className="bg-[#00A86B] text-white rounded-xl p-6 relative shadow-md flex flex-col justify-between">
             <div className="portion-card-inner">
               <div>
-                <h2 className="text-3xl font-semibold mb-1">Full Portion</h2>
+                <h2 className="md:text-lg text-3xl font-semibold mb-1">
+                  Full Portion
+                </h2>
                 <p className="text-md text-white mb-6">11th & 12th</p>
               </div>
               <div className="">
                 <img
                   src="/images/practice/test-img1.png"
                   alt="Full Icon"
-                  className=""
+                  className="md:w-20 w-20"
                 />
               </div>
             </div>
@@ -197,7 +199,7 @@ export default function Portion({ onPortionSelect, onScreenSelection }) {
               >
                 <div className="portion-card-inner">
                   <div>
-                    <h2 className="text-3xl font-semibold mb-1">
+                    <h2 className="md:text-lg text-3xl font-semibold mb-1">
                       {portion.name} Portion
                     </h2>
                     <p className="text-md text-white mb-6">
@@ -208,7 +210,7 @@ export default function Portion({ onPortionSelect, onScreenSelection }) {
                     <img
                       src={imageSrc}
                       alt={`${portion.name} Icon`}
-                      className=""
+                      className="md:w-16 w-16"
                     />
                   </div>
                 </div>
@@ -216,7 +218,7 @@ export default function Portion({ onPortionSelect, onScreenSelection }) {
                 <div className="space-y-3">
                   <button
                     onClick={() => handleCustomPortionClick(portion)}
-                    className={`w-full hover:translate-y-[-1px] transition-all mt-14 py-3 rounded-full bg-white ${btnText} font-semibold text-md ${
+                    className={`w-full hover:translate-y-[-1px] transition-all md:mt-2 mt-14 py-3 rounded-full bg-white ${btnText} font-semibold text-md ${
                       isGuestUser() ? "opacity-50 cursor-not-allowed" : ""
                     }`}
                   >

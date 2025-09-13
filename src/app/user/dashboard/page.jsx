@@ -529,7 +529,7 @@ const handleSaveProfile = async () => {
 />
 
       {/* Tabs */}
-      <div className="tabs flex space-x-3 md:space-x-4">
+      <div className="tabs flex space-x-3 md:space-x-4 md:p-3">
         {["tab1", "tab2", "tab3"].map((tab) => (
           <button
             key={tab}
@@ -537,7 +537,7 @@ const handleSaveProfile = async () => {
               activeTab === tab
                 ? "bg-[#007ACC] text-white font-bold rounded-5xl text-[--text]"
                 : "text-[#00497A]"
-            } px-2 md:px-9 md:py-3 py-2`}
+            } px-2 sm:px-6 lg:px-9 md:py-3 py-2`}
             onClick={() => handleTabClick(tab)}
             aria-label={tabDetails[tab]?.label || "Tab"}
             aria-selected={activeTab === tab}

@@ -183,12 +183,12 @@ const Leaderboard = () => {
   if (error) return <p className="text-center text-red-500">{error}</p>;
 
   return (
-    <div className="p-5 md:p-10 bg-[#F2F8FE] min-h-screen">
+    <div className="p-5 md:p-2 bg-[#F2F8FE] min-h-screen">
       {/* Top Section */}
-      <div className="grid md:grid-cols-2 items-start gap-6 mb-10">
+      <div className="grid md:grid-cols-2 items-start gap-6 mb-10 leader-board-top-section">
         {/* Top Rankers */}
         <div className="bg-white rounded-2xl pt-6 pb-0 pr-6 pl-6 shadow-md">
-          <h2 className="text-xl font-bold text-black mb-4 flex justify-end items-center gap-2">
+          <h2 className="md:text-xl text-lg font-bold text-black mb-4 flex justify-end items-center gap-2">
             <BsGraphUpArrow /> Top Rankers (by Total Score)
           </h2>
           <div className="flex gap-3 justify-center items-end">
@@ -218,14 +218,14 @@ const Leaderboard = () => {
                       {user.name || "User"}
                     </span>
                   </div>
-                  <span className={`text-2xl ${p.text}`}>
+                  <span className={`md:text-2xl text-lg ${p.text}`}>
                     {(user.totalScore ?? 0).toLocaleString()} pts
                   </span>
                   <div
-                    className={`w-[90px] md:w-[150px] mt-3 ${heights[index]} ${p.block} rounded-t-3xl flex items-center justify-center text-white text-xl font-bold`}
+                    className={`w-[60px] md:w-[150px] mt-3 ${heights[index]} ${p.block} rounded-t-3xl flex items-center justify-center text-white text-lg md:text-xl font-bold`}
                   >
                     {rankNum}
-                    <sup className="text-2xl ml-1">{ordinal(rankNum)}</sup>
+                    <sup className="text-lg md:text-2xl ml-1">{ordinal(rankNum)}</sup>
                   </div>
                 </div>
               );
@@ -303,33 +303,33 @@ const Leaderboard = () => {
           <div
             key={String(user.userId)}
             ref={isCurrentUser ? currentUserRef : null}
-            className={`grid grid-cols-12 mb-5 items-center px-6 py-4 text-sm rounded-xl ${
+            className={`grid grid-cols-12 mb-5 items-center px-2 py-2 md:px-6 md:py-4 text-sm rounded-xl ${
               isCurrentUser
                 ? "bg-[#FFFDF2] border-2 border-yellow-400"
                 : "bg-[#F2FAFF] border border-[#007ACC40]"
             }`}
           >
-            <div className="col-span-2 flex items-center text-black text-lg font-semibold">
+            <div className="md:col-span-2 col-span-3 flex items-center text-black text-sm md:text-lg font-semibold">
               #{trueRank}
-              <sup className="ml-0.5">{ordinal(trueRank)}</sup>
+              <sup className="ml-0.5 text-sm">{ordinal(trueRank)}</sup>
               {isCurrentUser && (
-                <span className="ml-2 text-xs font-bold bg-yellow-200 text-yellow-800 px-2 py-0.5 rounded-full">
+                <span className="md:ml-2 text-xs font-bold bg-yellow-200 text-yellow-800 px-2 py-0.5 rounded-full">
                   You
                 </span>
               )}
             </div>
-            <div className="col-span-5 flex items-center gap-3">
+            <div className="md:col-span-5 col-span-6 flex items-center gap-3">
               <Image
                 src={getProfileImageUrl(user.profile)}
                 width={30}
                 height={30}
                 alt="Profile"
-                className="rounded-full w-10 h-10"
+                className="rounded-full w-6 h-6 md:w-10 md:h-10"
               />
-              <span className="font-medium">{user.name || "User"}</span>
+              <span className="font-medium text-sm md:text-xl">{user.name || "User"}</span>
             </div>
             {/* <div className="col-span-3 font-semibold text-green-600">{acc}</div> */}
-            <div className="col-span-2 flex justify-end">
+            <div className="md:col-span-2 col-span-3 flex justify-end">
               <span
                 className={`text-xs px-3 py-1 rounded-full font-semibold ${
                   totalScore > 0

@@ -417,7 +417,7 @@ export default function NeetScorePredictorPage() {
 
       {/* Subject Cards */}
       <main className=" mx-auto pt-10">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 score-predictor-subjects">
           {SUBJECTS.map((s) => (
             <SubjectCard
               key={s}

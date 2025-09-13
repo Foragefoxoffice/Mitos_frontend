@@ -286,7 +286,7 @@
 }
 
 .inside_practice .subject_card {
-  height: 330px;
+  height: 100%;
 }
 
 .chapter_cards_card {
@@ -819,7 +819,6 @@ input[type="checkbox"] {
   border-radius: 16px;
   display: grid;
   gap: 10px;
-  align-items: center;
 }
 
 .test_btn {

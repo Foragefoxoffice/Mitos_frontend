@@ -591,20 +591,19 @@ export default function LandingPage() {
                 />
               </div>
               <div className="flex gap-6">
-                <a href="#" className="hover:text-white">
+                <a href="/user/privacy-policy" className="hover:text-white">
                   Privacy
                 </a>
-                <a href="#" className="hover:text-white">
+                <a href="/user/terms-and-conditions" className="hover:text-white">
                   Terms
                 </a>
-                <a href="#" className="hover:text-white">
+                <a href="contact" className="hover:text-white">
                   Contact
                 </a>
               </div>
             </div>
             <p className="text-white">
-              © {new Date().getFullYear()} mitoslearning.com — All rights
-              reserved.
+              © {new Date().getFullYear()} Mitos Learning (OPC) Private Limited. All rights reserved.
             </p>
           </div>
         </div>

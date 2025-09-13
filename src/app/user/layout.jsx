@@ -57,7 +57,7 @@ export default function DashboardLayout({ children }) {
       {/* Right Side */}
 
       <div className="w-[100%] md:w-[90%] lg:w-[84%] xl:w-[84%]  overflow-y-scroll no-scrollbar ">
-        <div className="p-0 md:p-10 mb-10">
+        <div className="p-0 md:p-10 mb-10 test-container-main">
           <div className="flex items-center justify-between md:justify-end ">
             <div className="flex md:hidden items-center ">
               <Image
@@ -78,7 +78,7 @@ export default function DashboardLayout({ children }) {
         <footer className="w-full bg-white p-4 pt-5 text-center text-gray-600 ">
           <p className="text-sm">
             &copy; {new Date().getFullYear()}{" "}
-            <span className="text-[#017bcd]">mitoslearning.com.</span> All
+            <span className="text-[#017bcd]">Mitos Learning (OPC) Private Limited.</span> All
             rights reserved.
           </p>
         </footer>

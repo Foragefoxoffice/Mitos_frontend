@@ -314,7 +314,7 @@ export default function Chapter({
       image: "/images/chapterImg/C11.7-Redox-Reactions.svg",
     },
         "General Organic Chemistry": {
-      image: "/images/chapterImg/C11.8-Organic-Chemistry-Some-Basic-Principles-and-Techniques.svg",
+      image: "/images/chapterImg/C11.8-General-Organic-Chemistry.svg",
     },
         "d & f Block": {
       image: "/images/chapterImg/C12.4-THE-d-AND-f-BLOCK-ELEMENTS.svg",
@@ -439,7 +439,7 @@ export default function Chapter({
             <p className="text-center pt-10">No chapters match your search.</p>
           ) : (
             <div className="chapter_cards">
-              {filteredChapters.sort((a, b) => a.name.localeCompare(b.name)).map((chapter) => (
+              {filteredChapters.map((chapter) => (
                 <div
                   key={chapter.id}
                   className="subject_card"
@@ -448,12 +448,10 @@ export default function Chapter({
                   <div className="chapter-card-inner">
                     <div>
                       <h2>{chapter.name}</h2>
-                      <div className="text-sm flex gap-2 text-white">
-                        <span className="text-white">
+                      <div className="text-sm gap-2 text-white">
+                        <span className="text-white mr-1">
                           {chapter.topicCount} Topics
-                        </span>{" "}
-                        &
-                        <span className="text-white">
+                        </span>{" "}&amp;<span className="text-white ml-1">
                           {chapter.questionCount} Questions
                         </span>
                       </div>

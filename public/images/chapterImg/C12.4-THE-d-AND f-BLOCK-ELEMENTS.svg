@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 24.3.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 800 800" style="enable-background:new 0 0 800 800;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill:#F9F8F9;}
+	.st1{fill:#5CC4E0;}
+	.st2{fill:#FFFFFF;}
+	.st3{fill:#FF675C;}
+	.st4{fill:#DB3D5A;}
+	.st5{fill:#FAEC8E;}
+	.st6{fill:#FBC96C;}
+	.st7{font-family:'ComicSansMS';}
+	.st8{font-size:200px;}
+	.st9{fill:#12005F;}
+</style>
+<g>
+	<polygon class="st0" points="787.5,486 701.5,486 701.5,400 	"/>
+	<polygon class="st0" points="399.2,98.5 314,98.5 314,13.4 	"/>
+</g>
+<g>
+	<polygon class="st1" points="12.5,12.5 12.5,787.5 787.5,787.5 787.5,400 400,400 400,12.5 	"/>
+	<polygon class="st1" points="399.2,13.4 314,13.4 399.2,98.5 	"/>
+</g>
+<polygon class="st2" points="314,98.5 399.2,98.5 314,13.4 "/>
+<polygon class="st3" points="399.2,98.5 314,13.4 313.2,12.5 12.5,12.5 12.5,400 400,400 400,99.4 "/>
+<polygon class="st4" points="12.5,400 400,400 12.5,12.5 "/>
+<polygon class="st5" points="701.5,400 400,400 400,787.5 787.5,787.5 787.5,486 "/>
+<polygon class="st6" points="400,787.5 787.5,787.5 400,400 "/>
+<path d="M800,400c0-6.9-5.6-12.5-12.5-12.5H571.3c-6.9,0-12.5,5.6-12.5,12.5c0,6.9,5.6,12.5,12.5,12.5h117.6V486
+	c0,6.9,5.6,12.5,12.5,12.5h73.5v276.4H412.5V412.5h97.7c6.9,0,12.5-5.6,12.5-12.5c0-6.9-5.6-12.5-12.5-12.5h-97.7V14.2
+	c0-0.1,0-0.3,0-0.4c0-0.1,0-0.3,0-0.4C412.5,6.5,406.9,0,400,0H150.6c0,0,0,0,0,0c-6.9,0-12.5,6.2-12.5,13.1
+	c0,6.9,5.6,12.5,12.5,12.5l150.9,0.1v72.7c0,6.9,5.6,12.5,12.5,12.5h73.5v276.4H25.1V25.1h72.7c6.9,0,12.5-5.6,12.5-12.5
+	S104.6,0,97.7,0H12.5C5.6,0,0,5.6,0,12.5v774.9c0,6.9,5.6,12.5,12.5,12.5h774.9c6.9,0,12.5-5.6,12.5-12.5
+	C800,787.5,800,400.6,800,400z M387.5,68.5l-43.1-42.7l43.1,0V68.5z M326.5,43.6L368.9,86h-42.4V43.6z M25.1,412.5h362.4v362.4H25.1
+	V412.5z M774.9,455.8l-43.2-43.2h43.2V455.8z M714,430.2l43.2,43.2H714V430.2z"/>
+<text transform="matrix(1 0 0 1 89.837 271.9788)" class="st2 st7 st8">Fe</text>
+<text transform="matrix(1 0 0 1 86.7731 651.8937)" class="st9 st7 st8">Ru</text>
+<text transform="matrix(1 0 0 1 471.7944 651.8937)" class="st7 st8">Rh</text>
+</svg>

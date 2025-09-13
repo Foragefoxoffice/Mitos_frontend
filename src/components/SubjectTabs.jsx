@@ -127,7 +127,7 @@ const SubjectTabs = ({ monthData, section }) => {
         {[...subjects].map((subject) => (
           <button
             key={subject}
-            className={`px-8 py-3 rounded text-xl font-semibold ${
+            className={`px-8 py-3 rounded text-xl font-semibold whitespace-nowrap ${
               activeSubject === subject
                 ? "bg-[#31CA31] text-white"
                 : "bg-white text-[#35095e] border border-gray-200 hover:bg-[] hover:text-[#017bcd] duration-300"
