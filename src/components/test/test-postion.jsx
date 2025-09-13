@@ -116,7 +116,7 @@ export default function Portion({ onPortionSelect, onScreenSelection }) {
       {error && <p className="text-red-500 text-center">{error}</p>}
 
       {!loading && !error && (
-        <div className="grid sm:grid-cols-2 gap-6 px-4">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 px-4">
           {/* Full Portion Card */}
           <div className="bg-[#00A86B] text-white rounded-xl p-6 relative shadow-md flex flex-col justify-between">
             <div className="portion-card-inner">
